@@ -58,8 +58,8 @@ async def get_scores():
         return 'Player not found', 404
 
     scores = await glob.db.fetch(
-        'SELECT id, status, "mapHash", score, combo, rank, acc, "hit300", "hitgeki", '
-        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerID" = $1 '
+        'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerid" = $1 '
         'ORDER BY id DESC LIMIT $2',
         [p.id, limit]
     )
