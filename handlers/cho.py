@@ -307,6 +307,7 @@ async def submit_play():
         additive -= s.prev_best.score
 
       stats.rscore += additive
+      
 
     ## Update Ranked Score stats to db
     await glob.db.execute(
