@@ -3,7 +3,7 @@ import logging
 from enum import IntEnum, unique
 from datetime import datetime
 from pathlib import Path
-
+import json
 from objects import glob
 
 beatmap_folder = Path.cwd() / 'data/beatmaps'
@@ -156,6 +156,12 @@ class Beatmap:
     )
 
     m.star = float(bmap['difficultyrating'])
+    mapid_list_path = Path('data/mapid_list.json')
+    if m.status not in{RankedStatus.Ranked, RankedStatus.Loved, RankedStatus.Approved}:
+      with mapid_list_path.open() as f:
+          mapid_list = json.load(f)
+      if m.id in mapid_list:
+        m.status = RankedStatus.Whitelisted
     await m.save_to_sql()
 
     return m
