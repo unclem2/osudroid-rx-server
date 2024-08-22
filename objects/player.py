@@ -104,44 +104,41 @@ class Player:
 
 
   async def update_stats(self):
+    # Fetch ranked maps
+    ranked_maps_query = 'SELECT md5 FROM maps WHERE status IN (1, 2)'
+    ranked_maps = await glob.db.fetchall(ranked_maps_query)
 
-    ranked_maps = await glob.db.fetchall('SELECT md5 FROM maps WHERE status = 1 OR status = 2')
-    res = await glob.db.fetchall(
-        'SELECT s.acc, s.pp FROM scores s '
-        'WHERE s.playerID = $1 and s.status = 2 AND '
-        's.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5)) '   #Detecting ranked status
-        'ORDER BY s.score DESC',
-        [int(self.id)]
-    )
+    # Fetch player scores
+    scores_query = '''
+        SELECT s.acc, s.pp FROM scores s
+        WHERE s.playerID = $1 AND s.status = 2 AND
+        s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))
+        ORDER BY s.score DESC
+    '''
+    scores = await glob.db.fetchall(scores_query, [int(self.id)])
 
-    if not res:
-      return #logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
+    if not scores:
+        return  # logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
 
     stats = self.stats
 
-    # average acc
-    stats.acc = sum([row['acc'] for row in res[:50]]) / min(50, len(res))
+    # Calculate average accuracy
+    top_scores = scores[:50]
+    stats.acc = sum(row['acc'] for row in top_scores) / min(50, len(scores))
 
-    # pp
-    ## weight and shit
-    stats.pp = round(sum(row['pp']*0.95 ** i for i, row in enumerate(res)))
+    # Calculate performance points (pp)
+    stats.pp = round(sum(row['pp'] * 0.95 ** i for i, row in enumerate(scores)))
 
-    # rank
+    # Determine rank
     rank_by = 'pp' if glob.config.pp else 'rscore'
     higher_by = stats.pp if glob.config.pp else stats.rscore
-    res = await glob.db.fetch(
-      'SELECT count(*) AS c FROM stats '
-      'WHERE {} > $1'.format(rank_by),
-      [higher_by]
-    )
+    rank_query = f'SELECT count(*) AS c FROM stats WHERE {rank_by} > $1'
+    rank_result = await glob.db.fetch(rank_query, [higher_by])
+    stats.rank = rank_result['c'] + 1
 
-
-    stats.rank = res['c'] + 1
-
-    # update into db
-    await glob.db.execute('UPDATE stats SET acc = $1, rank = $2, pp = $3 WHERE id = $4', [stats.acc, stats.rank, stats.pp, self.id])
-
-
+    # Update stats in the database
+    update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3 WHERE id = $4'
+    await glob.db.execute(update_query, [stats.acc, stats.rank, stats.pp, self.id])
 
 
 
