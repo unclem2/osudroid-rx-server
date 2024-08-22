@@ -68,11 +68,11 @@ async def get_scores():
 
 @bp.route('/leaderboard')
 async def leaderboard():
-  players_stats = await glob.db.fetchall(
-      'SELECT stats.id, stats.rank, stats.pp, stats.plays, users.username '
-      'FROM stats '
-      'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp'
-)
-  return jsonify(players_stats) if players_stats else {'what'}
+    players_stats = await glob.db.fetchall(
+        'SELECT stats.id, stats.rank, stats.pp, stats.plays, users.username '
+        'FROM stats '
+        'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
+    )
+    return jsonify(players_stats) if players_stats else {'what'}
                                    
                                    
