@@ -28,11 +28,14 @@ registration_form = """
   </head>
   <body>
     <h1>Register</h1>
-    <form method="post" action="/register">
+    <form method="post" action="/api/register.php">
       <label for="username">Username:</label><br>
       <input type="text" id="username" name="username"><br>
       <label for="password">Password:</label><br>
       <input type="password" id="password" name="password"><br><br>
+      <label for="email">Email:</label><br>
+      <input type="text" id="email" name="email"><br>
+
       <input type="submit" value="Register">
     </form>
   </body>
@@ -96,7 +99,7 @@ async def register():
   if request.method == 'POST':
     params = await request.form
 
-    for args in ['username', 'deviceID', 'email', 'sign']:
+    for args in ['username', 'password' , 'email']:
       if not params.get(args, None):
         return Failed('Not enough argument.')
 
@@ -118,7 +121,7 @@ async def register():
           params['username'],
           utils.make_safe(params['username']),
           ph.hash(params['password']),
-          params['deviceID'],
+          "okyeah",
           'NotUsed',
           None,
           None,
@@ -126,7 +129,8 @@ async def register():
           utils.make_md5(params['email']),
           0
       ]
-  )
+  )    
+    
     # also create stats table
     await glob.db.execute(
         'INSERT INTO stats (id) VALUES ($1)',
