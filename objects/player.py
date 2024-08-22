@@ -110,7 +110,7 @@ class Player:
         'SELECT s.acc, s.pp FROM scores s '
         'WHERE s.playerID = $1 and s.status = 2 AND '
         's.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5)) '   #Detecting ranked status
-        'ORDER BY s.score DESC LIMIT 100',
+        'ORDER BY s.score DESC',
         [int(self.id)]
     )
 
