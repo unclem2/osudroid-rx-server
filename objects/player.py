@@ -104,14 +104,12 @@ class Player:
 
 
   async def update_stats(self):
-    ranked = RankedStatus.Ranked
-    loved = RankedStatus.Loved
-    
+
     ranked_maps = await glob.db.fetchall('SELECT md5 FROM maps WHERE status = 1 OR status = 2')
     res = await glob.db.fetchall(
         'SELECT s.acc, s.pp FROM scores s '
         'WHERE s.playerID = $1 and s.status = 2 AND '
-        's.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4)) '   #Detecting ranked status
+        's.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5)) '   #Detecting ranked status
         'ORDER BY s.score DESC LIMIT 100',
         [int(self.id)]
     )
