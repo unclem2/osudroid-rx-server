@@ -33,15 +33,15 @@ const accuracy = new Accuracy({
 });
 
 
-const nmrating = new DroidDifficultyCalculator(beatmapInfo.beatmap).calculate
+const nmrating = new OsuDifficultyCalculator(beatmapInfo.beatmap).calculate
 ({
     mods: mods,
 });
-const nmperformance = new DroidPerformanceCalculator(nmrating.attributes).calculate(
+const nmperformance = new OsuPerformanceCalculator(nmrating.attributes).calculate(
     {
         accPercent: accuracy,
         combo: combo
     });
 
-const pp_return = nmperformance.total - nmperformance.tap;
+const pp_return = nmperformance.total - nmperformance.speed;
 console.log(pp_return);
