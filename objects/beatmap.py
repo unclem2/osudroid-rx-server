@@ -17,6 +17,7 @@ class RankedStatus(IntEnum):
   Approved = 2
   Qualified = 3
   Loved = 4
+  Whitelisted = 5
 
   def __str__(self):
     return self.name
@@ -58,7 +59,7 @@ class Beatmap:
 
   @property
   def gives_reward(self):
-    return self.status in (RankedStatus.Ranked, RankedStatus.Approved)
+    return self.status in (RankedStatus.Ranked, RankedStatus.Approved, RankedStatus.Loved, RankedStatus.Whitelisted)
 
   async def download(self):
     """ Download the map and returns the path """
@@ -161,8 +162,6 @@ class Beatmap:
 
 
   async def save_to_sql(self):
-    
-
 # Convert datetime objects to Unix timestamp integers
     last_update_int = int(self.last_update.timestamp()) if isinstance(self.last_update, datetime) else self.last_update
     await glob.db.execute(

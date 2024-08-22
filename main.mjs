@@ -1,10 +1,11 @@
-import { Accuracy, MapInfo, MapStats, ModUtil } from "@rian8337/osu-base";
+import { Accuracy, MapInfo, MapStats, ModUtil, BeatmapDecoder } from "@rian8337/osu-base";
 import {
     DroidDifficultyCalculator,
     DroidPerformanceCalculator,
     OsuDifficultyCalculator,
     OsuPerformanceCalculator
 } from "@rian8337/osu-difficulty-calculator";
+import { readFile } from "fs";
 
 const args = process.argv.slice(2);
 if (args.length < 5) {
@@ -24,24 +25,28 @@ if (isNaN(mapid) || isNaN(accuracy_args) || isNaN(misses_args) || isNaN(combo)) 
     process.exit(1);
 }
 
-const beatmapInfo = await MapInfo.getInformation(mapid);
+readFile(`data/beatmaps/${mapid}.osu`, { encoding: "utf-8" }, (err, data) => {
+    if (err) throw err;
 
-const accuracy = new Accuracy({
-    nmiss: misses_args,
-    percent: accuracy_args,
-    nobjects: beatmapInfo.objects,
-});
+    const decoder = new BeatmapDecoder().decode(data);
 
+    // console.log(decoder.result.hitObjects);
+    const accuracy = new Accuracy({
+        nmiss: misses_args,
+        nobjects: decoder.result.hitObjects._circles + decoder.result.hitObjects._sliders + decoder.result.hitObjects._spinners,
+        percent: accuracy_args,
+        
+    });
+    console.log(accuracy);
+    const nmrating = new OsuDifficultyCalculator(decoder.result).calculate({
+        mods: mods,
+    });
 
-const nmrating = new OsuDifficultyCalculator(beatmapInfo.beatmap).calculate
-({
-    mods: mods,
-});
-const nmperformance = new OsuPerformanceCalculator(nmrating.attributes).calculate(
-    {
+    const nmperformance = new OsuPerformanceCalculator(nmrating.attributes).calculate({
         accPercent: accuracy,
         combo: combo
     });
-
-const pp_return = nmperformance.total - nmperformance.speed;
-console.log(pp_return);
+    console.log(nmperformance);
+    const pp_return = nmperformance.total - nmperformance.speed;
+    console.log(pp_return);
+});
