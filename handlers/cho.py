@@ -2,7 +2,7 @@ import os
 import logging
 import copy
 import time
-
+import hashlib
 from quart import Blueprint, request, send_file, render_template_string
 from argon2 import PasswordHasher
 
@@ -110,6 +110,11 @@ async def register():
     if len(params['username']) < 2:
       return Failed("Username must be longer than 2 characters.")
 
+    pasw = params['password'] + "taikotaiko"
+    md5_hash = hashlib.md5()
+    md5_hash.update(pasw.encode('utf-8'))
+    pasw_hashed = md5_hash.hexdigest()
+    
     player_id = await glob.db.execute(
           '''
       INSERT INTO users (
@@ -120,7 +125,7 @@ async def register():
           None,
           params['username'],
           utils.make_safe(params['username']),
-          ph.hash(params['password']),
+          ph.hash(pasw_hashed),
           "okyeah",
           'NotUsed',
           None,
