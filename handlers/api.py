@@ -46,24 +46,24 @@ async def get_user():
 
 @bp.route('/get_scores')
 async def get_scores():
-  params = request.args
+    params = request.args
 
-  limit = min(params.get('limit', 50), 50)
+    limit = min(int(params.get('limit', 50)), 50)
 
-  p = get_player(params)
-  if isinstance(p, tuple):
-    return p
-    
-  if not p:
-    return 'Player not found', 404
+    p = get_player(params)
+    if isinstance(p, tuple):
+        return p
 
-  scores = await glob.db.fetchall(
-  'SELECT id, status, mapHash, score, combo, rank, acc, hit300, hitgeki, '
-  'hit100, hitkatsu, hit50, hitmiss, mods, pp FROM scores WHERE playerID = ?'
-  'ORDER BY id DESC LIMIT ?'
-  , [p.id, limit]
-  )
+    if not p:
+        return 'Player not found', 404
 
-  return jsonify(scores) if scores else {'No score found.'}
+    scores = await glob.db.fetch(
+        'SELECT id, status, "mapHash", score, combo, rank, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerID" = $1 '
+        'ORDER BY id DESC LIMIT $2',
+        p.id, limit
+    )
+
+    return jsonify(scores) if scores else {'No score found.'}
 
 
