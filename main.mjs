@@ -37,7 +37,7 @@ readFile(`data/beatmaps/${mapid}.osu`, { encoding: "utf-8" }, (err, data) => {
         percent: accuracy_args,
         
     });
-    console.log(accuracy);
+    // console.log(accuracy);
     const nmrating = new OsuDifficultyCalculator(decoder.result).calculate({
         mods: mods,
     });
@@ -46,7 +46,7 @@ readFile(`data/beatmaps/${mapid}.osu`, { encoding: "utf-8" }, (err, data) => {
         accPercent: accuracy,
         combo: combo
     });
-    console.log(nmperformance);
+    // console.log(nmperformance);
     const pp_return = nmperformance.total - nmperformance.speed;
     console.log(pp_return);
 });
