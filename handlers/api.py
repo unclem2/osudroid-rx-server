@@ -61,7 +61,7 @@ async def get_scores():
         'SELECT id, status, "mapHash", score, combo, rank, acc, "hit300", "hitgeki", '
         '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerID" = $1 '
         'ORDER BY id DESC LIMIT $2',
-        p.id, limit
+        [p.id, limit]
     )
 
     return jsonify(scores) if scores else {'No score found.'}
