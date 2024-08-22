@@ -87,7 +87,7 @@ async def login():
     id = p.id,
     uuid = p.uuid,
     rank = p.stats.rank,
-    rank_by = p.stats.rank_by,
+    rank_by = int(p.stats.rank_by),
     acc = p.stats.droid_acc,
     name = p.name,
     avatar = f'https://s.gravatar.com/avatar/{p.email_hash}'
