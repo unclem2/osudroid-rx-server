@@ -103,6 +103,8 @@ class Player:
     return p
 
 
+
+
   async def update_stats(self):
     # Fetch ranked maps
     ranked_maps_query = 'SELECT md5 FROM maps WHERE status IN (1, 2)'
@@ -118,7 +120,8 @@ class Player:
     scores = await glob.db.fetchall(scores_query, [int(self.id)])
 
     if not scores:
-        return  # logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
+        logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
+        return
 
     stats = self.stats
 
@@ -127,7 +130,13 @@ class Player:
     stats.acc = sum(row['acc'] for row in top_scores) / min(50, len(scores))
 
     # Calculate performance points (pp)
-    stats.pp = round(sum(row['pp'] * 0.95 ** i for i, row in enumerate(scores)))
+    total_pp = 0
+    for i, row in enumerate(scores):
+        weight = 0.95 ** i
+        weighted_pp = row['pp'] * weight
+        total_pp += weighted_pp
+        logging.info(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
+    stats.pp = round(total_pp)
 
     # Determine rank
     rank_by = 'pp' if glob.config.pp else 'rscore'
@@ -139,6 +148,4 @@ class Player:
     # Update stats in the database
     update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3 WHERE id = $4'
     await glob.db.execute(update_query, [stats.acc, stats.rank, stats.pp, self.id])
-
-
 
