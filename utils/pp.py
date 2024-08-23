@@ -115,6 +115,8 @@ class PPCalculator:
     async def calc(self, s):
         mods = get_used_mods(s.mods)
         speed_multiplier = get_multiplier(s.mods)
+        if speed_multiplier is None:
+            speed_multiplier = 1
         pp = subprocess.run(
             [
                 'node', '--no-deprecation', 'main.mjs', 
