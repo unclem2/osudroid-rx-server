@@ -1,5 +1,6 @@
 import json
-from quart import Blueprint, request, jsonify
+from quart import Blueprint, request, jsonify, render_template_string
+import html_templates
 
 from objects import glob
 
@@ -73,6 +74,5 @@ async def leaderboard():
         'FROM stats '
         'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
     )
-    return jsonify(players_stats) if players_stats else {'what'}
-                                   
+    return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats) if players_stats else {'what'}
                                    

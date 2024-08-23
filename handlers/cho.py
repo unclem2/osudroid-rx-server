@@ -13,34 +13,12 @@ from objects.beatmap import RankedStatus
 from handlers.response import Failed, Success, Failure
 
 import utils
-
+import html_templates
 ph = PasswordHasher()
 bp = Blueprint('cho', __name__)
 bp.prefix = '/api/'
 
-registration_form = """
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Register</title>
-  </head>
-  <body>
-    <h1>Register</h1>
-    <form method="post" action="/api/register.php">
-      <label for="username">Username:</label><br>
-      <input type="text" id="username" name="username"><br>
-      <label for="password">Password:</label><br>
-      <input type="password" id="password" name="password"><br><br>
-      <label for="email">Email:</label><br>
-      <input type="text" id="email" name="email"><br>
 
-      <input type="submit" value="Register">
-    </form>
-  </body>
-</html>
-"""
 
 ## Register / Login
 @bp.route('/login.php', methods=['POST'])
@@ -146,7 +124,7 @@ async def register():
     glob.players.add(p)
 
     return Success('Account Created.')
-  return await render_template_string(registration_form)
+  return await render_template_string(html_templates.registration_form)
 
 ## Leaderboard / View Replay Data / View Actual Replay / Upload Replay
 @bp.route('/getrank.php', methods=['POST'])
