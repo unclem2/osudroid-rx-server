@@ -29,20 +29,11 @@ async def recalc():
     # await pp.recalc_scores()    
     await pp.recalc_stats()
 
-async def create_stats_entries():
-    query = '''
-        INSERT INTO stats (id, rank, pp, acc, tscore, rscore, plays)
-        VALUES ($1, 0, 0, 100.0, 0, 0, 0)
-        ON CONFLICT (id) DO NOTHING;
-    '''
-    
-    for i in range(1, 100):
-        await glob.db.execute(query, [i])
-            
+
 
 async def main():
-    # await recalc()
-    await create_stats_entries()
+    await recalc()
+   
 
 if __name__ == "__main__":
     asyncio.run(main())

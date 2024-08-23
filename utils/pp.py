@@ -155,7 +155,7 @@ async def recalc_scores():
 
 async def recalc_stats():
     # Fetch players from the database
-    players = await glob.db.fetchall("SELECT id FROM users LIMIT 40")
+    players = await glob.db.fetchall("SELECT id FROM users")
 
     for player in players:
         # Assuming you have a Player class that can update stats
