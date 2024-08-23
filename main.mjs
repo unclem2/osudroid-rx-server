@@ -49,8 +49,7 @@ async function calculatePerformance() {
                 }) 
             });
         let od_rel = -4; 
-        console.log(mods);
-
+        
         if (mods.some(mod => mod.acronym === 'PR' || mod.name === 'Precise')) {
             od_rel = 0;
         }
