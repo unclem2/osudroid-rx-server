@@ -41,8 +41,21 @@ async function calculatePerformance() {
             percent: accuracy_args,
         });
 
-        const nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods, stats: new MapStats({ speedMultiplier: multiplierValue }) });
+        const nmrating = new OsuDifficultyCalculator(decoder.result)
+        .calculate({ 
+            mods, 
+            stats: new MapStats({ 
+                speedMultiplier: multiplierValue, 
+                }) 
+            });
+        let od_rel = -4; 
+        console.log(mods);
 
+        if (mods.some(mod => mod.acronym === 'PR' || mod.name === 'Precise')) {
+            od_rel = 0;
+        }
+            
+            
         const calc = {
             speedDifficulty: nmrating.attributes.speedDifficulty,
             mods: nmrating.attributes.mods,
@@ -53,7 +66,7 @@ async function calculatePerformance() {
             speedNoteCount: nmrating.attributes.speedNoteCount,
             sliderFactor: nmrating.attributes.sliderFactor,
             approachRate: nmrating.attributes.approachRate,
-            overallDifficulty: nmrating.attributes.overallDifficulty - 4,
+            overallDifficulty: nmrating.attributes.overallDifficulty+od_rel,
             hitCircleCount: nmrating.attributes.hitCircleCount,
             sliderCount: nmrating.attributes.sliderCount,
             spinnerCount: nmrating.attributes.spinnerCount,
