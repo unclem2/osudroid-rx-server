@@ -112,12 +112,15 @@ class Player:
 
     # Fetch player scores
     scores_query = '''
-        SELECT s.acc, s.pp FROM scores s
+        SELECT s.acc, s.pp, s.score FROM scores s
         WHERE s.playerID = $1 AND s.status = 2 AND
         s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))
         ORDER BY s.pp DESC
     '''
     scores = await glob.db.fetchall(scores_query, [int(self.id)])
+
+    all_scores = await glob.db.fetchall('SELECT * FROM scores WHERE playerID = $1', [int(self.id)])
+
 
     if not scores:
         logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
@@ -141,15 +144,17 @@ class Player:
         total_pp += weighted_pp
         logging.info(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
     stats.pp = round(total_pp)
-
+    stats.rscore = sum(row['score'] for row in scores)
+    stats.tscore = sum(row['score'] for row in all_scores)
     # Determine rank
     rank_by = 'pp' if glob.config.pp else 'rscore'
     higher_by = stats.pp if glob.config.pp else stats.rscore
     rank_query = f'SELECT count(*) AS c FROM stats WHERE {rank_by} > $1'
     rank_result = await glob.db.fetch(rank_query, [higher_by])
     stats.rank = rank_result['c'] + 1
-
+    stats.plays = len(scores)
+    
     # Update stats in the database
-    update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3 WHERE id = $4'
-    await glob.db.execute(update_query, [stats.acc, stats.rank, stats.pp, self.id])
+    update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3, rscore = $4, tscore = $5, plays= $6 WHERE id = $7'
+    await glob.db.execute(update_query, [stats.acc, stats.rank, stats.pp, stats.rscore, stats.tscore, stats.plays, self.id])
 
