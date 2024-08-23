@@ -66,12 +66,13 @@ def convert_droid(mods: str):
 
     return val
 
+
 def get_multiplier(mods):
     """
     Extracts the multiplier value from the mods string.
-    For example, 'xs|2.00x' will return '2.00x'.
+    For example, 'xs|x2.00' will return 'x2.00'.
     """
-    match = re.search(r'\d+\.\d+x', mods)
+    match = re.search(r'\bx\d+\.\d+\b', mods, re.IGNORECASE)
     return match.group(0) if match else None
 
 def get_used_mods(mods):
@@ -113,8 +114,9 @@ class PPCalculator:
 
 
     async def calc(self, s):
-        mods = get_used_mods(s.mods)
         speed_multiplier = get_multiplier(s.mods)
+        mods = get_used_mods(s.mods)
+        
         if speed_multiplier is None:
             speed_multiplier = 1
         pp = subprocess.run(
