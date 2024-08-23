@@ -19,16 +19,16 @@ class PostgresDB:
         query = '''
                 CREATE TABLE IF NOT EXISTS maps (
                     id SERIAL PRIMARY KEY,
-                    set_id INTEGER,
+                    set_id BIGINT,
                     artist TEXT,
                     title TEXT,
                     version TEXT,
                     creator TEXT,
-                    last_update INTEGER,
-                    total_length INTEGER,
-                    max_combo INTEGER,
-                    status INTEGER,
-                    mode INTEGER,
+                    last_update BIGINT,
+                    total_length BIGINT,
+                    max_combo BIGINT,
+                    status BIGINT,
+                    mode BIGINT,
                     bpm REAL,
                     cs REAL,
                     od REAL,
@@ -40,32 +40,32 @@ class PostgresDB:
 
                 CREATE TABLE IF NOT EXISTS scores (
                     id SERIAL PRIMARY KEY,
-                    status INTEGER,
-                    mapID INTEGER,
+                    status BIGINT,
+                    mapID BIGINT,
                     mapHash TEXT NOT NULL,
-                    playerID INTEGER NOT NULL,
-                    score INTEGER NOT NULL,
-                    combo INTEGER NOT NULL,
+                    playerID BIGINT NOT NULL,
+                    score BIGINT NOT NULL,
+                    combo BIGINT NOT NULL,
                     rank TEXT NOT NULL,
                     acc REAL NOT NULL,
-                    hit300 INTEGER NOT NULL,
-                    hitgeki INTEGER NOT NULL,
-                    hit100 INTEGER NOT NULL,
-                    hitkatsu INTEGER NOT NULL,
-                    hit50 INTEGER NOT NULL,
-                    hitmiss INTEGER NOT NULL,
+                    hit300 BIGINT NOT NULL,
+                    hitgeki BIGINT NOT NULL,
+                    hit100 BIGINT NOT NULL,
+                    hitkatsu BIGINT NOT NULL,
+                    hit50 BIGINT NOT NULL,
+                    hitmiss BIGINT NOT NULL,
                     mods TEXT,
                     pp REAL DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS stats (
                     id SERIAL PRIMARY KEY,
-                    rank INTEGER DEFAULT 0,
+                    rank BIGINT DEFAULT 0,
                     pp REAL DEFAULT 0,
                     acc REAL DEFAULT 100.0,
-                    tscore INTEGER DEFAULT 0,
-                    rscore INTEGER DEFAULT 0,
-                    plays INTEGER DEFAULT 0
+                    tscore BIGINT DEFAULT 0,
+                    rscore BIGINT DEFAULT 0,
+                    plays BIGINT DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS users (
@@ -80,7 +80,7 @@ class PostgresDB:
                     custom_avatar TEXT,
                     email TEXT,
                     email_hash TEXT,
-                    status INTEGER DEFAULT 0
+                    status BIGINT DEFAULT 0
                 );
 
                 INSERT INTO users (
