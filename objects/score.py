@@ -153,7 +153,7 @@ class Score:
         if res:
             self.prev_best = await Score.from_sql(res['id'])
 
-            if self.score > res['score']:
+            if self.pp > res['pp']:
                 self.status = SubmissionStatus.BEST
                 self.prev_best.status = SubmissionStatus.SUBMITTED
 
