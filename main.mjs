@@ -19,6 +19,8 @@ const accuracy_args = parseFloat(args[2]);
 const misses_args = parseInt(args[3], 10);
 const combo = parseInt(args[4], 10);
 const mods = ModUtil.droidStringToMods(mods_arg);
+const speedmultiplier = args[5];
+const multiplierValue = parseFloat(speedmultiplier.replace('x', ''));
 
 if (isNaN(mapid) || isNaN(accuracy_args) || isNaN(misses_args) || isNaN(combo)) {
     console.error('One or more provided arguments are not valid numbers.');
@@ -39,7 +41,7 @@ async function calculatePerformance() {
             percent: accuracy_args,
         });
 
-        const nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods });
+        const nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods, stats: new MapStats({ speedMultiplier: multiplierValue }) });
 
         const calc = {
             speedDifficulty: nmrating.attributes.speedDifficulty,

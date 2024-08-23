@@ -6,7 +6,7 @@ from enum import Enum, IntEnum, unique
 import subprocess
 from objects import glob
 from objects.beatmap import Beatmap
-
+import re
 
 class droidMods(Enum):
     nm = '-'
@@ -66,7 +66,18 @@ def convert_droid(mods: str):
 
     return val
 
+def get_multiplier(mods):
+    """
+    Extracts the multiplier value from the mods string.
+    For example, 'xs|2.00x' will return '2.00x'.
+    """
+    match = re.search(r'\d+\.\d+x', mods)
+    return match.group(0) if match else None
+
 def get_used_mods(mods):
+    """
+    Removes unwanted characters from the mods string.
+    """
     mods = mods.replace('|', '').replace('x', '')
     return mods
 
@@ -103,10 +114,11 @@ class PPCalculator:
 
     async def calc(self, s):
         mods = get_used_mods(s.mods)
+        speed_multiplier = get_multiplier(s.mods)
         pp = subprocess.run(
             [
                 'node', '--no-deprecation', 'main.mjs', 
-                str(s.bmap.id), mods, str(s.acc), str(s.hmiss), str(s.max_combo)
+                str(s.bmap.id), mods, str(s.acc), str(s.hmiss), str(s.max_combo), str(speed_multiplier)
             ],
             capture_output=True,
             text=True
