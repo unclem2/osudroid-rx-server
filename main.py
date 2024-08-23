@@ -10,7 +10,7 @@ from objects.player import Player
 from objects.db import PostgresDB
 
 # handlers
-from handlers import (cho, api)
+from handlers import (cho, api, user)
 from handlers.response import Failed
 
 #
@@ -25,7 +25,7 @@ def make_app():
   glob.db = PostgresDB()
 
   # routes shit idk
-  routes = [cho, api]
+  routes = [cho, api, user]
 
   for route in routes:
     app.register_blueprint(route, url_prefix=route.prefix)

@@ -75,4 +75,5 @@ async def leaderboard():
         'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
     )
     return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats) if players_stats else {'what'}
-                                   
+  
+             
