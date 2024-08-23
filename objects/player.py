@@ -115,7 +115,7 @@ class Player:
         SELECT s.acc, s.pp FROM scores s
         WHERE s.playerID = $1 AND s.status = 2 AND
         s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))
-        ORDER BY s.score DESC
+        ORDER BY s.pp DESC
     '''
     scores = await glob.db.fetchall(scores_query, [int(self.id)])
 
