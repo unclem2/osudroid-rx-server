@@ -152,7 +152,7 @@ class Player:
     rank_query = f'SELECT count(*) AS c FROM stats WHERE {rank_by} > $1'
     rank_result = await glob.db.fetch(rank_query, [higher_by])
     stats.rank = rank_result['c'] + 1
-    stats.plays = len(scores)
+    stats.plays = len(all_scores)
     
     # Update stats in the database
     update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3, rscore = $4, tscore = $5, plays= $6 WHERE id = $7'
