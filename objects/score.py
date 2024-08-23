@@ -50,7 +50,7 @@ class Score:
         self.rank: str = ''
         self.fc: bool = None
         self.status: SubmissionStatus = SubmissionStatus.SUBMITTED
-        self.device_id: str = '' # unused
+        self.date: str = '' # unused
 
         self.prev_best: Score = None
 
@@ -83,10 +83,8 @@ class Score:
         s.hmiss = res['hitmiss']
         s.hgeki = res['hitgeki']
         s.hkatsu = res['hitkatsu']
-
-        s.pp = await PPCalculator.from_md5(s.map_hash, mods=s.mods, combo=s.max_combo, nmiss=s.hmiss, acc=s.acc)
-        if s.pp:
-            s.pp = await s.pp.calc(s)
+        s.date = res['date']
+        s.pp = int(round(res['pp']))
 
         if s.map_hash:
             s.rank = await s.calc_lb_placement()
@@ -124,9 +122,8 @@ class Score:
         s.grade = data[3]
         s.acc = float(data[10])/1000
         s.fc = (data[12] == 'true') or (data[12] == '1') # 1.6.8 Fix
-        s.device_id = data[11] # 1.6.8: Int?
+        s.date = int(data[11]) # 1.6.8: Int?
 
-        s.pp = await PPCalculator.from_md5(s.map_hash, mods=s.mods, combo=s.max_combo, nmiss=s.hmiss, acc=s.acc)
         
         if s.bmap:
             s.pp = await s.pp.calc(s)

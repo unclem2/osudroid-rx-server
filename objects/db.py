@@ -55,7 +55,8 @@ class PostgresDB:
                     hit50 BIGINT NOT NULL,
                     hitmiss BIGINT NOT NULL,
                     mods TEXT,
-                    pp REAL DEFAULT 0
+                    pp REAL DEFAULT 0,
+                    date BIGINT DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS stats (

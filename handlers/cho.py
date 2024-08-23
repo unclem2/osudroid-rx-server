@@ -165,7 +165,7 @@ async def view_score():
   play = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [int(params['playID'])])
   if play:
     
-    return Success('{mods} {score} {combo} {rank} {hitgeki} {hit300} {hitkatsu} {hit100} {hit50} {hitmiss} {acc}'.format(
+    return Success('{mods} {score} {combo} {rank} {hitgeki} {hit300} {hitkatsu} {hit100} {hit50} {hitmiss} {acc} {date}'.format(
       mods = play['mods'],
       score = int(play['pp']) if glob.config.pp_leaderboard else play['score'],
       combo = play['combo'],
@@ -177,7 +177,8 @@ async def view_score():
       hit50 = play['hit50'],
       hitmiss = play['hitmiss'],
       
-      acc = int(play['acc']*1000)
+      acc = int(play['acc']*1000),
+      date = play['date']
     ))
 
   return Failed('Score not found.')
@@ -263,10 +264,10 @@ async def submit_play():
       # User can remove this themselves, I'm just following gulag's osuSubmitModularSelector.
       return Success(s.player.stats.droid_submit_stats)
 
-    vals = [s.status, s.map_hash, s.player.id, s.score, s.max_combo, s.grade, s.acc, s.h300, s.hgeki, s.h100, s.hkatsu, s.h50, s.hmiss, s.mods, s.pp, s.bmap.id]
+    vals = [s.status, s.map_hash, s.player.id, s.score, s.max_combo, s.grade, s.acc, s.h300, s.hgeki, s.h100, s.hkatsu, s.h50, s.hmiss, s.mods, s.pp, s.bmap.id, s.date]
     s.id = await glob.db.execute('''
-        INSERT INTO scores (status, mapHash, playerID, score, combo, rank, acc, hit300, hitgeki, hit100, hitkatsu, hit50, hitmiss, mods, pp, mapid)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        INSERT INTO scores (status, mapHash, playerID, score, combo, rank, acc, hit300, hitgeki, hit100, hitkatsu, hit50, hitmiss, mods, pp, mapid, date)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     ''', vals)
     upload_replay = False
     if s.status == SubmissionStatus.BEST:
