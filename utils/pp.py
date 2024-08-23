@@ -7,6 +7,7 @@ import subprocess
 from objects import glob
 from objects.beatmap import Beatmap
 import re
+from objects.player import Player
 
 class droidMods(Enum):
     nm = '-'
@@ -152,5 +153,11 @@ async def recalc_scores():
 
             await glob.db.execute("UPDATE scores SET pp = $1 WHERE id = $2", [pp, score['id']])
 
+async def recalc_stats():
+    # Fetch players from the database
+    players = await glob.db.fetchall("SELECT id FROM users LIMIT 40")
 
-
+    for player in players:
+        # Assuming you have a Player class that can update stats
+        player_obj = Player(id=int(player['id']))
+        await player_obj.update_stats()

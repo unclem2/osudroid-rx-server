@@ -122,10 +122,14 @@ class Player:
     if not scores:
         logging.error(f'Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})')
         return
-
-    stats = self.stats
+    try:
+      stats = self.stats
+    except:
+      stats = Stats(id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0)
 
     # Calculate average accuracy
+    if stats is None:
+        stats = Stats(id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0)
     top_scores = scores[:50]
     stats.acc = sum(row['acc'] for row in top_scores) / min(50, len(scores))
 
