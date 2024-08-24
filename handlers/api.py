@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify, render_template_string
 import html_templates
 
 from objects import glob
-from objects.beatmap import Beatmap
+from objects.beatmap import Beatmap, RankedStatus
 bp = Blueprint('api', __name__)
 bp.prefix = '/api/'
 
@@ -90,8 +90,24 @@ async def map_status(md5:str):
   
   map = await Beatmap.from_md5(md5)
   await map.download()
+  if map.status == RankedStatus.Ranked:
+    status = "Ranked"
+  elif map.status == RankedStatus.Approved:
+    status = "Approved"
+  elif map.status == RankedStatus.Pending:
+    status = "Pending"
+  elif map.status == RankedStatus.Graveyard:
+    status = "Graveyard"
+  elif map.status == RankedStatus.Loved:
+    status = "Loved"
+  elif map.status == RankedStatus.NotSubmitted:
+    status = "Not Submitted"
+  elif map.status == RankedStatus.Qualified:
+    status = "Qualified"
+  elif map.status == RankedStatus.Whitelisted:
+    status = "Whitelisted"
   map_data = {
-    "status": map.status,
+    "status": status.lower(),
     "md5": md5,
   }
   return map_data
