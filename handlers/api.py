@@ -109,5 +109,6 @@ async def map_status(md5:str):
   map_data = {
     "status": status.lower(),
     "md5": md5,
+    "ranked": 1
   }
   return map_data
