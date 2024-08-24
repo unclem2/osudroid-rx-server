@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify, render_template_string
 import html_templates
 
 from objects import glob
-
+from objects.beatmap import Beatmap
 bp = Blueprint('api', __name__)
 bp.prefix = '/api/'
 
@@ -83,4 +83,15 @@ async def send_update():
     "link": "https://github.com/unclem2/osudroid-rx-server/releases/download/osudroidrelax-apk/osu.droid-1.12.240824.-debug-2024-08-24.apk",
     "changelog": "force 1 cursor, nofail and relax now compatible with each other, you can fail with relax, fix some bugs"
   }
-  return data    
+  return data  
+
+@bp.route('/v2/md5/<string:md5>')  
+async def map_status(md5:str):
+  
+  map = await Beatmap.from_md5(md5)
+  await map.download()
+  map_data = {
+    "status": map.status,
+    "md5": md5,
+  }
+  return map_data
