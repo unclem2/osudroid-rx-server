@@ -184,6 +184,7 @@ async def view_score():
   return Failed('Score not found.')
 
 
+
 @bp.route('/upload/<string:replay_path>', methods=['GET'])
 async def view_replay(replay_path: str):
   path = f'data/replays/{replay_path}' # already have .odr
@@ -195,14 +196,17 @@ async def view_replay(replay_path: str):
 
 @bp.route('/upload.php', methods=['POST'])
 async def upload_replay():
-  replay_id = request.args
+    # Use await with request.files and request.form for asynchronous access
+  files = await request.files
+  form = await request.form
 
-  if 'replayID' not in replay_id:
-    return Failed('Invalid argument.')
+    # Correctly access the file and replayID
+  file = files.get('uploadedfile')
+  replay_id = form.get('replayID')
 
-  replay_id = replay_id['replayID']
   path = f'data/replays/{replay_id}.odr' # doesnt have .odr
-  raw_replay = (await request.data)[191:][:-48]
+  raw_replay = file.read()
+  
 
   if raw_replay[:2] != b'PK':
     return Failed('Fuck off lol.')
@@ -214,7 +218,6 @@ async def upload_replay():
     file.write(raw_replay)
 
   return Success('Replay uploaded.')
-
 
 ## Play Submit - god i hate this part
 
