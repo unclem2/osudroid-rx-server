@@ -32,7 +32,7 @@ async def login():
 
   if not p:
     return Failed("User not found.")
-  if params['version'] != '1':
+  if params['version'] != '2':
     return Failed("This client is outdated. Check pins")
   ## login shites
   res = (await glob.db.fetch("SELECT password_hash, status FROM users WHERE id = $1", [p.id])) 
