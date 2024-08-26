@@ -15,6 +15,7 @@ import pathlib
 import utils
 import html_templates
 import requests
+from werkzeug.utils import secure_filename
 
 bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
@@ -58,3 +59,59 @@ async def profile():
                 score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
 
     return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores, top_scores=top_scores)
+
+@bp.route('/set_avatar.php', methods=['GET', 'POST'])
+async def set_avatar():
+    if request.method == 'POST':
+        # Await the request.files to ensure it's not a coroutine
+        files = await request.files
+        form = await request.form
+
+        # Check if the avatar file is part of the request
+        if 'avatar' not in files:
+            return Failure(reason="No file part")
+
+        file = files.get('avatar')
+        if file.filename == '':
+            return Failure(reason="No selected file")
+
+        # Collect login data
+        username = form.get('username')
+        password =  form.get('password')
+        if not username or not password:
+            return Failure(reason="Username and password are required")
+
+        # Authenticate user
+        data = {
+            'username': username,
+            'password': password,
+            'version': '1'
+        }
+        async with aiohttp.ClientSession() as session:
+            async with session.post(f"http://{glob.config.host}:{glob.config.port}/api/login.php", data=data) as resp:
+                resp_text = await resp.text()
+                print(resp_text)
+                if "FAILED" in resp_text:
+                    return Failure("Invalid username or password")
+
+        # Retrieve player object
+        p = glob.players.get(name=username)
+        if not p:
+            return Failure("Player not found")
+
+        # Validate and save the avatar file
+        if file and allowed_file(file.filename):
+            file.filename = f"{p.id}.png"
+            filename = secure_filename(file.filename)
+            file_path = os.path.join('data/avatar', filename)
+            await file.save(file_path)
+
+            return Success("Avatar updated successfully")
+        else:
+            return Failure("Invalid file type")
+
+    return await render_template_string(html_templates.set_avatar_temp)
+
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

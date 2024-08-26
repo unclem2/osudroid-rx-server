@@ -60,7 +60,11 @@ async def login():
   # make uuid if havent
   if not p.uuid:
     p.uuid = utils.make_uuid(p.name)
-
+    
+  if os.path.isfile(f'data/avatar/{p.id}.png'):
+    p.avatar = f'http://{glob.config.host}:{glob.config.port}/user/avatar/{p.id}.png'
+  else:
+    p.avatar = f'https://s.gravatar.com/avatar/{p.email_hash}'
   # returns long string of shit
   return Success('{id} {uuid} {rank} {rank_by} {acc} {name} {avatar}'.format(
     id = p.id,
@@ -69,7 +73,7 @@ async def login():
     rank_by = int(p.stats.rank_by),
     acc = p.stats.droid_acc,
     name = p.name,
-    avatar = f'https://s.gravatar.com/avatar/{p.email_hash}'
+    avatar = p.avatar
   ))
 
 
