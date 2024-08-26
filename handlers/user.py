@@ -90,7 +90,7 @@ async def set_avatar():
         data = {
             'username': username,
             'password': password,
-            'version': '1'
+            'version': '2'
         }
         async with aiohttp.ClientSession() as session:
             async with session.post(f"http://{glob.config.host}:{glob.config.port}/api/login.php", data=data) as resp:
