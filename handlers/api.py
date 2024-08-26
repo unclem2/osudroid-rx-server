@@ -90,25 +90,13 @@ async def map_status(md5:str):
   
   map = await Beatmap.from_md5(md5)
   await map.download()
-  if map.status == RankedStatus.Ranked:
-    status = "Ranked"
-  elif map.status == RankedStatus.Approved:
-    status = "Approved"
-  elif map.status == RankedStatus.Pending:
-    status = "Pending"
-  elif map.status == RankedStatus.Graveyard:
-    status = "Graveyard"
-  elif map.status == RankedStatus.Loved:
-    status = "Loved"
-  elif map.status == RankedStatus.NotSubmitted:
-    status = "Not Submitted"
-  elif map.status == RankedStatus.Qualified:
-    status = "Qualified"
-  elif map.status == RankedStatus.Whitelisted:
-    status = "Whitelisted"
+ 
+  if map.status == RankedStatus.Whitelisted:
+    map.status = 1
+  
   map_data = {
-    "status": status.lower(),
+    
     "md5": md5,
-    "ranked": 1
+    "ranked": map.status
   }
   return map_data
