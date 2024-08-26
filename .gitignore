@@ -15,7 +15,7 @@ data/release/*
 data/replays/*
 data/beatmaps/*
 data/avatars/*
-
+data/replays_old/*
 
 # Distribution / packaging
 .Python
