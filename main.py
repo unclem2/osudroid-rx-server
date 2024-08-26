@@ -92,5 +92,5 @@ async def index():
 
 if __name__ == '__main__':
   coloredlogs.install(level=logging.DEBUG)
-  app.run(port=glob.config.port, use_reloader=False, host=glob.config.host, debug=False)
+  app.run(port=glob.config.port, use_reloader=True, host=glob.config.host, debug=False)
 

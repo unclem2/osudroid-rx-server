@@ -4,6 +4,9 @@ import html_templates
 
 from objects import glob
 from objects.beatmap import Beatmap, RankedStatus
+from objects.score import Score
+from utils.pp import PPCalculator
+
 bp = Blueprint('api', __name__)
 bp.prefix = '/api/'
 
@@ -60,7 +63,7 @@ async def get_scores():
 
     scores = await glob.db.fetchall(
         'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
-        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerid" = $1 '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
         'ORDER BY id DESC LIMIT $2',
         [p.id, limit]
     )
@@ -74,8 +77,56 @@ async def leaderboard():
         'FROM stats '
         'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
     )
-    return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats) if players_stats else {'what'}
-  
+    return jsonify(players_stats)
+      
+@bp.route('/top_scores')
+async def top_scores():
+  params = request.args
+  id = int(params.get('id'))
+  top_scores = await glob.db.fetchall(
+    'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+    '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
+    'ORDER BY pp DESC LIMIT 10',
+    [id]
+  )
+  return jsonify(top_scores) if top_scores else {'No score found.'}
+
+@bp.route('/set_avatar')
+
+#bot endpoints
+
+@bp.route('/recent')
+async def recent():
+  params = request.args
+  id = int(params.get('id'))
+  index = params.get('index')
+  recent = await glob.db.fetchall(
+    'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+    '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerid" = $1 '
+    'ORDER BY id DESC LIMIT 1 OFFSET $2',
+    [id, index]
+  ) 
+  return jsonify(recent) if recent else {'No score found.'}
+
+@bp.route('/calculate')
+async def calculate():
+    params = request.args
+    score = Score()
+    score.bmap = await Beatmap.from_md5(params.get('md5'))
+    score.acc = float(params.get('acc'))
+    score.combo = int(params.get('combo'))
+    score.miss = int(params.get('miss'))
+    score.mods = params.get('mods')
+    
+    await score.bmap.download()
+    score.pp = await PPCalculator.from_md5(params.get('md5'))
+    score.pp = await score.pp.calc(score)
+    
+
+    return str(score.pp)
+    
+
+# client endpoints
 @bp.route('/update.php')
 async def send_update():
   data = {

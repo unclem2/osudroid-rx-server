@@ -38,7 +38,7 @@ class Stats:
       'rank': self.rank,
       'total_score': self.tscore,
       'ranked_score': self.rscore,
-      'accurancy': self.acc,
+      'accuracy': self.acc,
       'plays': self.plays,
       'pp': self.pp,
       'is_playing': self.playing

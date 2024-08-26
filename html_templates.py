@@ -54,18 +54,95 @@ leaderboard_temp = """
                 </thead>
                 <tbody>
                     {% for player in leaderboard %}
-                    <tr>
-                        <td>{{ player.rank }}</td>
-                        <td>{{ player.username }}</td>
-                        <td>{{ player.pp }}</td>
-                        <td>{{ player.plays }}</td>
-                    </tr>
+                        <tr>
+                            <td>{{ player.rank }}</td>
+                            <td>{{ player.username }}</td>
+                            <td>{{ player.pp }}</td>
+                            <td>{{ player.plays }}</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </section>
     </main>
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
+</body>
+</html>
+"""
+
+profile_temp = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Player Profile</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Profile of {{ player.name }}</h1>
+    <h2>Recent Scores</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Map title</th>
+                <th>Score</th>
+                <th>PP</th>
+                <th>Accuracy</th>
+                <th>Combo</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for score in recent_scores %}
+                <tr>
+                    <td>{{ score.map }}</td>
+                    <td>{{ score.score }}</td>
+                    <td>{{ score.pp }}</td>
+                    <td>{{ score.acc }}</td>
+                    <td>{{ score.combo }}</td>
+                    <td>{{ score.date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <h2>Top Scores</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Map title</th>
+                <th>Score</th>
+                <th>PP</th>
+                <th>Accuracy</th>
+                <th>Combo</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for score in top_scores %}
+                <tr>
+                    <td>{{ score.map }}</td>
+                    <td>{{ score.score }}</td>
+                    <td>{{ score.pp }}</td>
+                    <td>{{ score.acc }}</td>
+                    <td>{{ score.combo }}</td>
+                    <td>{{ score.date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </body>
 </html>
 """
