@@ -76,8 +76,13 @@ async def set_avatar():
             return Failure(reason="No selected file")
 
         # Collect login data
+        md5_hash = hashlib.md5()
+
         username = form.get('username')
-        password =  form.get('password')
+        password = f"{form.get('password')}taikotaiko"
+        md5_hash.update(password.encode('utf-8'))
+        password = md5_hash.hexdigest()
+        
         if not username or not password:
             return Failure(reason="Username and password are required")
 
