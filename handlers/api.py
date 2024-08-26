@@ -79,9 +79,9 @@ async def leaderboard():
 @bp.route('/update.php')
 async def send_update():
   data = {
-    "version_code": 1724512765,
-    "link": "https://github.com/unclem2/osudroid-rx-server/releases/download/osudroidrelax-apk/osu.droid-1.12.240824.-debug-2024-08-24.apk",
-    "changelog": "force 1 cursor, nofail and relax now compatible with each other, you can fail with relax, fix some bugs"
+    "version_code": 1724675954,
+    "link": "https://github.com/unclem2/osudroid-rx-server/releases/download/v1-pre/osu.droid-1.12.240826.-debug-2024-08-26.apk",
+    "changelog": "removed direct status integration, replaced by server api, whitelist support(shows as ranked)"
   }
   return data  
 
