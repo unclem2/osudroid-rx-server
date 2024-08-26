@@ -50,7 +50,7 @@ async function calculatePerformance() {
             });
 
         if ((nmrating.attributes.starRating / nmrating.attributes.aimDifficulty) < 2.2) {
-            console.log('Relax mod detected');
+            // console.log('Relax mod detected');
             nmrating.mods.push(new ModRelax());
             nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods, stats: new MapStats({ speedMultiplier: multiplierValue }) });
         }
@@ -75,7 +75,7 @@ async function calculatePerformance() {
             spinnerCount: nmrating.attributes.spinnerCount,
         };
 
-        console.log(calc)
+        // console.log(calc)
         const nmperformance = new OsuPerformanceCalculator(calc).calculate({
             accPercent: accuracy,
             combo: combo,
