@@ -1,4 +1,4 @@
-import { Accuracy, MapInfo, MapStats, ModUtil, BeatmapDecoder } from "@rian8337/osu-base";
+import { Accuracy, MapInfo, MapStats, ModUtil, BeatmapDecoder, ModRelax } from "@rian8337/osu-base";
 import {
     DroidDifficultyCalculator,
     DroidPerformanceCalculator,
@@ -41,27 +41,31 @@ async function calculatePerformance() {
             percent: accuracy_args,
         });
 
-        const nmrating = new OsuDifficultyCalculator(decoder.result)
+        let nmrating = new OsuDifficultyCalculator(decoder.result)
         .calculate({ 
             mods, 
             stats: new MapStats({ 
                 speedMultiplier: multiplierValue, 
                 }) 
             });
+
+        if ((nmrating.attributes.starRating / nmrating.attributes.aimDifficulty) < 2.2) {
+            console.log('Relax mod detected');
+            nmrating.mods.push(new ModRelax());
+            nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods, stats: new MapStats({ speedMultiplier: multiplierValue }) });
+        }
         let od_rel = -4; 
         
         if (mods.some(mod => mod.acronym === 'PR' || mod.name === 'Precise')) {
             od_rel = 0;
         }
-            
-            
         const calc = {
-            speedDifficulty: nmrating.attributes.speedDifficulty,
+            speedDifficulty: 0,
             mods: nmrating.attributes.mods,
             starRating: nmrating.attributes.starRating,
             maxCombo: nmrating.attributes.maxCombo,
             aimDifficulty: nmrating.attributes.aimDifficulty,
-            flashlightDifficulty: nmrating.attributes.flashlightDifficulty,
+            flashlightDifficulty: 0,
             speedNoteCount: nmrating.attributes.speedNoteCount,
             sliderFactor: nmrating.attributes.sliderFactor,
             approachRate: nmrating.attributes.approachRate,
@@ -71,17 +75,19 @@ async function calculatePerformance() {
             spinnerCount: nmrating.attributes.spinnerCount,
         };
 
+        console.log(calc)
         const nmperformance = new OsuPerformanceCalculator(calc).calculate({
             accPercent: accuracy,
             combo: combo,
         });
-
-        const pp_return = nmperformance.total - nmperformance.speed;
+        // console.log(nmperformance);
+        const pp_return = nmperformance.total - nmperformance.speed- nmperformance.accuracy*0.5;
         console.log(pp_return);
     } catch (err) {
         console.error('Error reading or processing the beatmap file:', err);
         process.exit(1);
     }
 }
+
 
 calculatePerformance();
