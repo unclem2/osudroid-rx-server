@@ -88,10 +88,10 @@ async function calculatePerformance() {
         let speedReduction = (nmperformance.speed/nmperformance.total-0.25);
         let speedReductionFactor = Math.exp(-speedReduction);
 
-        console.log("nmperformance.speed: " + nmperformance.speed);
-        console.log("nmperformance.total: " + nmperformance.total);
-        console.log("speedReductionFactor: " + speedReductionFactor);
-        console.log("bonusReductionFactor: " + accFactor);
+        // console.log("nmperformance.speed: " + nmperformance.speed);
+        // console.log("nmperformance.total: " + nmperformance.total);
+        // console.log("speedReductionFactor: " + speedReductionFactor);
+        // console.log("bonusReductionFactor: " + accFactor);
         pp_return = nmperformance.total - nmperformance.speed;
         pp_return = pp_return * accFactor * speedReductionFactor ; // Apply the reduction factor directly to pp_return
         console.log(pp_return);
