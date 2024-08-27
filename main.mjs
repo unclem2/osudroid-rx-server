@@ -85,7 +85,7 @@ async function calculatePerformance() {
             accFactor = Math.exp(-c); // Use negative exponent to ensure the factor is <= 1
         }
         
-        let speedReduction = (nmperformance.speed/nmperformance.total-0.20);
+        let speedReduction = (nmperformance.speed/nmperformance.total-0.25);
         let speedReductionFactor = Math.exp(-speedReduction);
         let arBonus = 1;
         if (calc.approachRate > 10.3) {
