@@ -18,7 +18,8 @@ import utils
 
 # testing
 from utils import pp
-from objects.beatmap import Beatmap
+from objects.beatmap import Beatmap, insert_whitelist
+
 
 
 
@@ -26,8 +27,9 @@ glob.db = PostgresDB()
 
 async def recalc():
     await glob.db.connect()
-    await pp.recalc_scores()    
-    await pp.recalc_stats()
+    # await pp.recalc_scores()    
+    # await pp.recalc_stats()
+    await insert_whitelist()
 
 
 

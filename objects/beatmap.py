@@ -176,6 +176,46 @@ class Beatmap:
 
     return m
 
+  @classmethod
+  async def from_bid_osuapi(cls, bid):
+    url = 'https://old.ppy.sh/api/get_beatmaps'
+    params = {'k': glob.config.osu_key, 'b': bid}
+    async with aiohttp.ClientSession() as sess:
+      async with sess.get(url, params=params) as res:
+        if not res or res.status != 200:
+          return # fucked up big time
+
+        if not (data := await res.json()):
+          return
+
+        bmap = data[0]
+
+    m = cls()
+    m.md5 = bmap['file_md5']
+    m.id = int(bmap['beatmap_id'])
+    m.set_id = int(bmap['beatmapset_id'])
+
+    m.artist, m.title, m.version, m.creator = (bmap['artist'], bmap['title'], bmap['version'], bmap['creator'])
+    m.last_update = datetime.strptime(bmap['last_update'], '%Y-%m-%d %H:%M:%S')
+    m.total_length = float(bmap['total_length'])
+    m.max_combo = float(bmap['max_combo'])
+
+    m.status = RankedStatus(int(bmap['approved']))
+    m.mode = int(bmap['mode'])
+    m.bpm = float(bmap['bpm'])
+
+    m.cs, m.od, m.ar, m.hp = (
+      float(bmap['diff_size']), float(bmap['diff_overall']),
+      float(bmap['diff_approach']), float(bmap['diff_drain'])
+    )
+
+    m.star = float(bmap['difficultyrating'])
+    await m.which_status()
+    await m.save_to_sql()
+
+    return m
+
+
   async def update_stats(self):
     await self.download()
     await glob.db.execute("""
@@ -225,3 +265,12 @@ class Beatmap:
         ]
     )
 
+async def insert_whitelist():
+    with open ('data/mapid_list.json') as f:
+      mapid_list = json.load(f)
+    for mapid in mapid_list:
+      map = Beatmap()
+      await map.from_bid_osuapi(mapid)
+      
+    
+  
