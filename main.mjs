@@ -86,7 +86,7 @@ async function calculatePerformance() {
             bonusReductionFactor = Math.exp(-c); // Use negative exponent to ensure the factor is <= 1
         }
         
-        let speedReduction = (nmperformance.speed/nmperformance.total);
+        let speedReduction = (nmperformance.speed/nmperformance.total-0.2);
         let speedReductionFactor = Math.exp(-speedReduction);
         // console.log("nmperformance.speed: " + nmperformance.speed);
         // console.log("nmperformance.total: " + nmperformance.total);
