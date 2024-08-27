@@ -49,18 +49,14 @@ async function calculatePerformance() {
                 }) 
             });
 
-        if ((nmrating.attributes.starRating / nmrating.attributes.aimDifficulty) < 2.2) {
-            // console.log('Relax mod detected');
-            nmrating.mods.push(new ModRelax());
-            nmrating = new OsuDifficultyCalculator(decoder.result).calculate({ mods, stats: new MapStats({ speedMultiplier: multiplierValue }) });
-        }
+
         let od_rel = -4; 
         
         if (mods.some(mod => mod.acronym === 'PR' || mod.name === 'Precise')) {
             od_rel = 0;
         }
         const calc = {
-            speedDifficulty: 0,
+            speedDifficulty: nmrating.attributes.speedDifficulty,
             mods: nmrating.attributes.mods,
             starRating: nmrating.attributes.starRating,
             maxCombo: nmrating.attributes.maxCombo,
@@ -75,19 +71,36 @@ async function calculatePerformance() {
             spinnerCount: nmrating.attributes.spinnerCount,
         };
 
-        // console.log(calc)
+  
         const nmperformance = new OsuPerformanceCalculator(calc).calculate({
             accPercent: accuracy,
             combo: combo,
         });
-        // console.log(nmperformance);
-        const pp_return = nmperformance.total - nmperformance.speed- nmperformance.accuracy*0.5;
+ 
+        let pp_return = 0;
+        
+        let bonusReductionFactor = 1;
+        if (accuracy_args < 100) {
+            let c = ((100 - accuracy_args) / 10);
+            
+            bonusReductionFactor = Math.exp(-c); // Use negative exponent to ensure the factor is <= 1
+        }
+        
+        let speedReduction = (nmperformance.speed/nmperformance.total);
+        let speedReductionFactor = Math.exp(-speedReduction);
+        console.log("nmperformance.speed: " + nmperformance.speed);
+        console.log("nmperformance.total: " + nmperformance.total);
+        console.log("speedReductionFactor: " + speedReductionFactor);
+        console.log("bonusReductionFactor: " + bonusReductionFactor);
+        pp_return = nmperformance.total - nmperformance.speed;
+        pp_return = pp_return * bonusReductionFactor * speedReductionFactor ; // Apply the reduction factor directly to pp_return
         console.log(pp_return);
-    } catch (err) {
-        console.error('Error reading or processing the beatmap file:', err);
-        process.exit(1);
-    }
-}
+        } catch (err) {
+            console.error('Error reading or processing the beatmap file:', err);
+            process.exit(1);
+        }
+        }
+
 
 
 calculatePerformance();
