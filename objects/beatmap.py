@@ -61,6 +61,19 @@ class Beatmap:
   def gives_reward(self):
     return self.status in (RankedStatus.Ranked, RankedStatus.Approved, RankedStatus.Loved, RankedStatus.Whitelisted)
 
+
+  def which_status(self):
+      mapid_list_path = Path('data/mapid_list.json')
+      
+      if self.status not in {RankedStatus.Ranked, RankedStatus.Loved, RankedStatus.Approved}:
+          with mapid_list_path.open() as f:
+              mapid_list = json.load(f)
+          
+          if self.id in mapid_list:
+              self.status = RankedStatus.Whitelisted
+      
+      return self
+      
   async def download(self):
     """ Download the map and returns the path """
     path = (beatmap_folder / self.filename)
@@ -102,7 +115,9 @@ class Beatmap:
 
     # saves to cache
     glob.cache['beatmaps'][md5] = bmap
-
+    bmap.which_status()
+    if bmap.status == RankedStatus.Whitelisted:
+      bmap.update_stats()
     return bmap
 
 
@@ -156,17 +171,17 @@ class Beatmap:
     )
 
     m.star = float(bmap['difficultyrating'])
-    mapid_list_path = Path('data/mapid_list.json')
-    if m.status not in{RankedStatus.Ranked, RankedStatus.Loved, RankedStatus.Approved}:
-      with mapid_list_path.open() as f:
-          mapid_list = json.load(f)
-      if m.id in mapid_list:
-        m.status = RankedStatus.Whitelisted
+    m.which_status()
     await m.save_to_sql()
 
     return m
 
-
+  async def update_stats(self):
+    await self.download()
+    await glob.db.execute("""
+    UPDATE maps SET status = 5 WHERE id = $1
+    """, [self.id])
+  
   async def save_to_sql(self):
 # Convert datetime objects to Unix timestamp integers
     last_update_int = int(self.last_update.timestamp()) if isinstance(self.last_update, datetime) else self.last_update
