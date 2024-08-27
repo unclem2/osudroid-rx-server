@@ -62,7 +62,7 @@ class Beatmap:
     return self.status in (RankedStatus.Ranked, RankedStatus.Approved, RankedStatus.Loved, RankedStatus.Whitelisted)
 
 
-  def which_status(self):
+  async def which_status(self):
       mapid_list_path = Path('data/mapid_list.json')
       
       if self.status not in {RankedStatus.Ranked, RankedStatus.Loved, RankedStatus.Approved}:
@@ -115,9 +115,9 @@ class Beatmap:
 
     # saves to cache
     glob.cache['beatmaps'][md5] = bmap
-    bmap.which_status()
+    await bmap.which_status()
     if bmap.status == RankedStatus.Whitelisted:
-      bmap.update_stats()
+      await bmap.update_stats()
     return bmap
 
 
@@ -171,7 +171,7 @@ class Beatmap:
     )
 
     m.star = float(bmap['difficultyrating'])
-    m.which_status()
+    await m.which_status()
     await m.save_to_sql()
 
     return m
