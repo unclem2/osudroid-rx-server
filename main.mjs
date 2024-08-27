@@ -85,15 +85,22 @@ async function calculatePerformance() {
             accFactor = Math.exp(-c); // Use negative exponent to ensure the factor is <= 1
         }
         
-        let speedReduction = (nmperformance.speed/nmperformance.total-0.25);
+        let speedReduction = (nmperformance.speed/nmperformance.total-0.20);
         let speedReductionFactor = Math.exp(-speedReduction);
-
-        // console.log("nmperformance.speed: " + nmperformance.speed);
-        // console.log("nmperformance.total: " + nmperformance.total);
-        // console.log("speedReductionFactor: " + speedReductionFactor);
-        // console.log("bonusReductionFactor: " + accFactor);
+        let arBonus = 1;
+        if (calc.approachRate > 10.3) {
+            arBonus = 1 + 0.4 * (calc.approachRate - 10.3);
+        }
+        if (calc.approachRate < 8) {
+            arBonus = 1 + 0.3 * (8 - calc.approachRate);
+        }
+        console.log("nmperformance.speed: " + nmperformance.speed);
+        console.log("nmperformance.total: " + nmperformance.total);
+        console.log("speedReductionFactor: " + speedReductionFactor);
+        console.log("bonusReductionFactor: " + accFactor);
+        console.log("arBonus: " + arBonus); 
         pp_return = nmperformance.total - nmperformance.speed;
-        pp_return = pp_return * accFactor * speedReductionFactor ; // Apply the reduction factor directly to pp_return
+        pp_return = pp_return * accFactor * speedReductionFactor * arBonus ; // Apply the reduction factor directly to pp_return
         console.log(pp_return);
         } catch (err) {
             console.error('Error reading or processing the beatmap file:', err);
