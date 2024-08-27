@@ -99,8 +99,9 @@ async function calculatePerformance() {
         // console.log("speedReductionFactor: " + speedReductionFactor);
         // console.log("bonusReductionFactor: " + accFactor);
         // console.log("arBonus: " + arBonus); 
-        pp_return = nmperformance.total - nmperformance.speed;
-        pp_return = pp_return * accFactor * speedReductionFactor * arBonus ; // Apply the reduction factor directly to pp_return
+        let aimPP = nmperformance.aim * arBonus;
+        pp_return = nmperformance.total - nmperformance.speed - nmperformance.aim + aimPP;
+        pp_return = pp_return * accFactor * speedReductionFactor ; // Apply the reduction factor directly to pp_return
         console.log(pp_return);
         } catch (err) {
             console.error('Error reading or processing the beatmap file:', err);
