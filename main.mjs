@@ -94,11 +94,11 @@ async function calculatePerformance() {
         if (calc.approachRate < 8) {
             arBonus = 1 + 0.3 * (8 - calc.approachRate);
         }
-        console.log("nmperformance.speed: " + nmperformance.speed);
-        console.log("nmperformance.total: " + nmperformance.total);
-        console.log("speedReductionFactor: " + speedReductionFactor);
-        console.log("bonusReductionFactor: " + accFactor);
-        console.log("arBonus: " + arBonus); 
+        // console.log("nmperformance.speed: " + nmperformance.speed);
+        // console.log("nmperformance.total: " + nmperformance.total);
+        // console.log("speedReductionFactor: " + speedReductionFactor);
+        // console.log("bonusReductionFactor: " + accFactor);
+        // console.log("arBonus: " + arBonus); 
         pp_return = nmperformance.total - nmperformance.speed;
         pp_return = pp_return * accFactor * speedReductionFactor * arBonus ; // Apply the reduction factor directly to pp_return
         console.log(pp_return);
