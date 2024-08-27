@@ -238,7 +238,7 @@ async def submit_play():
 
   if 'ssid' in params:
     if params['ssid'] != p.uuid:
-      return Failed('Mismatch UUID, please relogin.')
+      return Failed('Server restart, please relogin.')
 
   if glob.config.disable_submit:
     return Failed('Score submission is disable right now.')
