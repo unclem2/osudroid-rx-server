@@ -14,7 +14,7 @@ data.db
 data/release/*
 data/replays/*
 data/beatmaps/*
-data/avatars/*
+data/avatar/*
 data/replays_old/*
 
 # Distribution / packaging

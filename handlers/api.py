@@ -6,6 +6,7 @@ from objects import glob
 from objects.beatmap import Beatmap, RankedStatus
 from objects.score import Score
 from utils.pp import PPCalculator
+from handlers.response import Failed
 
 bp = Blueprint('api', __name__)
 bp.prefix = '/api/'
@@ -68,7 +69,13 @@ async def get_scores():
         [p.id, limit]
     )
 
-    return jsonify(scores) if scores else {'No score found.'}
+    if len(scores) == 0:
+        return Failed('No scores found.')
+    if len(scores) > 0:
+      return jsonify(scores)
+      
+
+    
 
 @bp.route('/leaderboard')
 async def leaderboard():

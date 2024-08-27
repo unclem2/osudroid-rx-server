@@ -2,7 +2,7 @@ import os
 import logging
 import asyncio
 import coloredlogs
-from quart import Quart
+from quart import Quart, render_template_string
 
 # sus
 from objects import glob
@@ -19,6 +19,7 @@ import utils
 # testing
 from utils import pp
 from objects.beatmap import Beatmap
+import html_templates 
 
 def make_app():
   app = Quart(__name__)
@@ -83,11 +84,11 @@ async def server_fucked(err):
 
 @app.route('/')
 async def index():
-  return {
-    'players': len(glob.players),
-    'online': len([_ for _ in glob.players if _.online]),
-    'title': 'hello world'
-  }
+    players = len(glob.players)
+    online = len([_ for _ in glob.players if _.online])
+    title = 'odrx server'
+    
+    return await render_template_string(html_templates.main_page, players=players, online=online, title=title)
 
 
 if __name__ == '__main__':

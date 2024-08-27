@@ -23,136 +23,121 @@ registration_form = """
 """
 
 leaderboard_temp = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leaderboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    <style>
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Leaderboard</h1>
-    </header>
-    <main>
-        <section id="leaderboard">
-            <table>
-                <thead>
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Leaderboard</h1>
+</header>
+<main>
+    <section id="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>PP</th>
+                    <th>Plays</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in leaderboard %}
                     <tr>
-                        <th>Rank</th>
-                        <th>Player</th>
-                        <th>PP</th>
-                        <th>Plays</th>
+                        <td>{{ player.rank }}</td>
+                        <td><a href="">{{ player.username }}</a></td>
+                        <td>{{ player.pp }}</td>
+                        <td>{{ player.plays }}</td>
                     </tr>
-                </thead>
-                <tbody>
-                    {% for player in leaderboard %}
-                        <tr>
-                            <td>{{ player.rank }}</td>
-                            <td>{{ player.username }}</td>
-                            <td>{{ player.pp }}</td>
-                            <td>{{ player.plays }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </section>
-    </main>
-    <script src="{{ url_for('static', filename='scripts.js') }}"></script>
-</body>
-</html>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</main>
+{% endblock %}
 """
 
 profile_temp = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Player Profile</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-    </style>
-</head>
-<body>
-    <h1>Profile of {{ player.name }}</h1>
-    <h2>Recent Scores</h2>
-    <table>
-        <thead>
+{% extends "base.html" %}
+
+{% block title %}Player Profile{% endblock %}
+
+{% block content %}
+<h1>Profile of {{ player.name }}</h1>
+<h2>Recent Scores</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Map title</th>
+            <th>Score</th>
+            <th>PP</th>
+            <th>Accuracy</th>
+            <th>Combo</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in recent_scores %}
             <tr>
-                <th>Map title</th>
-                <th>Score</th>
-                <th>PP</th>
-                <th>Accuracy</th>
-                <th>Combo</th>
-                <th>Date</th>
+                <td>{{ score.map }}</td>
+                <td>{{ score.score }}</td>
+                <td>{{ score.pp }}</td>
+                <td>{{ score.acc }}</td>
+                <td>{{ score.combo }}</td>
+                <td>{{ score.date }}</td>
             </tr>
-        </thead>
-        <tbody>
-            {% for score in recent_scores %}
-                <tr>
-                    <td>{{ score.map }}</td>
-                    <td>{{ score.score }}</td>
-                    <td>{{ score.pp }}</td>
-                    <td>{{ score.acc }}</td>
-                    <td>{{ score.combo }}</td>
-                    <td>{{ score.date }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h2>Top Scores</h2>
-    <table>
-        <thead>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Top Scores</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Map title</th>
+            <th>Score</th>
+            <th>PP</th>
+            <th>Accuracy</th>
+            <th>Combo</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in top_scores %}
             <tr>
-                <th>Map title</th>
-                <th>Score</th>
-                <th>PP</th>
-                <th>Accuracy</th>
-                <th>Combo</th>
-                <th>Date</th>
+                <td>{{ score.map }}</td>
+                <td>{{ score.score }}</td>
+                <td>{{ score.pp }}</td>
+                <td>{{ score.acc }}</td>
+                <td>{{ score.combo }}</td>
+                <td>{{ score.date }}</td>
             </tr>
-        </thead>
-        <tbody>
-            {% for score in top_scores %}
-                <tr>
-                    <td>{{ score.map }}</td>
-                    <td>{{ score.score }}</td>
-                    <td>{{ score.pp }}</td>
-                    <td>{{ score.acc }}</td>
-                    <td>{{ score.combo }}</td>
-                    <td>{{ score.date }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</body>
-</html>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
 """
 
 set_avatar_temp = """
+{% extends "base.html" %}
+
+{% block title %}Set Avatar{% endblock %}
+
+{% block content %}
+<h1>Set Avatar</h1>
+<form method="post" enctype="multipart/form-data">
+    <input type="file" name="avatar" required>
+    <input type="submit" value="Upload">
+</form>
+{% endblock %}
+"""
+
+web_login_temp = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Set Avatar</title>
+    <title>Login</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -179,7 +164,7 @@ set_avatar_temp = """
             display: flex;
             flex-direction: column;
         }
-        input[type="text"], input[type="password"], input[type="file"] {
+        input[type="text"], input[type="password"] {
             margin-bottom: 10px;
             padding: 8px;
             border: 1px solid #ccc;
@@ -200,14 +185,26 @@ set_avatar_temp = """
 </head>
 <body>
     <div class="container">
-        <h1>Set Avatar</h1>
-        <form method="post" enctype="multipart/form-data">
+        <h1>Login</h1>
+        <form method="post">
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
-            <input type="file" name="avatar" required>
-            <input type="submit" value="Upload">
+            <input type="submit" value="Login">
         </form>
     </div>
 </body>
 </html>
 """
+
+main_page = """
+{% extends "base.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>Number of players: {{ players }}</p>
+    <p>Number of online players: {{ online }}</p>
+{% endblock %}"""

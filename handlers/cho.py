@@ -162,7 +162,6 @@ async def leaderboard():
 
   return Success('\n'.join(res))
 
-
 @bp.route('gettop.php', methods=['POST'])
 async def view_score():
   params = await request.form
@@ -187,8 +186,6 @@ async def view_score():
     ))
 
   return Failed('Score not found.')
-
-
 
 @bp.route('/upload/<string:replay_path>', methods=['GET'])
 async def view_replay(replay_path: str):
