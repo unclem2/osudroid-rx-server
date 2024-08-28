@@ -93,7 +93,7 @@ async def top_scores():
   top_scores = await glob.db.fetchall(
     'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
     '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 '
-    'ORDER BY pp DESC LIMIT 10',
+    'ORDER BY pp DESC',
     [id]
   )
   return jsonify(top_scores) if top_scores else {'No score found.'}

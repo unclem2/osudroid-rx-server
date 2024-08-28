@@ -3,6 +3,7 @@ import logging
 import asyncio
 import coloredlogs
 from quart import Quart, render_template_string
+import aiohttp
 
 # sus
 from objects import glob
@@ -87,8 +88,15 @@ async def index():
     players = len(glob.players)
     online = len([_ for _ in glob.players if _.online])
     title = 'odrx server'
+    async with aiohttp.ClientSession() as session:
+      async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/update.php") as resp:
+        update = await resp.json()
+        changelog = update['changelog']
+        version = update['version_code']
+        download_link = update['link']
+        
     
-    return await render_template_string(html_templates.main_page, players=players, online=online, title=title)
+    return await render_template_string(html_templates.main_page, players=players, online=online, title=title, changelog=changelog, download_link=download_link, version=version)
 
 
 if __name__ == '__main__':

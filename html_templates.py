@@ -70,10 +70,11 @@ profile_temp = """
     <thead>
         <tr>
             <th>Map title</th>
-            <th>Score</th>
+            <th>Mods</th>
             <th>PP</th>
             <th>Accuracy</th>
             <th>Combo</th>
+            <th>Misses</th>
             <th>Date</th>
         </tr>
     </thead>
@@ -81,10 +82,11 @@ profile_temp = """
         {% for score in recent_scores %}
             <tr>
                 <td>{{ score.map }}</td>
-                <td>{{ score.score }}</td>
+                <td>{{ score.mods }}</td>
                 <td>{{ score.pp }}</td>
                 <td>{{ score.acc }}</td>
                 <td>{{ score.combo }}</td>
+                <td>{{ score.hitmiss }}</td>
                 <td>{{ score.date }}</td>
             </tr>
         {% endfor %}
@@ -95,10 +97,11 @@ profile_temp = """
     <thead>
         <tr>
             <th>Map title</th>
-            <th>Score</th>
+            <th>Mods</th>
             <th>PP</th>
             <th>Accuracy</th>
             <th>Combo</th>
+            <th>Misses</th>
             <th>Date</th>
         </tr>
     </thead>
@@ -106,10 +109,11 @@ profile_temp = """
         {% for score in top_scores %}
             <tr>
                 <td>{{ score.map }}</td>
-                <td>{{ score.score }}</td>
+                <td>{{ score.mods }}</td>
                 <td>{{ score.pp }}</td>
                 <td>{{ score.acc }}</td>
                 <td>{{ score.combo }}</td>
+                <td>{{ score.hitmiss }}</td>
                 <td>{{ score.date }}</td>
             </tr>
         {% endfor %}
@@ -133,10 +137,9 @@ set_avatar_temp = """
 """
 
 web_login_temp = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% extends "base.html" %}
+
+{% block head %}
     <title>Login</title>
     <style>
         body {
@@ -181,19 +184,29 @@ web_login_temp = """
         input[type="submit"]:hover {
             background-color: #0056b3;
         }
+        .error {
+            color: red;
+            text-align: center;
+            margin-bottom: 10px;
+        }
     </style>
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <div class="container">
         <h1>Login</h1>
+        {% if error_message %}
+            <div class="error">
+                <p>{{ error_message }}</p>
+            </div>
+        {% endif %}
         <form method="post">
             <input type="text" name="username" placeholder="Username" required>
             <input type="password" name="password" placeholder="Password" required>
             <input type="submit" value="Login">
         </form>
     </div>
-</body>
-</html>
+{% endblock %}
 """
 
 main_page = """
@@ -207,4 +220,19 @@ main_page = """
     <h1>{{ title }}</h1>
     <p>Number of players: {{ players }}</p>
     <p>Number of online players: {{ online }}</p>
+    <p>Client version: {{ version }}</p>
+    <p>Link to client <a href="{{ client_link }}">here</a></p>
+    <p>Changelog: {{ changelog }}</p>
 {% endblock %}"""
+
+error_template = """
+{% extends "base.html" %}
+
+{% block content %}
+    {% if error_message %}
+        <div class="error">
+            <p>{{ error_message }}</p>
+        </div>
+    {% endif %}
+{% endblock %}
+"""

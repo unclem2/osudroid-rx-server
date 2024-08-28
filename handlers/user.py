@@ -37,6 +37,7 @@ async def leaderboard():
 @bp.route('/profile.php')
 async def profile():
     params = request.args
+    id = None
     if 'login_state' not in request.cookies:
         pass
     if 'login_state' in request.cookies:
@@ -44,9 +45,11 @@ async def profile():
     if 'id' in params:
         id = int(params['id'])
 
+    if id is None:
+        return await render_template_string(html_templates.error_template, error_message='No player ID provided')
     p = glob.players.get(id=id)
     if not p:
-        return Failed('Player not found')
+        return await render_template_string(html_templates.error_template, error_message='Player not found')
     async with aiohttp.ClientSession() as session:
         async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/get_scores?id={p.id}") as resp:
             try:
@@ -73,14 +76,14 @@ async def set_avatar():
     # Check if the authentication cookie is present
     auth_cookie = request.cookies.get('login_state')
     if not auth_cookie:
-        return Failure(reason="Not authenticated")
+        return await render_template_string(html_templates.error_template, error_message='Not logged in')
 
     # Validate the cookie format and extract username and player ID
     try:
         username, player_id = auth_cookie.split('-')
         player_id = int(player_id)
     except ValueError:
-        return Failure("Invalid authentication cookie")
+        return await render_template_string(html_templates.error_template, error_message='Invalid login state')
 
     if request.method == 'POST':
         # Await the request.files to ensure it's not a coroutine
@@ -89,16 +92,16 @@ async def set_avatar():
 
         # Check if the avatar file is part of the request
         if 'avatar' not in files:
-            return Failure("No file part")
+            return await render_template_string(html_templates.error_template, error_message='No avatar file provided')
 
         file = files.get('avatar')
         if file.filename == '':
-            return Failure("No selected file")
+            return await render_template_string(html_templates.error_template, error_message='No selected file')
 
         # Retrieve player object
         p = glob.players.get(name=username)
         if not p or p.id != player_id:
-            return Failure("Player not found or ID mismatch")
+            return await render_template_string(html_templates.error_template, error_message='Player not found')
 
         # Validate and save the avatar file
         if file and allowed_file(file.filename):
@@ -107,9 +110,9 @@ async def set_avatar():
             file_path = os.path.join('data/avatar', filename)
             await file.save(file_path)
 
-            return Success("Avatar updated successfully")
+            return await render_template_string(html_templates.success_template, success_message='Avatar uploaded successfully')
         else:
-            return Failure("Invalid file type")
+            return await render_template_string(html_templates.error_template, error_message='Invalid file format')
 
     return await render_template_string(html_templates.set_avatar_temp)
 
@@ -122,7 +125,7 @@ async def web_login():
     # Check if the login state cookie is present
     login_state = request.cookies.get('login_state')
     if login_state is not None:
-        return Success('Already logged in as ' + login_state.split('-')[0])
+        return await render_template_string(html_templates.error_template, error_message='Already logged in')
 
     if request.method == 'POST':
         req = await request.form
@@ -130,7 +133,7 @@ async def web_login():
         password = req.get('password')
 
         if not username or not password:
-            return Failed('Username and password are required')
+            return await render_template_string(html_templates.error_template, error_message='Invalid username or password')
 
         # Append salt to the password and hash it using MD5
         salted_password = f"{password}taikotaiko"
@@ -142,12 +145,12 @@ async def web_login():
         ph = PasswordHasher()
         player = glob.players.get(name=username)
         if not player:
-            return Failed('Player not found')
+            return await render_template_string(html_templates.error_template, error_message='Player not found')
 
         # Fetch password hash and status from the database
         res = await glob.db.fetch("SELECT password_hash, status FROM users WHERE id = $1", [player.id])
         if not res:
-            return Failed('Player not found in database')
+            return await render_template_string(html_templates.error_template, error_message='Player not found')
 
         stored_password_hash = res['password_hash']
         status = res['status']
@@ -156,12 +159,12 @@ async def web_login():
         # Verify the password
         if stored_password_hash in cached_hashes:
             if hashed_password != cached_hashes[stored_password_hash]:
-                return Failed('Wrong password.')
+                return await render_template_string(html_templates.error_template, error_message='Wrong password')
         else:
             try:
                 ph.verify(stored_password_hash, hashed_password)
             except:
-                return Failed('Wrong password.')
+                return await render_template_string(html_templates.error_template, error_message='Wrong password')
 
         # Create a response object and set a cookie with the login state
         response = await make_response(Success('Login successful'))
