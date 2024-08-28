@@ -121,7 +121,10 @@ async def calculate():
     score = Score()
     score.bmap = await Beatmap.from_bid_osuapi(data.get('bid'))
     score.acc = float(data.get('acc'))
-    score.combo = int(data.get('combo'))
+    if data.get('combo') == 0:
+      score.max_combo = int(score.bmap.max_combo)
+    else:
+      score.max_combo = int(data.get('combo'))
     score.miss = int(data.get('miss'))
     score.mods = data.get('mods')
     
