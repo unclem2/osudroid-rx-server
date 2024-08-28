@@ -119,7 +119,7 @@ async def recent():
 async def calculate():
     params = request.args
     score = Score()
-    score.bmap = await Beatmap.from_md5(params.get('md5'))
+    score.bmap = await Beatmap.from_bid_osuapi(params.get('bid'))
     score.acc = float(params.get('acc'))
     score.combo = int(params.get('combo'))
     score.miss = int(params.get('miss'))
