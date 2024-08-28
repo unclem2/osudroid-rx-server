@@ -122,9 +122,9 @@ async def calculate():
     score.bmap = await Beatmap.from_bid_osuapi(data.get('bid'))
     score.acc = float(data.get('acc'))
     if data.get('combo') == 0:
-      score.max_combo = int(score.bmap.max_combo)
+        score.max_combo = int(score.bmap.max_combo)
     else:
-      score.max_combo = int(data.get('combo'))
+        score.max_combo = int(data.get('combo'))
     score.miss = int(data.get('miss'))
     score.mods = data.get('mods')
     
@@ -132,7 +132,19 @@ async def calculate():
     score.pp = await PPCalculator.from_md5(score.bmap.md5)
     score.pp = await score.pp.calc(score)
     
-    return jsonify({'pp': score.pp})
+    result = {
+        "pp": score.pp,
+        "title": score.bmap.title,
+        "artist": score.bmap.artist,
+        "creator": score.bmap.creator,
+        "version": score.bmap.version,
+        "max_combo": score.max_combo,
+        "miss": score.miss,
+        "mods": score.mods,
+        "acc": score.acc,
+    }
+    
+    return result
     
 
 # client endpoints
