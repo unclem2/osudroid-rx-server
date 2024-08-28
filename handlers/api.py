@@ -126,7 +126,7 @@ async def calculate():
     score.mods = data.get('mods')
     
     await score.bmap.download()
-    score.pp = await PPCalculator.from_md5(data.get('md5'))
+    score.pp = await PPCalculator.from_md5(score.bmap.md5)
     score.pp = await score.pp.calc(score)
     
     return jsonify({'pp': score.pp})
