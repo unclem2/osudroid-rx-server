@@ -40,15 +40,17 @@ leaderboard_temp = """
                     <th>Player</th>
                     <th>PP</th>
                     <th>Plays</th>
+                    <th>ID</th>
                 </tr>
             </thead>
             <tbody>
                 {% for player in leaderboard %}
                     <tr>
                         <td>{{ player.rank }}</td>
-                        <td><a href="">{{ player.username }}</a></td>
+                        <td><a href="/user/profile.php?id={{player.id}}">{{ player.username }}</a></td>
                         <td>{{ player.pp }}</td>
                         <td>{{ player.plays }}</td>
+                        <td>{{ player.id }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
