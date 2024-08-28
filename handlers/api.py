@@ -115,22 +115,21 @@ async def recent():
   ) 
   return jsonify(recent) if recent else {'No score found.'}
 
-@bp.route('/calculate')
+@bp.route('/calculate', methods=['POST'])
 async def calculate():
-    params = request.args
+    data = await request.json
     score = Score()
-    score.bmap = await Beatmap.from_bid_osuapi(params.get('bid'))
-    score.acc = float(params.get('acc'))
-    score.combo = int(params.get('combo'))
-    score.miss = int(params.get('miss'))
-    score.mods = params.get('mods')
+    score.bmap = await Beatmap.from_bid_osuapi(data.get('bid'))
+    score.acc = float(data.get('acc'))
+    score.combo = int(data.get('combo'))
+    score.miss = int(data.get('miss'))
+    score.mods = data.get('mods')
     
     await score.bmap.download()
-    score.pp = await PPCalculator.from_md5(params.get('md5'))
+    score.pp = await PPCalculator.from_md5(data.get('md5'))
     score.pp = await score.pp.calc(score)
     
-
-    return str(score.pp)
+    return jsonify({'pp': score.pp})
     
 
 # client endpoints
