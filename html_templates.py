@@ -236,3 +236,16 @@ error_template = """
     {% endif %}
 {% endblock %}
 """
+
+
+success_template = """
+{% extends "base.html" %}
+
+{% block content %}
+    {% if success_message %}
+        <div class="success">
+            <p>{{ success_message }}</p>
+        </div>
+    {% endif %}
+{% endblock %}
+"""
