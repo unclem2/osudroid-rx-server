@@ -114,7 +114,7 @@ class Player:
     scores_query = '''
         SELECT s.acc, s.pp, s.score FROM scores s
         WHERE s.playerID = $1 AND s.status = 2 AND
-        s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))
+        s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
         ORDER BY s.pp DESC
     '''
     scores = await glob.db.fetchall(scores_query, [int(self.id)])
@@ -142,7 +142,7 @@ class Player:
         weight = 0.95 ** i
         weighted_pp = row['pp'] * weight
         total_pp += weighted_pp
-        logging.info(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
+        # logging.info(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
     stats.pp = round(total_pp)
     stats.rscore = sum(row['score'] for row in scores)
     stats.tscore = sum(row['score'] for row in all_scores)
