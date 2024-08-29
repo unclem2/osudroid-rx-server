@@ -93,15 +93,15 @@ class PPCalculator:
 
         return cls(res, **kwargs)
  
-    async def calc(self):
+    async def calc(self, s):
         # Get the speed multiplier for the mods
-        speed_multiplier = get_multiplier(self.mods)
+        speed_multiplier = get_multiplier(s.mods)
         if speed_multiplier is None:
             speed_multiplier = 1
         speed_multiplier = float(speed_multiplier)
 
         # Get and convert the used mods
-        mods = get_used_mods(self.mods)
+        mods = get_used_mods(s.mods)
         mods, pr = convert_droid(mods)
 
         # Read the beatmap content
@@ -133,17 +133,17 @@ class PPCalculator:
 
         # Create the performance object
         performance = osu_pp.Performance(
-            accuracy=self.acc,
+            accuracy=s.acc,
             mods=mods,
-            misses=self.nmiss,
-            combo=self.max_combo,
+            misses=s.hmiss,
+            combo=s.max_combo,
             od=original_od - 4,
         )
         # performance.set_cs(beatmap.cs-4, cs_with_mods = True)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
-        acc_factor = (100-self.acc)/30
+        acc_factor = (100-s.acc)/30
         acc_factor = math.exp(-acc_factor)
         
         speed_reduction = attributes.pp_speed/attributes.pp
