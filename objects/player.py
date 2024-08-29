@@ -102,14 +102,7 @@ class Player:
 
     return p
 
-
-
-
   async def update_stats(self):
-    # Fetch ranked maps
-    ranked_maps_query = 'SELECT md5 FROM maps WHERE status IN (1, 2)'
-    ranked_maps = await glob.db.fetchall(ranked_maps_query)
-
     # Fetch player scores
     scores_query = '''
         SELECT s.acc, s.pp, s.score FROM scores s

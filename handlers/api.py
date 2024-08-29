@@ -172,3 +172,18 @@ async def map_status(md5:str):
     "ranked": map.status
   }
   return map_data
+
+#whitelist
+
+@bp.route('/wl')
+async def whitelist():
+  maps = await glob.db.fetchall('SELECT md5 FROM maps WHERE status = 5')
+  return jsonify(maps)
+
+@bp.route('/wl_add', methods=['GET'])
+async def whitelist_add():
+    data = request.args
+    map = await Beatmap.from_md5(data.get('md5'))
+    await map.download()
+    await map.update_stats()   
+    return {'status': 'success'}
