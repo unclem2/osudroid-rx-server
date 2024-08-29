@@ -153,11 +153,12 @@ class PPCalculator:
             mods=mods,
             misses=s.hmiss,
             combo=s.max_combo,
-            od=original_od - 4,
+            
         )
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
-        # performance.set_cs(beatmap.cs-4, cs_with_mods = True)
+        # performance.set_cs(beatmap.cs-2, cs_with_mods = False)
+        performance.set_od(original_od-4, od_with_mods = False)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
