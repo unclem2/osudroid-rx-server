@@ -183,7 +183,19 @@ async def whitelist():
 @bp.route('/wl_add', methods=['GET'])
 async def whitelist_add():
     data = request.args
-    map = await Beatmap.from_md5(data.get('md5'))
+    if data.get('md5') is not None:
+      map = await Beatmap.from_md5(data.get('md5'))
+    if data.get('bid') is not None:
+      map = await Beatmap.from_bid_osuapi(data.get('bid'))
     await map.download()
     await map.update_stats()   
     return {'status': 'success'}
+  
+@bp.route('/wl_remove', methods=['GET'])
+async def whitelist_remove():
+  data = request.args
+  if data.get('md5') is not None:
+    await glob.db.execute('DELETE FROM maps WHERE md5 = $1 AND status = 5', [data.get('md5')]) 
+  if data.get('bid') is not None:
+    await glob.db.execute('DELETE FROM maps WHERE id = $1 AND status = 5', [int(data.get('bid'))])
+  return {'status': 'success'}
