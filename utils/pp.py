@@ -8,64 +8,43 @@ from objects import glob
 from objects.beatmap import Beatmap
 import re
 from objects.player import Player
+import rosu_pp_py as osu_pp
+import math
 
-class droidMods(Enum):
-    nm = '-'
-    nf = 'n'
-    ez = 'e'
-    hd = 'h'
-    hr = 'r'
-    sd = 'u'
-    dt = 'd'
-    rx = 'x'
-    ht = 't'
-    nc = 'c'
-    fl = 'i'
-    v2 = 'v'
-
-    # bullshit mods
-    ap = 'p'
-    at = 'a'
-    pr = 's'
-    rez = 'l'
-    sc = 'm'
-    pf = 'f'
-    su = 'b'
-
-@unique
-class osuMods(IntEnum):
-    nm = 0 << 0
-    nf = 1 << 0
-    ez = 1 << 1
-    td = 1 << 2
-    hd = 1 << 3
-    hr = 1 << 4
-    sd = 1 << 5
-    dt = 1 << 6
-    rx = 1 << 7
-    ht = 1 << 8
-    nc = 1 << 9
-    fl = 1 << 10
-    at = 1 << 11
-    so = 1 << 12
-    ap = 1 << 13
-    pf = 1 << 14
-    v2 = 1 << 29
-
-
-
-# only used in PPCalculator
 def convert_droid(mods: str):
-    ''' fucked '''
-    modstr = [m.value for m in droidMods]
-    val = 0
-    for n, word in enumerate(mods):
-        if word in modstr:
-            if word == 's':
+    mod_mapping = {
+        'nm': {"acronym": ""},
+        'n': {"acronym": "NF"},
+        'e': {"acronym": "EZ"},
+        'h': {"acronym": "HD"},
+        'r': {"acronym": "HR"},
+        'u': {"acronym": "SD"},
+        'd': {"acronym": "DT"},
+        'x': {"acronym": ""},
+        't': {"acronym": "HT"},
+        'c': {"acronym": "NC"},
+        'i': {"acronym": "FL"},
+        'v': {"acronym": "V2"},
+        'p': {"acronym": "AP"},
+        'a': {"acronym": "AT"},
+        's': {"acronym": "PR"},
+        'l': {"acronym": "REZ"},
+        'm': {"acronym": "SC"},
+        'f': {"acronym": "PF"},
+        'b': {"acronym": "SU"}
+    }
+    
+    used_mods = []
+    pr = None
+    
+    for char in mods:
+        if char in mod_mapping:
+            if char == 's':
+                pr = True
                 continue
-            val += osuMods[droidMods(word).name].value
-
-    return val
+            used_mods.append(mod_mapping[char])
+    
+    return used_mods, pr
 
 
 def get_multiplier(mods):
@@ -73,14 +52,16 @@ def get_multiplier(mods):
     Extracts the multiplier value from the mods string.
     For example, 'xs|x2.00' will return 'x2.00'.
     """
-    match = re.search(r'\bx\d+\.\d+\b', mods, re.IGNORECASE)
-    return match.group(0) if match else None
+    match = re.search(r'\bx(\d+\.\d+)\b', mods, re.IGNORECASE)
+    return match.group(1) if match else None
 
 def get_used_mods(mods):
     """
     Removes unwanted characters from the mods string.
     """
-    mods = mods.replace('|', '').replace('x', '')
+    mods = re.sub(r'\bx\d+\.\d+\b', '', mods, flags=re.IGNORECASE)
+
+    mods = re.sub(r'[^a-zA-Z]', '', mods)
     return mods
 
 class PPCalculator:
@@ -111,27 +92,73 @@ class PPCalculator:
             return False
 
         return cls(res, **kwargs)
-
-
-
-    async def calc(self, s):
-        speed_multiplier = get_multiplier(s.mods)
-        mods = get_used_mods(s.mods)
-        
+ 
+    async def calc(self):
+        # Get the speed multiplier for the mods
+        speed_multiplier = get_multiplier(self.mods)
         if speed_multiplier is None:
             speed_multiplier = 1
-        pp = subprocess.run(
-            [
-                'node', '--no-deprecation', 'main.mjs', 
-                str(s.bmap.id), mods, str(s.acc), str(s.hmiss), str(s.max_combo), str(speed_multiplier)
-            ],
-            capture_output=True,
-            text=True
-        ).stdout
-        pp = pp.replace('\n', '')
-        
-        return float(pp)  # Convert pp to float
+        speed_multiplier = float(speed_multiplier)
 
+        # Get and convert the used mods
+        mods = get_used_mods(self.mods)
+        mods, pr = convert_droid(mods)
+
+        # Read the beatmap content
+        beatmap_content = self.bm_path.read_text()
+        beatmap = osu_pp.Beatmap(content=beatmap_content)
+        original_od = beatmap.od
+
+        # Adjust OD if PR mod is present
+        if pr:
+            original_od += 4
+
+        # Adjust speed change settings for DT and HT mods
+        if speed_multiplier != 1:
+            for i, mod in enumerate(mods):
+                if mod['acronym'] == 'DT':
+                    mods[i] = {
+                        'acronym': 'DT',
+                        "settings": {
+                            "speed_change": 1.5 * speed_multiplier
+                        }
+                    }
+                elif mod['acronym'] == 'HT':
+                    mods[i] = {
+                        'acronym': 'HT',
+                        "settings": {
+                            "speed_change": 0.75 * speed_multiplier
+                        }
+                    }
+
+        # Create the performance object
+        performance = osu_pp.Performance(
+            accuracy=self.acc,
+            mods=mods,
+            misses=self.nmiss,
+            combo=self.max_combo,
+            od=original_od - 4,
+        )
+        # performance.set_cs(beatmap.cs-4, cs_with_mods = True)
+        # Calculate performance attributes
+        attributes = performance.calculate(beatmap)
+
+        acc_factor = (100-self.acc)/30
+        acc_factor = math.exp(-acc_factor)
+        
+        speed_reduction = attributes.pp_speed/attributes.pp
+        speed_reduction_factor = math.exp(-speed_reduction)
+        
+        ar_bonus = 1
+        if attributes.difficulty.ar > 10.33:
+            ar_bonus = 1 + (attributes.difficulty.ar - 10.33) * 0.4
+        if attributes.difficulty.ar < 8:
+            ar_bonus = 1 + (8 - attributes.difficulty.ar) * 0.4
+        # Calculate and return the final pp value
+        aim_pp = attributes.pp_aim * ar_bonus
+        pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
+        pp_return = pp_return * acc_factor * speed_reduction_factor
+        return pp_return
 
 async def recalc_scores():
     ''' never use this unless something fucked up/testing '''
@@ -147,7 +174,7 @@ async def recalc_scores():
             m.max_combo = score['combo']
             m.bmap = await Beatmap.from_md5(score['maphash'])
             m.mods = score['mods']
-            pp = await m.calc(m)
+            pp = await m.calc()
 
             print(score['id'], score['maphash'], pp)
 
