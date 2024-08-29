@@ -126,7 +126,7 @@ class Score:
 
         
         if s.bmap:
-            s.pp = await s.pp.calc(s)
+            s.pp = await s.pp.calc()
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
         else:
