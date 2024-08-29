@@ -114,7 +114,9 @@ class PPCalculator:
             original_od += 4
 
         # Adjust speed change settings for DT and HT mods
+        applied = None
         if speed_multiplier != 1:
+            
             for i, mod in enumerate(mods):
                 if mod['acronym'] == 'DT':
                     mods[i] = {
@@ -123,6 +125,8 @@ class PPCalculator:
                             "speed_change": 1.5 * speed_multiplier
                         }
                     }
+                    applied =True
+                    break
                 elif mod['acronym'] == 'HT':
                     mods[i] = {
                         'acronym': 'HT',
@@ -130,7 +134,19 @@ class PPCalculator:
                             "speed_change": 0.75 * speed_multiplier
                         }
                     }
+                    applied = True
+                    break
+                elif mod['acronym'] == 'NC':
+                    mods[i] = {
+                        'acronym': 'NC',
+                        "settings": {
+                            "speed_change": 1.5*speed_multiplier
+                        }
+                    }
+                    applied = True
+                    break
 
+                
         # Create the performance object
         performance = osu_pp.Performance(
             accuracy=s.acc,
@@ -139,6 +155,8 @@ class PPCalculator:
             combo=s.max_combo,
             od=original_od - 4,
         )
+        if applied != True and speed_multiplier != 1:
+            performance.set_clock_rate(speed_multiplier)
         # performance.set_cs(beatmap.cs-4, cs_with_mods = True)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
@@ -174,7 +192,7 @@ async def recalc_scores():
             m.max_combo = score['combo']
             m.bmap = await Beatmap.from_md5(score['maphash'])
             m.mods = score['mods']
-            pp = await m.calc()
+            pp = await m.calc(m)
 
             print(score['id'], score['maphash'], pp)
 
