@@ -29,7 +29,7 @@ async def recalc():
     await glob.db.connect()
     await pp.recalc_scores()    
     await pp.recalc_stats()
-    # await insert_whitelist()
+    await insert_whitelist()
 
 
 
