@@ -5,6 +5,7 @@ import time
 import hashlib
 from quart import Blueprint, request, send_file, render_template_string
 from argon2 import PasswordHasher
+import aiohttp
 
 from objects import glob
 from objects.player import Player
@@ -12,12 +13,23 @@ from objects.score import Score, SubmissionStatus
 from objects.beatmap import RankedStatus
 from handlers.response import Failed, Success, Failure
 
+
 import utils
 import html_templates
 ph = PasswordHasher()
 bp = Blueprint('cho', __name__)
 bp.prefix = '/api/'
 
+async def discord_notify(msg: str):
+    async with aiohttp.ClientSession() as session:
+        webhook_data = {
+            "content": msg
+        }
+        async with session.post(glob.config.discord_hook, json=webhook_data) as response:
+            if response.status != 204:
+                print(f"Failed to send webhook: {response.status}")
+            else:
+                print("Webhook sent successfully")
 
 
 ## Register / Login
@@ -305,7 +317,8 @@ async def submit_play():
 
     ## Update stats one more time - i know this is retarded cuz we're already doing it above but im basing it from the old code so
     await s.player.update_stats()
-
+    
+    await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
     return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
       rank = int(stats.rank),
       rank_by = int(stats.rank_by),

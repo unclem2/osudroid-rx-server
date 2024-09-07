@@ -19,7 +19,7 @@ pp_leaderboard = True # Shows pp instead of score and sort by pp
 # used for beatmap info, unused if pp is disabled
 osu_key = os.getenv('OSU_KEY', '')
 db_url = os.getenv('DATABASE_URL', '')
-
+discord_hook = os.getenv('DISCORD', '')
 #- MAINTENACE -#
 disable_submit = False # Does what it says and shows a message to user when trying to play submit a play.
 
