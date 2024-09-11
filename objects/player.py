@@ -20,7 +20,7 @@ class Stats:
 
   @property
   def droid_acc(self):
-    return int(self.acc*1000)
+    return self.acc
 
   @property
   def droid_submit_stats(self):

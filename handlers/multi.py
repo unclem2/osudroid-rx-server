@@ -14,21 +14,24 @@ bp.prefix = '/multi/'
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 
 
-@bp.route('/createroom')
+@bp.route('/createroom', methods=['POST'])
 async def create_room():
     data = await request.get_json()
     if not data:
         return 'Invalid request', 400
     room = Room()
-    room.id = glob.rooms.get_next_id()
+    room.id = "1"
     room.name = data['name']
     room.slots = data['maxPlayers']
     room.host = glob.players.get(id=data['host']['uid'])
     room.map = await Beatmap.from_md5(data['beatmap']['md5'])
     glob.rooms.add(room)
-    return jsonify({'id': room.id})
+    dict = {
+        "id": f"{room.id}"
+    }
+    return f"{dict}"
 
 @bp.route('/getrooms')
 async def get_rooms(): 
-    return jsonify([room.to_json() for room in glob.rooms])
+    return '[]'
     

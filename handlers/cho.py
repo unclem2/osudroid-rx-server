@@ -84,7 +84,7 @@ async def login():
     rank = p.stats.rank,
     score = p.stats.rscore,
     pp = p.stats.pp,
-    acc = p.stats.droid_acc/100000,
+    acc = p.stats.droid_acc/100,
     name = p.name,
     avatar = p.avatar
   ))
@@ -321,11 +321,12 @@ async def submit_play():
     await s.player.update_stats()
     
     await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
-    return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
+    return Success('{rank} {score} {acc} {map_rank} {pp} {score_id}'.format(
       rank = int(stats.rank),
-      rank_by = int(stats.rank_by),
-      acc = stats.droid_acc,
+      score = int(stats.rscore),
+      acc = stats.droid_acc/100,
       map_rank = s.rank,
+      pp = stats.pp,
       score_id = s.id if upload_replay else ""
     ))
 
