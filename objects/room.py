@@ -51,6 +51,7 @@ class PlayerMulti:
         self.status: PlayerStatus = PlayerStatus.IDLE
         self.team: int = 0
         self.mods: Mods = Mods()
+        self.sid: str = ''
     
     def as_json(self) -> Dict[str, str]:
         return {
@@ -61,15 +62,20 @@ class PlayerMulti:
             'mods': self.mods
         }
     
-    def player(self, id):
+    def player(self, id, sid):
         player = glob.players.get(id=int(id))
         self.uid = player.id
         self.username = player.name
         self.status = PlayerStatus.IDLE
         self.team = None
         self.mods = Mods().as_json()
+        self.sid = sid
+        
         return self
     
+    @property
+    def get_sid(self):
+        return self.sid
         
 class RoomSettings:  
     def __init__(self):

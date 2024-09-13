@@ -25,7 +25,7 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
         room_info = glob.rooms.get(self.room_id)
-        room_info.players.append(PlayerMulti().player(id=args[0]['uid']))
+        room_info.players.append(PlayerMulti().player(id=args[0]['uid']), sid=sid)
         resp = {
             'id': room_info.id,
             'name': room_info.name,
@@ -52,7 +52,17 @@ class MultiNamespace(socketio.AsyncNamespace):
 
         await sio.emit(data=resp, namespace=self.namespace, event='initialConnection')
         
-
+    # @sio.on('playerModsChanged')
+    async def on_playerModsChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                player.mods = args[0]
+                data = [player.uid, player.mods]
+                await sio.emit(event='playerModsChanged', data=data, namespace=self.namespace)
+                break
+        
+        
 # Register the class for the '/multi' namespace
 
 
