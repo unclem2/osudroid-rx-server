@@ -78,13 +78,12 @@ async def login():
   else:
     p.avatar = f'https://s.gravatar.com/avatar/{p.email_hash}'
   # returns long string of shit
-  return Success('{id} {uuid} {rank} {score} {pp} {acc} {name} {avatar}'.format(
+  return Success('{id} {uuid} {rank} {rank_by} {acc} {name} {avatar}'.format(
     id = p.id,
     uuid = p.uuid,
     rank = p.stats.rank,
-    score = p.stats.rscore,
-    pp = p.stats.pp,
-    acc = p.stats.droid_acc/100,
+    rank_by = int(p.stats.rank_by),
+    acc = p.stats.droid_acc,
     name = p.name,
     avatar = p.avatar
   ))
@@ -155,7 +154,7 @@ async def leaderboard():
   res = []
   plays = await glob.db.fetchall(
     "SELECT * FROM scores WHERE maphash = $1 AND status = 2 ORDER BY {order_by} DESC".format(
-        order_by=params['type']
+        order_by='pp' if glob.config.pp_leaderboard else 'score'
     ),
     [params['hash']]
   )
@@ -167,15 +166,14 @@ async def leaderboard():
     else:
       avatar = f'https://s.gravatar.com/avatar/{player.email_hash}'
 
-    res += ['{play_id} {name} {score} {pp} {combo} {rank} {mods} {acc} {avatar}'.format(
+    res += ['{play_id} {name} {score} {combo} {rank} {mods} {acc} {avatar}'.format(
       play_id = play['id'],
       name = player.name,
-      score = play['score'],
-      pp = int(play['pp']),
+      score = int(play['pp']) if glob.config.pp_leaderboard else play['score'],
       combo = play['combo'],
       rank = play['rank'],
       mods = play['mods'],
-      acc = float(play['acc']/100),
+      acc = int(play['acc']*1000),
       avatar = avatar 
     )]
 
@@ -200,7 +198,7 @@ async def view_score():
       hit50 = play['hit50'],
       hitmiss = play['hitmiss'],
       
-      acc = float(play['acc']/100),
+      acc = int(play['acc']*1000),
       date = play['date']
     ))
 
@@ -320,13 +318,12 @@ async def submit_play():
     ## Update stats one more time - i know this is retarded cuz we're already doing it above but im basing it from the old code so
     await s.player.update_stats()
     
-    await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
-    return Success('{rank} {score} {acc} {map_rank} {pp} {score_id}'.format(
+    await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.z}pp!')
+    return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
       rank = int(stats.rank),
-      score = int(stats.rscore),
-      acc = stats.droid_acc/100,
+      rank_by = int(stats.rank_by),
+      acc = stats.droid_acc,
       map_rank = s.rank,
-      pp = stats.pp,
       score_id = s.id if upload_replay else ""
     ))
 
