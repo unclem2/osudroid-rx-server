@@ -25,9 +25,10 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
         room_info = glob.rooms.get(self.room_id)
-        
+        room_info.players.append(PlayerMulti().player(id=args[0]['uid']))
         resp = {
             'id': room_info.id,
+            'name': room_info.name,
             'name': room_info.name,
             'beatmap': {
                 'md5': room_info.map.md5,
@@ -71,6 +72,7 @@ async def create_room():
     room.maxPlayers = data['maxPlayers']
     room.host = PlayerMulti().player(int(data['host']['uid']))
     room.map = await Beatmap.from_md5(data['beatmap']['md5'])
+    room.map.md5 = data['beatmap']['md5']
     if 'password' in data:
         room.password = data['password']
     glob.rooms[room_id] = room

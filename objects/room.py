@@ -66,7 +66,7 @@ class PlayerMulti:
         self.uid = player.id
         self.username = player.name
         self.status = PlayerStatus.IDLE
-        self.team = "null"
+        self.team = None
         self.mods = Mods().as_json()
         return self
     
