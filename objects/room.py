@@ -100,5 +100,6 @@ class Room:
         self.teamMode: int = 0
         self.winCondition: int = 0
         self.password: str = ''
+        
     
         

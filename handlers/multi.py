@@ -5,7 +5,7 @@ from objects import glob
 from objects.player import Player
 from objects.room import Room, PlayerMulti
 from objects.beatmap import Beatmap
-
+import utils
 bp = Blueprint('multi', __name__)
 bp.prefix = '/multi/'
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*', engineio_logger=True)
@@ -38,10 +38,17 @@ class MultiNamespace(socketio.AsyncNamespace):
             },
             'host': room_info.host.as_json(),
             'isLocked': room_info.isLocked,
-            
+            'gameplay_settings': room_info.gameplay_settings.as_json(),
+            'maxPlayers': room_info.maxPlayers,
+            'mods': room_info.mods,
+            'players': [p.as_json() for p in room_info.players],
+            'status': room_info.status,
+            'teamMode': room_info.teamMode,
+            'winCondition': room_info.winCondition,
+            'sessionId': utils.make_uuid() 
         }
 
-        await sio.emit('initialConnection', data=resp, namespace=self.namespace)
+        await sio.emit('initialConnection', data=resp, namespace=self.namespace, to=sid)
         
 
 # Register the class for the '/multi' namespace
@@ -63,7 +70,8 @@ async def create_room():
     room.maxPlayers = data['maxPlayers']
     room.host = PlayerMulti().player(int(data['host']['uid']))
     room.map = await Beatmap.from_md5(data['beatmap']['md5'])
-
+    if 'password' in data:
+        room.password = data['password']
     glob.rooms[room_id] = room
 
     response = {
