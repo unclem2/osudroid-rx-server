@@ -6,7 +6,7 @@
     "configurations": [
 
 
-        {"name":"Python Debugger: Current File","type":"debugpy","request":"launch","program":"${cwd}/main.py","console":"integratedTerminal", "args": ["-Xfrozen_modules=off"]}
+        {"name":"Python Debugger: Current File","type":"debugpy","request":"launch","program":"${cwd}/main.py","console":"integratedTerminal", "args": ["-Xfrozen_modules=off"], "justMyCode": false}
 
     ]
 }

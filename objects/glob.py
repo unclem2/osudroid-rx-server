@@ -2,7 +2,7 @@ import config
 from .collections import PlayerList, RoomList
 
 players: PlayerList = PlayerList()
-rooms: RoomList = RoomList()
+rooms = {}
 
 cache: dict = {
   'hashes': {},
