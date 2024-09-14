@@ -69,7 +69,15 @@ class MultiNamespace(socketio.AsyncNamespace):
                 player.mods.mods = args[0]['mods']
                 player.mods.speedMultiplier = args[0]['speedMultiplier']
                 player.mods.flFollowDelay = args[0]['flFollowDelay']
-                
+                if args[0]['customAR'] != None:
+                    player.mods.customAR = args[0]['customAR']
+                if args[0]['customOD'] != None:
+                    player.mods.customOD = args[0]['customOD']
+                if args[0]['customCS'] != None:
+                    player.mods.customCS = args[0]['customCS']
+                if args[0]['customHP'] != None:
+                    player.mods.customHP = args[0]['customHP']
+                    
                 
                 await sio.emit('playerModsChanged', (str(player.uid), args[0]), namespace=self.namespace)
                 break
