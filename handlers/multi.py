@@ -69,15 +69,17 @@ class MultiNamespace(socketio.AsyncNamespace):
                 player.mods.mods = args[0]['mods']
                 player.mods.speedMultiplier = args[0]['speedMultiplier']
                 player.mods.flFollowDelay = args[0]['flFollowDelay']
-                if args[0]['customAR'] != None:
-                    player.mods.customAR = args[0]['customAR']
-                if args[0]['customOD'] != None:
-                    player.mods.customOD = args[0]['customOD']
-                if args[0]['customCS'] != None:
-                    player.mods.customCS = args[0]['customCS']
-                if args[0]['customHP'] != None:
-                    player.mods.customHP = args[0]['customHP']
-                    
+                try:
+                    if args[0]['customAR']:
+                        player.mods.customAR = args[0]['customAR']
+                    if args[0]['customOD']:
+                        player.mods.customOD = args[0]['customOD']
+                    if args[0]['customCS']:
+                        player.mods.customCS = args[0]['customCS']
+                    if args[0]['customHP']:
+                        player.mods.customHP = args[0]['customHP']
+                except:
+                    pass
                 
                 await sio.emit('playerModsChanged', (str(player.uid), args[0]), namespace=self.namespace)
                 break
@@ -87,6 +89,17 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.mods.mods = args[0]['mods']
         room_info.mods.speedMultiplier = args[0]['speedMultiplier']
         room_info.mods.flFollowDelay = args[0]['flFollowDelay']
+        try:
+            if args[0]['customAR']:
+                room_info.mods.customAR = args[0]['customAR']
+            if args[0]['customOD']:
+                room_info.mods.customOD = args[0]['customOD']
+            if args[0]['customCS']:
+                room_info.mods.customCS = args[0]['customCS']
+            if args[0]['customHP']:
+                room_info.mods.customHP = args[0]['customHP']
+        except:
+            pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
     
 
