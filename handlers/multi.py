@@ -48,7 +48,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             },
             'host': room_info.host.as_json(),
             'isLocked': room_info.isLocked,
-            'gameplaySettings': room_info.gameplaySettings.on_creation(),
+            'gameplaySettings': room_info.gameplaySettings.as_json(),
             'maxPlayers': room_info.maxPlayers,
             'mods': room_info.mods.as_json(),
             'players': [p.as_json() for p in room_info.players],
@@ -94,12 +94,12 @@ class MultiNamespace(socketio.AsyncNamespace):
             pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
     
-    async def on_roomSettingsChanged(self, sid, *args):
+    async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.gameplaySettings.isRemoveSliderLock = args[0].get('isRemoveSliderLock', room_info.gameplaySettings.isRemoveSliderLock)
         room_info.gameplaySettings.isFreeMod = args[0].get('isFreeMod', room_info.gameplaySettings.isFreeMod)
         room_info.gameplaySettings.allowForceDifficultyStatistics = args[0].get('allowForceDifficultyStatistics', room_info.gameplaySettings.allowForceDifficultyStatistics)
-        await sio.emit('roomSettingsChanged', args[0], namespace=self.namespace)
+        await sio.emit('roomGameplaySettingsChanged', room_info.gameplaySettings.as_json(), namespace=self.namespace)
     
     
 @bp.route('/createroom', methods=['POST'])

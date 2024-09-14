@@ -6,15 +6,15 @@ from typing import Dict, Union
 
 
 class RoomStatus(IntEnum):
-    OPEN = 1
-    LOCKED = 2
-    INGAME = 3
+    IDLE = 1
+    CHANGING_BEATMAP = 2
+    PLAYING = 3
 
     def __repr__(self) -> str:
         return {
-            self.OPEN: 'Open',
-            self.LOCKED: 'Locked',
-            self.INGAME: 'Ingame'
+            self.IDLE: 'Idle',
+            self.CHANGING_BEATMAP: 'Changing beatmap',
+            self.PLAYING: 'Playing'
         }[self.value]
         
 class PlayerStatus(IntEnum):  #finished
@@ -91,19 +91,13 @@ class RoomSettings:
         self.allowForceDifficultyStatistics: bool = False  
     
     def as_json(self) -> Dict[str, str]:
-        attributes = {
-            'isRemoveSliderLock': self.isRemoveSliderLock,
-            'isFreeMod': self.isFreeMod,
-            'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
-        }
-        filtered_attributes = {k: v for k, v in attributes.items() if v}
-        return filtered_attributes
-    def on_creation(self) -> Dict[str, str]:
         return {
             'isRemoveSliderLock': self.isRemoveSliderLock,
             'isFreeMod': self.isFreeMod,
             'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
         }
+    
+
 
 class Room:
     def __init__(self):
@@ -116,7 +110,7 @@ class Room:
         self.maxPlayers: int = 0
         self.mods: Mods = Mods()
         self.players: list = []
-        self.status: RoomStatus = RoomStatus.OPEN
+        self.status: RoomStatus = RoomStatus.IDLE
         self.teamMode: int = 0
         self.winCondition: int = 0
         self.password: str = ''
