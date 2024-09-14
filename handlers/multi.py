@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify
 import json
 from objects import glob
 from objects.player import Player
-from objects.room import Room, PlayerMulti
+from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus
 from objects.beatmap import Beatmap
 import utils
 bp = Blueprint('multi', __name__)
@@ -60,7 +60,7 @@ class MultiNamespace(socketio.AsyncNamespace):
 
         await sio.emit(data=resp, namespace=self.namespace, event='initialConnection')
         
-    # @sio.on('playerModsChanged')
+    
     async def on_playerModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
@@ -79,7 +79,23 @@ class MultiNamespace(socketio.AsyncNamespace):
                 
                 await sio.emit('playerModsChanged', (str(player.uid), args[0]), namespace=self.namespace)
                 break
-        
+      
+    async def on_playerStatusChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                #what the point
+                if args[0][1] == 0:
+                    player.status = PlayerStatus.IDLE
+                if args[0][1] == 1:
+                    player.status = PlayerStatus.READY
+                if args[0][1] == 2:
+                    player.status = PlayerStatus.NOMAP
+                if args[0][1] == 3:
+                    player.status = PlayerStatus.PLAYING
+                await sio.emit('playerStatusChanged', (str(player.uid), player.status), namespace=self.namespace)
+                break
+      
     async def on_roomModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.mods.mods = args[0]['mods']
