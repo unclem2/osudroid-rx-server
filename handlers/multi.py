@@ -94,7 +94,14 @@ class MultiNamespace(socketio.AsyncNamespace):
             pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
     
-
+    async def on_roomSettingsChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        room_info.gameplaySettings.isRemoveSliderLock = args[0].get('isRemoveSliderLock')
+        room_info.gameplaySettings.isFreeMod = args[0].get('isFreeMod')
+        room_info.gameplaySettings.allowForceDifficultyStatistics = args[0].get('allowForceDifficultyStatistics')
+        await sio.emit('roomSettingsChanged', args[0], namespace=self.namespace)
+    
+    
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
     data = await request.get_json()

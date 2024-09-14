@@ -91,12 +91,14 @@ class RoomSettings:
         self.allowForceDifficultyStatistics: bool = False  
     
     def as_json(self) -> Dict[str, str]:
-        return {
+        attributes = {
             'isRemoveSliderLock': self.isRemoveSliderLock,
             'isFreeMod': self.isFreeMod,
             'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
         }
-            
+        filtered_attributes = {k: v for k, v in attributes.items() if v}
+        return filtered_attributes
+    
 
 class Room:
     def __init__(self):
