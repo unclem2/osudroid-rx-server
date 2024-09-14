@@ -48,7 +48,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             },
             'host': room_info.host.as_json(),
             'isLocked': room_info.isLocked,
-            'gameplaySettings': room_info.gameplaySettings.as_json(),
+            'gameplaySettings': room_info.gameplaySettings.on_creation(),
             'maxPlayers': room_info.maxPlayers,
             'mods': room_info.mods.as_json(),
             'players': [p.as_json() for p in room_info.players],

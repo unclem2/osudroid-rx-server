@@ -98,7 +98,12 @@ class RoomSettings:
         }
         filtered_attributes = {k: v for k, v in attributes.items() if v}
         return filtered_attributes
-    
+    def on_creation(self) -> Dict[str, str]:
+        return {
+            'isRemoveSliderLock': self.isRemoveSliderLock,
+            'isFreeMod': self.isFreeMod,
+            'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
+        }
 
 class Room:
     def __init__(self):
