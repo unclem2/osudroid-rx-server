@@ -25,7 +25,8 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
         room_info = glob.rooms.get(self.room_id)
-        room_info.players.append(PlayerMulti().player(id=args[0]['uid']), sid=sid)
+        room_info.players.append(PlayerMulti().player(id=args[0]['uid'], sid=sid))
+        
         resp = {
             'id': room_info.id,
             'name': room_info.name,
@@ -57,17 +58,22 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                player.mods = args[0]
-                data = [player.uid, player.mods]
-                await sio.emit(event='playerModsChanged', data=data, namespace=self.namespace)
+                print("aa")
+                player.mods.mods = args[0]['mods']
+                player.mods.speedMultiplier = args[0]['speedMultiplier']
+                player.mods.flFollowDelay = args[0]['flFollowDelay']
+                
+                
+                await sio.emit('playerModsChanged', (str(player.uid), args[0]), namespace=self.namespace)
                 break
         
-        
-# Register the class for the '/multi' namespace
-
-
-
-
+    async def on_roomModsChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        room_info.mods.mods = args[0]['mods']
+        room_info.mods.speedMultiplier = args[0]['speedMultiplier']
+        room_info.mods.flFollowDelay = args[0]['flFollowDelay']
+        await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
+    
 
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
@@ -80,7 +86,7 @@ async def create_room():
     room.id = room_id
     room.name = data['name']
     room.maxPlayers = data['maxPlayers']
-    room.host = PlayerMulti().player(int(data['host']['uid']))
+    room.host = PlayerMulti().player(int(data['host']['uid']), sid='')
     room.map = await Beatmap.from_md5(data['beatmap']['md5'])
     room.map.md5 = data['beatmap']['md5']
     if 'password' in data:
@@ -95,5 +101,28 @@ async def create_room():
 
 @bp.route('/getrooms')
 async def get_rooms():
-
-    return '[]'
+    room = []
+    for room_id, room_info in glob.rooms.items():
+        room.append({
+            'id': room_info.id,
+            'name': room_info.name,
+            'beatmap': {
+                'md5': room_info.map.md5,
+                'title': room_info.map.title,
+                'artist': room_info.map.artist,
+                'version': room_info.map.version,
+                'creator': room_info.map.creator,
+                'beatmapSetId': room_info.map.set_id
+            },
+            'host': room_info.host.as_json(),
+            'isLocked': room_info.isLocked,
+            'gameplaySettings': room_info.gameplaySettings.as_json(),
+            'maxPlayers': room_info.maxPlayers,
+            'mods': room_info.mods.as_json(),
+            'players': [p.as_json() for p in room_info.players],
+            'status': room_info.status,
+            'teamMode': room_info.teamMode,
+            'winCondition': room_info.winCondition
+        })
+        
+    return f"{room}"

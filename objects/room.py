@@ -2,7 +2,7 @@ from objects.player import Player
 from objects.beatmap import Beatmap
 from objects import glob
 from enum import IntEnum, unique
-from typing import Dict
+from typing import Dict, Union
 
 
 class RoomStatus(IntEnum):
@@ -36,13 +36,23 @@ class Mods:
         self.mods: str = ''
         self.speedMultiplier: float = 1.0
         self.flFollowDelay: float = 0.12
+        self.customAR: int = 0
+        self.customOD: int = 0
+        self.customCS: int = 0
+        self.customHP: int = 0
         
-    def as_json(self) -> Dict[str, str]:
-        return {
+    def as_json(self) -> Dict[str, Union[str, float, int]]:
+        attributes = {
             'mods': self.mods,
             'speedMultiplier': self.speedMultiplier,
-            'flFollowDelay': self.flFollowDelay
+            'flFollowDelay': self.flFollowDelay,
+            'customAR': self.customAR,
+            'customOD': self.customOD,
+            'customCS': self.customCS,
+            'customHP': self.customHP
         }
+        filtered_attributes = {k: v for k, v in attributes.items() if v}
+        return filtered_attributes
 
 class PlayerMulti:  
     def __init__(self):
@@ -59,7 +69,7 @@ class PlayerMulti:
             'username': self.username,
             'status': self.status,
             'team': self.team,
-            'mods': self.mods
+            'mods': self.mods.as_json()
         }
     
     def player(self, id, sid):
@@ -68,14 +78,11 @@ class PlayerMulti:
         self.username = player.name
         self.status = PlayerStatus.IDLE
         self.team = None
-        self.mods = Mods().as_json()
+        self.mods = Mods()
         self.sid = sid
         
         return self
     
-    @property
-    def get_sid(self):
-        return self.sid
         
 class RoomSettings:  
     def __init__(self):
