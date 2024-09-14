@@ -70,14 +70,10 @@ class MultiNamespace(socketio.AsyncNamespace):
                 player.mods.speedMultiplier = args[0]['speedMultiplier']
                 player.mods.flFollowDelay = args[0]['flFollowDelay']
                 try:
-                    if args[0]['customAR']:
-                        player.mods.customAR = args[0]['customAR']
-                    if args[0]['customOD']:
-                        player.mods.customOD = args[0]['customOD']
-                    if args[0]['customCS']:
-                        player.mods.customCS = args[0]['customCS']
-                    if args[0]['customHP']:
-                        player.mods.customHP = args[0]['customHP']
+                    player.mods.customAR = args[0].get('customAR', 0)
+                    player.mods.customOD = args[0].get('customOD', 0)
+                    player.mods.customCS = args[0].get('customCS', 0)
+                    player.mods.customHP = args[0].get('customHP', 0)
                 except:
                     pass
                 
@@ -90,14 +86,10 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.mods.speedMultiplier = args[0]['speedMultiplier']
         room_info.mods.flFollowDelay = args[0]['flFollowDelay']
         try:
-            if args[0]['customAR']:
-                room_info.mods.customAR = args[0]['customAR']
-            if args[0]['customOD']:
-                room_info.mods.customOD = args[0]['customOD']
-            if args[0]['customCS']:
-                room_info.mods.customCS = args[0]['customCS']
-            if args[0]['customHP']:
-                room_info.mods.customHP = args[0]['customHP']
+            room_info.mods.customAR = args[0].get('customAR', 0)
+            room_info.mods.customOD = args[0].get('customOD', 0)
+            room_info.mods.customCS = args[0].get('customCS', 0)
+            room_info.mods.customHP = args[0].get('customHP', 0)
         except:
             pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
