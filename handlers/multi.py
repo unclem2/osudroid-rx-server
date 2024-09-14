@@ -21,6 +21,13 @@ class MultiNamespace(socketio.AsyncNamespace):
 
     async def on_disconnect(self, sid):
         print(f"Client disconnected: {sid}")
+        room_info = glob.rooms.get(self.room_id)
+        for i in range(len(room_info.players)):
+            if room_info.players[i].sid == sid:
+                room_info.players.pop(i)
+                break
+        if len(room_info.players) == 0:
+            glob.rooms.pop(self.room_id)
         
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
