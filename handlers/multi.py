@@ -103,26 +103,21 @@ async def create_room():
 async def get_rooms():
     room = []
     for room_id, room_info in glob.rooms.items():
+        players = ''
+        for p in room_info.players:
+            players += p.as_json()['username']
         room.append({
             'id': room_info.id,
             'name': room_info.name,
-            'beatmap': {
-                'md5': room_info.map.md5,
-                'title': room_info.map.title,
-                'artist': room_info.map.artist,
-                'version': room_info.map.version,
-                'creator': room_info.map.creator,
-                'beatmapSetId': room_info.map.set_id
-            },
-            'host': room_info.host.as_json(),
             'isLocked': room_info.isLocked,
             'gameplaySettings': room_info.gameplaySettings.as_json(),
             'maxPlayers': room_info.maxPlayers,
             'mods': room_info.mods.as_json(),
-            'players': [p.as_json() for p in room_info.players],
+            'playerNames': players,
+            'playerCount': len(room_info.players),
             'status': room_info.status,
             'teamMode': room_info.teamMode,
             'winCondition': room_info.winCondition
         })
         
-    return f"{room}"
+    return jsonify(room)
