@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify
 import json
 from objects import glob
 from objects.player import Player
-from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition
+from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam
 from objects.beatmap import Beatmap
 import utils
 bp = Blueprint('multi', __name__)
@@ -195,8 +195,18 @@ class MultiNamespace(socketio.AsyncNamespace):
         if args[0] == 3:
             room_info.winCondition = WinCondition.SCOREV2
         await sio.emit('winConditionChanged', data=room_info.winCondition, namespace=self.namespace)
-        
-        
+    
+    async def on_teamModeChanged(self, sid, *args):
+        room_info = glob.room.get(self.room_id)
+        room_info.teamMode = args[0]
+        await sio.emit('teamModeChanged', data=(str(player.uid), room_info.teamMode), namespace=self.namespace)
+        for player in room_info.players:
+            player.team = PlayerTeam.NONE
+            await sio.emit('playerStatusChanged', (str(player.uid), int(PlayerStatus.IDLE)), namespace=self.namespace)
+            await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
+                
+    
+    
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
     data = await request.get_json()
