@@ -169,12 +169,12 @@ class MultiNamespace(socketio.AsyncNamespace):
                 await sio.emit('chatMessage', data=(str(player.uid), args[0]), namespace=self.namespace)
   
     async def on_roomNameChanged(self, sid, *args):
-        room_info = glob.room.get(self.room_id)
+        room_info = glob.rooms.get(self.room_id)
         room_info.name = args[0]
-        await sio.emit('roomNameChanged', data=str(room_info.name))
+        await sio.emit('roomNameChanged', data=str(room_info.name), namespace=self.namespace)
     
     async def on_roomPasswordChanged(self, sid, *args):
-        room_info = glob.room.get(self.room_id)
+        room_info = glob.rooms.get(self.room_id)
         if room_info.isLocked == True:
             room_info.password = args[0]
         if args[0] == "":
@@ -185,7 +185,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             room_info.password = args[0]
             
     async def on_winConditionChanged(self, sid, *args):
-        room_info = glob.room.get(self.room_id)
+        room_info = glob.rooms.get(self.room_id)
         if args[0] == 0:
             room_info.winCondition = WinCondition.SCOREV1
         if args[0] == 1:
@@ -198,14 +198,25 @@ class MultiNamespace(socketio.AsyncNamespace):
         await sio.emit('winConditionChanged', data=room_info.winCondition, namespace=self.namespace)
     
     async def on_teamModeChanged(self, sid, *args):
-        room_info = glob.room.get(self.room_id)
+        room_info = glob.rooms.get(self.room_id)
         room_info.teamMode = args[0]
-        await sio.emit('teamModeChanged', data=(str(player.uid), room_info.teamMode), namespace=self.namespace)
+        await sio.emit('teamModeChanged', room_info.teamMode, namespace=self.namespace)
         for player in room_info.players:
-            player.team = PlayerTeam.NONE
+            player.team = None
             await sio.emit('playerStatusChanged', (str(player.uid), int(PlayerStatus.IDLE)), namespace=self.namespace)
             await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
                 
+    async def on_teamChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                if args[0] == 0:
+                    player.team = PlayerTeam.RED
+                if args[0] == 1:
+                    player.team = PlayerTeam.BLUE
+                await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
+    
+
     
     
 @bp.route('/createroom', methods=['POST'])

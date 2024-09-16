@@ -31,14 +31,11 @@ class PlayerStatus(IntEnum):  #finished
             self.PLAYING: 'Playing'
         }[self.value]
            
-class PlayerTeam(IntEnum):  
-    NONE = 0
+class PlayerTeam(IntEnum): 
+    RED = 0
     BLUE = 1
-    RED = 2
-    
     def __repr__(self) -> str:
         return {
-            self.NONE: 'None',
             self.BLUE: 'Blue',
             self.RED: 'Red'
         }[self.value]
@@ -89,7 +86,7 @@ class PlayerMulti:
         self.uid = player.id
         self.username = player.name
         self.status = PlayerStatus.IDLE
-        self.team = PlayerTeam.NONE
+        self.team = None
         self.mods = Mods()
         self.sid = sid
         
