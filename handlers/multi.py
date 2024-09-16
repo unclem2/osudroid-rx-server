@@ -233,6 +233,17 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.map.creator = args[0].get('creator', '')
                 room_info.map.md5 = ""
             
+            return_data = {}
+            return_data['md5'] = room_info.map.md5
+            return_data['title'] = room_info.map.title
+            return_data['artist'] = room_info.map.artist
+            return_data['version'] = room_info.map.version
+            return_data['creator'] = room_info.map.creator
+            try:
+                return_data['beatmapSetId'] = room_info.map.set_id
+            except:
+                pass
+            
             await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
         
     
