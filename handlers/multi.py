@@ -216,7 +216,17 @@ class MultiNamespace(socketio.AsyncNamespace):
                     player.team = PlayerTeam.BLUE
                 await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
     
-
+    async def on_BeatmapChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        if args[0] == {}:
+            room_info.status = RoomStatus.CHANGING_BEATMAP
+            await sio.emit('BeatmapChanged', data=args[0], namespace=self.namespace)
+        if args[0] != {}:
+            room_info.status = RoomStatus.IDLE
+            room_info.map = await Beatmap.from_md5(args[0]['md5'])
+            room_info.map.md5 = args[0]['md5']
+            await sio.emit('BeatmapChanged', data=args[0], namespace=self.namespace)
+        
     
     
 @bp.route('/createroom', methods=['POST'])
