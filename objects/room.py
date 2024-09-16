@@ -32,13 +32,13 @@ class PlayerStatus(IntEnum):  #finished
         }[self.value]
            
 class PlayerTeam(IntEnum):  
-    NONE = None
+    NONE = 0
     BLUE = 1
     RED = 2
     
     def __repr__(self) -> str:
         return {
-            self.NONE: None,
+            self.NONE: 'None',
             self.BLUE: 'Blue',
             self.RED: 'Red'
         }[self.value]

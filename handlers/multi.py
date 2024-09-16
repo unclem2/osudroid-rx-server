@@ -194,6 +194,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             room_info.winCondition = WinCondition.COMBO
         if args[0] == 3:
             room_info.winCondition = WinCondition.SCOREV2
+            
         await sio.emit('winConditionChanged', data=room_info.winCondition, namespace=self.namespace)
     
     async def on_teamModeChanged(self, sid, *args):
