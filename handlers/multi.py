@@ -216,16 +216,19 @@ class MultiNamespace(socketio.AsyncNamespace):
                     player.team = PlayerTeam.BLUE
                 await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
     
-    async def on_BeatmapChanged(self, sid, *args):
+    async def on_beatmapChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
-            await sio.emit('BeatmapChanged', data=args[0], namespace=self.namespace)
+            await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
-            room_info.map = await Beatmap.from_md5(args[0]['md5'])
+            try:
+                room_info.map = await Beatmap.from_md5(args[0]['md5'])
+            except:
+                pass
             room_info.map.md5 = args[0]['md5']
-            await sio.emit('BeatmapChanged', data=args[0], namespace=self.namespace)
+            await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
         
     
     
@@ -241,7 +244,10 @@ async def create_room():
     room.name = data['name']
     room.maxPlayers = data['maxPlayers']
     room.host = PlayerMulti().player(int(data['host']['uid']), sid='')
-    room.map = await Beatmap.from_md5(data['beatmap']['md5'])
+    try:
+        room.map = await Beatmap.from_md5(data['beatmap']['md5'])
+    except:
+        pass
     room.map.md5 = data['beatmap']['md5']
     if 'password' in data:
         room.password = data['password']
