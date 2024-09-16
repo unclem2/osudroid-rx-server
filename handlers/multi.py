@@ -250,9 +250,14 @@ async def create_room():
     room.host = PlayerMulti().player(int(data['host']['uid']), sid='')
     try:
         room.map = await Beatmap.from_md5(data['beatmap']['md5'])
+        room.map.md5 = data['beatmap']['md5']
+
     except:
-        pass
-    room.map.md5 = data['beatmap']['md5']
+        room.map.title = data['beatmap']['title']
+        room.map.artist = data['beatmap']['artist']
+        room.map.version = data['beatmap']['version']
+        room.map.creator = data['beatmap']['creator']
+        room.map.md5 = ""
     if 'password' in data:
         room.password = data['password']
         room.isLocked = True
