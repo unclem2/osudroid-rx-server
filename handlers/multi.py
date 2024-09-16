@@ -226,7 +226,11 @@ class MultiNamespace(socketio.AsyncNamespace):
             try:
                 room_info.map = await Beatmap.from_md5(args[0]['md5'])
             except:
-                pass
+                room_info.map.title = args[0]['title']
+                room_info.map.artist = args[0]['artist']
+                room_info.map.version = args[0]['version']
+                room_info.map.creator = args[0]['creator']
+                room_info.map.md5 = ""
             room_info.map.md5 = args[0]['md5']
             await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
         
