@@ -244,7 +244,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             except:
                 pass
             
-            await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
+            await sio.emit('beatmapChanged', data=return_data, namespace=self.namespace)
         
     
     
