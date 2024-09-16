@@ -225,13 +225,14 @@ class MultiNamespace(socketio.AsyncNamespace):
             room_info.status = RoomStatus.IDLE
             try:
                 room_info.map = await Beatmap.from_md5(args[0]['md5'])
+                room_info.map.md5 = args[0]['md5']
             except:
-                room_info.map.title = args[0]['title']
-                room_info.map.artist = args[0]['artist']
-                room_info.map.version = args[0]['version']
-                room_info.map.creator = args[0]['creator']
+                room_info.map.title = args[0].get('title', '')
+                room_info.map.artist = args[0].get('artist', '')
+                room_info.map.version = args[0].get('version', '')
+                room_info.map.creator = args[0].get('creator', '')
                 room_info.map.md5 = ""
-            room_info.map.md5 = args[0]['md5']
+            
             await sio.emit('beatmapChanged', data=args[0], namespace=self.namespace)
         
     
@@ -253,10 +254,11 @@ async def create_room():
         room.map.md5 = data['beatmap']['md5']
 
     except:
-        room.map.title = data['beatmap']['title']
-        room.map.artist = data['beatmap']['artist']
-        room.map.version = data['beatmap']['version']
-        room.map.creator = data['beatmap']['creator']
+        beatmap = data.get('beatmap', {})
+        room.map.title = beatmap.get('title', '')
+        room.map.artist = beatmap.get('artist', '')
+        room.map.version = beatmap.get('version', '')
+        room.map.creator = beatmap.get('creator', '')
         room.map.md5 = ""
     if 'password' in data:
         room.password = data['password']
