@@ -97,7 +97,19 @@ class RoomSettings:
             'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
         }
     
-
+class WinCondition:
+    SCOREV1 = 0
+    ACC = 1
+    COMBO = 2
+    SCOREV2 = 3
+    
+    def __repr__(self) -> str:
+        return {
+            self.SCOREV1: 'Score v1',
+            self.ACC: 'Accuracy',
+            self.COMBO: 'Combo',
+            self.SCOREV2: 'Score v2'
+        }[self.value]
 
 class Room:
     def __init__(self):
@@ -112,7 +124,7 @@ class Room:
         self.players: list = []
         self.status: RoomStatus = RoomStatus.IDLE
         self.teamMode: int = 0
-        self.winCondition: int = 0
+        self.winCondition: WinCondition = WinCondition.SCOREV1
         self.password: str = ''
         
     
