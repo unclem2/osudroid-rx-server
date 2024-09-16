@@ -22,6 +22,17 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_disconnect(self, sid):
         print(f"Client disconnected: {sid}")
         room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                await sio.emit('playerLeft', data=str(player.uid), namespace=self.namespace)
+        #even more banger logic
+            if room_info.host.uid != player.uid:
+                break
+            for new_host in room_info.players:
+                if room_info.host.uid != new_host.uid:
+                    room_info.host = new_host
+                    await sio.emit(event='hostChanged', data=str(room_info.host.uid), namespace=self.namespace)
+
         for i in range(len(room_info.players)):
             if room_info.players[i].sid == sid:
                 room_info.players.pop(i)
@@ -58,7 +69,19 @@ class MultiNamespace(socketio.AsyncNamespace):
             'sessionId': utils.make_uuid() 
         }
 
-        await sio.emit(data=resp, namespace=self.namespace, event='initialConnection')
+        await sio.emit(data=resp, namespace=self.namespace, event='initialConnection', to=sid)
+        #banger join logic
+        for player in room_info.players:
+            if player.sid == sid:
+                new_player = player
+        for player in room_info.players:
+            if len(room_info.players) == 1:
+                return
+            if player.sid != sid:
+                await sio.emit('playerJoined', data=new_player.as_json(), namespace=self.namespace, to=player.sid)
+        
+
+            
         
     
     async def on_playerModsChanged(self, sid, *args):
@@ -85,17 +108,23 @@ class MultiNamespace(socketio.AsyncNamespace):
         for player in room_info.players:
             if player.sid == sid:
                 #what the point
-                if args[0][1] == 0:
+                if args[0] == 0:
                     player.status = PlayerStatus.IDLE
-                if args[0][1] == 1:
+                if args[0] == 1:
                     player.status = PlayerStatus.READY
-                if args[0][1] == 2:
+                if args[0] == 2:
                     player.status = PlayerStatus.NOMAP
-                if args[0][1] == 3:
+                if args[0] == 3:
                     player.status = PlayerStatus.PLAYING
-                await sio.emit('playerStatusChanged', (str(player.uid), player.status), namespace=self.namespace)
+                await sio.emit('playerStatusChanged', (str(player.uid), int(player.status)), namespace=self.namespace)
                 break
       
+    async def on_hostChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        room_info.host = PlayerMulti().player(int(args[0]), sid=sid)
+        await sio.emit(event='hostChanged', data=str(room_info.host.uid), namespace=self.namespace)
+                
+    
     async def on_roomModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.mods.mods = args[0]['mods']
