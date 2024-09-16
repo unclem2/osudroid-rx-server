@@ -22,21 +22,30 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_disconnect(self, sid):
         print(f"Client disconnected: {sid}")
         room_info = glob.rooms.get(self.room_id)
+        
+        disconnected_player = None
         for player in room_info.players:
             if player.sid == sid:
-                await sio.emit('playerLeft', data=str(player.uid), namespace=self.namespace)
-        #even more banger logic
-            if room_info.host.uid != player.uid:
+                disconnected_player = player
                 break
+        
+        await sio.emit('playerLeft', data=str(disconnected_player.uid), namespace=self.namespace)
+            
+        # Check if the disconnected player was the host
+        if room_info.host.uid == disconnected_player.uid:
+            # Assign a new host
             for new_host in room_info.players:
-                if room_info.host.uid != new_host.uid:
+                if new_host.uid != disconnected_player.uid:
                     room_info.host = new_host
                     await sio.emit(event='hostChanged', data=str(room_info.host.uid), namespace=self.namespace)
-
+                    break
+            
+        # Remove the player from the room
         for i in range(len(room_info.players)):
-            if room_info.players[i].sid == sid:
+            if room_info.players[i] == disconnected_player:
                 room_info.players.pop(i)
                 break
+
         if len(room_info.players) == 0:
             glob.rooms.pop(self.room_id)
         
@@ -68,22 +77,25 @@ class MultiNamespace(socketio.AsyncNamespace):
             'winCondition': room_info.winCondition,
             'sessionId': utils.make_uuid() 
         }
-
+        # Emit initial connection event
         await sio.emit(data=resp, namespace=self.namespace, event='initialConnection', to=sid)
-        #banger join logic
+
+        # If there is only one player in the room, return early
+        if len(room_info.players) == 1:
+            return
+        
+        # Find the new player who just joined
+        new_player = None
         for player in room_info.players:
             if player.sid == sid:
                 new_player = player
+                break
+
+        # Notify other players about the new player joining
         for player in room_info.players:
-            if len(room_info.players) == 1:
-                return
             if player.sid != sid:
                 await sio.emit('playerJoined', data=new_player.as_json(), namespace=self.namespace, to=player.sid)
-        
 
-            
-        
-    
     async def on_playerModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
@@ -138,6 +150,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         except:
             pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
+    
     
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
