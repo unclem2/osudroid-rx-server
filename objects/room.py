@@ -6,9 +6,9 @@ from typing import Dict, Union
 
 
 class RoomStatus(IntEnum):
-    IDLE = 1
-    CHANGING_BEATMAP = 2
-    PLAYING = 3
+    IDLE = 0
+    CHANGING_BEATMAP = 1
+    PLAYING = 2
 
     def __repr__(self) -> str:
         return {
@@ -30,7 +30,7 @@ class PlayerStatus(IntEnum):  #finished
             self.NOMAP: 'NoMap',
             self.PLAYING: 'Playing'
         }[self.value]
-        
+             
 class Mods:  
     def __init__(self):
         self.mods: str = ''

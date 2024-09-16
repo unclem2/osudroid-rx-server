@@ -50,8 +50,13 @@ class MultiNamespace(socketio.AsyncNamespace):
             glob.rooms.pop(self.room_id)
         
     async def on_connect(self, sid, environ, *args):
+        
         print(f"Client connected: {sid}")
         room_info = glob.rooms.get(self.room_id)
+        if room_info.isLocked == True:
+            if args[0]['password'] != room_info.password:
+                await sio.emit('error', 'Wrong password', namespace=self.namespace, to=sid)
+                await sio.disconnect(sid=sid, namespace=self.namespace)
         room_info.players.append(PlayerMulti().player(id=args[0]['uid'], sid=sid))
         
         resp = {
@@ -136,7 +141,6 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.host = PlayerMulti().player(int(args[0]), sid=sid)
         await sio.emit(event='hostChanged', data=str(room_info.host.uid), namespace=self.namespace)
                 
-    
     async def on_roomModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.mods.mods = args[0]['mods']
@@ -150,8 +154,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         except:
             pass
         await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
-    
-    
+     
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.gameplaySettings.isRemoveSliderLock = args[0].get('isRemoveSliderLock', room_info.gameplaySettings.isRemoveSliderLock)
@@ -159,7 +162,33 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.gameplaySettings.allowForceDifficultyStatistics = args[0].get('allowForceDifficultyStatistics', room_info.gameplaySettings.allowForceDifficultyStatistics)
         await sio.emit('roomGameplaySettingsChanged', room_info.gameplaySettings.as_json(), namespace=self.namespace)
     
+    async def on_chatMessage(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                await sio.emit('chatMessage', data=(str(player.uid), args[0]), namespace=self.namespace)
+  
+    async def on_roomNameChanged(self, sid, *args):
+        room_info = glob.room.get(self.room_id)
+        room_info.name = args[0]
+        await sio.emit('roomNameChanged', data=str(room_info.name))
     
+    async def on_roomPasswordChanged(self, sid, *args):
+        room_info = glob.room.get(self.room_id)
+        if room_info.isLocked == True:
+            room_info.password = args[0]
+        if args[0] == "":
+            room_info.isLocked = False
+            room_info.password = ""
+        if room_info.isLocked != True:
+            room_info.isLocked = True
+            room_info.password = args[0]
+            
+    async def on_winConditionChanged(self, sid, *args):
+        room_info = glob.room.get(self.room_id)
+        
+        
+        
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
     data = await request.get_json()
@@ -176,6 +205,7 @@ async def create_room():
     room.map.md5 = data['beatmap']['md5']
     if 'password' in data:
         room.password = data['password']
+        room.isLocked = True
     glob.rooms[room_id] = room
 
     response = {
