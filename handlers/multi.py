@@ -128,7 +128,9 @@ class MultiNamespace(socketio.AsyncNamespace):
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
                     if room_info.status != RoomStatus.IDLE:
-                        room_info
+                        room_info.match.submitted_scores[player.uid] = {}
+                        room_info.match.live_score_data[player.uid] = {}
+                        
                 if args[0] == 1:
                     player.status = PlayerStatus.READY
                 if args[0] == 2:
@@ -289,7 +291,10 @@ class MultiNamespace(socketio.AsyncNamespace):
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.submitted_scores[player.uid] = args[0]
-        if len(room_info.match.beatmap_load_status) == len(room_info.players):
+        if len(room_info.match.submitted_scores) == len(room_info.match.live_score_data):
+            data = []
+            data.append(room_info.match.submitted_scores)
+                
             await sio.emit('allPlayersScoreSubmitted', namespace=self.namespace)
         
 @bp.route('/createroom', methods=['POST'])
