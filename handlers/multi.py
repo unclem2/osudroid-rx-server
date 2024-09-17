@@ -127,9 +127,8 @@ class MultiNamespace(socketio.AsyncNamespace):
                 #what the point
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
-                    # if room_info.status != RoomStatus.IDLE:
-                        # room_info.match.submitted_scores[player.uid] = {}
-                        # room_info.match.live_score_data[player.uid] = {}
+                    if room_info.status == RoomStatus.PLAYING:
+                        room_info.match.live_score_data[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
                         
                 if args[0] == 1:
                     player.status = PlayerStatus.READY
@@ -259,6 +258,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         await sio.emit('playBeatmap', namespace=self.namespace)
         for player in room_info.players:
             await sio.emit('playerStatusChanged', (str(player.uid), int(PlayerStatus.PLAYING)), namespace=self.namespace)
+            room_info.match.players.append(player)
         
     async def on_beatmapLoadComplete(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -278,11 +278,11 @@ class MultiNamespace(socketio.AsyncNamespace):
         
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        
+        live_score_data = []
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
-            live_score_data = []
+            
             if len(room_info.players) == len(room_info.match.live_score_data):
                 live_score_data.append({
                     'username': player.username,

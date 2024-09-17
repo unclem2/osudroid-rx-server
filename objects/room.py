@@ -91,8 +91,7 @@ class PlayerMulti:
         self.sid = sid
         
         return self
-    
-        
+           
 class RoomSettings:  
     def __init__(self):
         self.isRemoveSliderLock: bool = False
@@ -126,10 +125,8 @@ class Match:
         self.skip_requests: dict = {}
         self.live_score_data: dict = {}
         self.submitted_scores: dict = {}
+        self.players: dict = {}
         
-        
-        
-
 class Room:
     def __init__(self):
         self.id: int = 0
