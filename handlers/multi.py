@@ -3,7 +3,7 @@ from quart import Blueprint, request, jsonify
 import json
 from objects import glob
 from objects.player import Player
-from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam
+from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam, Match
 from objects.beatmap import Beatmap
 import utils
 bp = Blueprint('multi', __name__)
@@ -127,9 +127,9 @@ class MultiNamespace(socketio.AsyncNamespace):
                 #what the point
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
-                    if room_info.status != RoomStatus.IDLE:
-                        room_info.match.submitted_scores[player.uid] = {}
-                        room_info.match.live_score_data[player.uid] = {}
+                    # if room_info.status != RoomStatus.IDLE:
+                        # room_info.match.submitted_scores[player.uid] = {}
+                        # room_info.match.live_score_data[player.uid] = {}
                         
                 if args[0] == 1:
                     player.status = PlayerStatus.READY
@@ -267,14 +267,22 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.match.beatmap_load_status[player.uid] = {'loaded': True}
         if len(room_info.match.beatmap_load_status) == len(room_info.players):
             await sio.emit('allPlayersBeatmapLoadComplete', namespace=self.namespace)
+            
+    async def on_skipRequested(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                room_info.match.skip_requests[player.uid] = {'skipped': True}
+        if len(room_info.match.beatmap_load_status) == len(room_info.match.beatmap_load_status):
+            await sio.emit('allPlayersSkipRequested', namespace=self.namespace)
         
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        live_score_data = []
+        
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
-
+            live_score_data = []
             if len(room_info.players) == len(room_info.match.live_score_data):
                 live_score_data.append({
                     'username': player.username,
@@ -296,10 +304,21 @@ class MultiNamespace(socketio.AsyncNamespace):
             for player in room_info.players:
                 try:
                     data.append(room_info.match.submitted_scores[player.uid])
+                    
                 except:
                     pass
-                
+
             await sio.emit('allPlayersScoreSubmitted', data=data, namespace=self.namespace)
+            room_info.status = RoomStatus.IDLE
+            await sio.emit('roomStatusChanged', int(room_info.status), namespace=self.namespace)
+            for player in room_info.players:
+                player.status = PlayerStatus.IDLE
+                await sio.emit('playerStatusChanged', (str(player.uid), int(player.status)))
+            room_info.match = Match()
+            
+    async def on_playerKicked(self, sid, *args):
+        await sio.emit('playerKicked', data=str(args[0]), namespace=self.namespace)
+    
         
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
