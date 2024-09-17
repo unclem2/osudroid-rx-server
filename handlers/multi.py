@@ -260,11 +260,11 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                room_info.match.beatmap_load_status.append({player.uid, True})
+                room_info.match.beatmap_load_status[player.uid] = {'loaded': True}
         if len(room_info.match.beatmap_load_status) == len(room_info.players):
             await sio.emit('allPlayersBeatmapLoadComplete', namespace=self.namespace)
         
-        
+    
     
     
 @bp.route('/createroom', methods=['POST'])
