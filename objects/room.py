@@ -125,6 +125,7 @@ class Match:
         self.beatmap_load_status: dict = {}
         self.skip_requests: dict = {}
         self.live_score_data: dict = {}
+        self.submitted_scores: dict = {}
         
         
         

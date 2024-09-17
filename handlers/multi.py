@@ -127,6 +127,8 @@ class MultiNamespace(socketio.AsyncNamespace):
                 #what the point
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
+                    if room_info.status != RoomStatus.IDLE:
+                        room_info
                 if args[0] == 1:
                     player.status = PlayerStatus.READY
                 if args[0] == 2:
@@ -266,12 +268,30 @@ class MultiNamespace(socketio.AsyncNamespace):
         
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
+        live_score_data = []
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
+
+            if len(room_info.players) == len(room_info.match.live_score_data):
+                live_score_data.append({
+                    'username': player.username,
+                    'score': room_info.match.live_score_data[player.uid]['score'],
+                    'combo': room_info.match.live_score_data[player.uid]['combo'],
+                    'accuracy': room_info.match.live_score_data[player.uid]['accuracy'],
+                    'isAlive': room_info.match.live_score_data[player.uid]['isAlive'],
+                })
+
+        await sio.emit('liveScoreData', live_score_data, namespace=self.namespace)
         
-        await sio.emit('liveScoreData', data=room_info.match.live_score_data, namespace=self.namespace, to=sid)
-    
+    async def on_scoreSubmission(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                room_info.match.submitted_scores[player.uid] = args[0]
+        if len(room_info.match.beatmap_load_status) == len(room_info.players):
+            await sio.emit('allPlayersScoreSubmitted', namespace=self.namespace)
+        
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
     data = await request.get_json()
