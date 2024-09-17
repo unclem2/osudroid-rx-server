@@ -127,9 +127,15 @@ class MultiNamespace(socketio.AsyncNamespace):
                 #what the point
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
-                    if room_info.status == RoomStatus.PLAYING:
+                    if room_info.status == RoomStatus.PLAYING: 
+                        #if player is leaving while playing, remove him from the match data
                         room_info.match.live_score_data[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
-                        
+                        room_info.match.submitted_scores[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
+                        room_info.match.players.remove(player)
+                    if len(room_info.match.players) == 0:
+                        room_info.status = RoomStatus.IDLE
+                        await sio.emit('roomStatusChanged', int(room_info.status), namespace=self.namespace)
+                        room_info.match = Match()
                 if args[0] == 1:
                     player.status = PlayerStatus.READY
                 if args[0] == 2:
@@ -262,28 +268,31 @@ class MultiNamespace(socketio.AsyncNamespace):
         
     async def on_beatmapLoadComplete(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        for player in room_info.players:
+        for player in room_info.match.players:
             if player.sid == sid:
                 room_info.match.beatmap_load_status[player.uid] = {'loaded': True}
-        if len(room_info.match.beatmap_load_status) == len(room_info.players):
+        if len(room_info.match.beatmap_load_status) == len(room_info.match.players):
             await sio.emit('allPlayersBeatmapLoadComplete', namespace=self.namespace)
             
     async def on_skipRequested(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        for player in room_info.players:
+        
+        for player in room_info.match.players:
             if player.sid == sid:
                 room_info.match.skip_requests[player.uid] = {'skipped': True}
-        if len(room_info.match.beatmap_load_status) == len(room_info.match.beatmap_load_status):
+                
+        if len(room_info.match.skip_requests) == len(room_info.match.players):
             await sio.emit('allPlayersSkipRequested', namespace=self.namespace)
         
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         live_score_data = []
+        
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
             
-            if len(room_info.players) == len(room_info.match.live_score_data):
+            if len(room_info.match.live_score_data) == len(room_info.match.players):
                 live_score_data.append({
                     'username': player.username,
                     'score': room_info.match.live_score_data[player.uid]['score'],
@@ -296,24 +305,27 @@ class MultiNamespace(socketio.AsyncNamespace):
         
     async def on_scoreSubmission(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        for player in room_info.players:
+        for player in room_info.match.players:
             if player.sid == sid:
                 room_info.match.submitted_scores[player.uid] = args[0]
-        if len(room_info.match.submitted_scores) == len(room_info.match.live_score_data):
+                
+        if len(room_info.match.submitted_scores) == len(room_info.match.players):
             data = []
-            for player in room_info.players:
+            for player in room_info.match.players:
                 try:
-                    data.append(room_info.match.submitted_scores[player.uid])
-                    
+                    data.append(room_info.match.submitted_scores[player.uid])  
                 except:
                     pass
 
             await sio.emit('allPlayersScoreSubmitted', data=data, namespace=self.namespace)
+            
             room_info.status = RoomStatus.IDLE
             await sio.emit('roomStatusChanged', int(room_info.status), namespace=self.namespace)
+            
             for player in room_info.players:
                 player.status = PlayerStatus.IDLE
                 await sio.emit('playerStatusChanged', (str(player.uid), int(player.status)))
+                
             room_info.match = Match()
             
     async def on_playerKicked(self, sid, *args):
