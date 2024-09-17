@@ -119,6 +119,17 @@ class WinCondition:
             self.COMBO: 'Combo',
             self.SCOREV2: 'Score v2'
         }[self.value]
+        
+class Match:
+    def __init__(self):
+        self.room_id: int = 0
+        self.beatmap_load_status: set = set()
+        self.players: list = []
+        self.skip_requests: list = []
+        self.live_score_data: set = set()
+        
+        
+        
 
 class Room:
     def __init__(self):
@@ -135,6 +146,7 @@ class Room:
         self.teamMode: int = 0
         self.winCondition: WinCondition = WinCondition.SCOREV1
         self.password: str = ''
+        self.match = Match()
         
     
         

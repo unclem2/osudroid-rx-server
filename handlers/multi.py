@@ -227,11 +227,12 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.map = await Beatmap.from_md5(args[0]['md5'])
                 room_info.map.md5 = args[0]['md5']
             except:
+                room_info.map = Beatmap()
                 room_info.map.title = args[0].get('title', '')
                 room_info.map.artist = args[0].get('artist', '')
                 room_info.map.version = args[0].get('version', '')
                 room_info.map.creator = args[0].get('creator', '')
-                room_info.map.md5 = ""
+                room_info.map.md5 = args[0].get('md5', '')
             
             return_data = {}
             return_data['md5'] = room_info.map.md5
@@ -245,6 +246,24 @@ class MultiNamespace(socketio.AsyncNamespace):
                 pass
             
             await sio.emit('beatmapChanged', data=return_data, namespace=self.namespace)
+        
+        
+    async def on_playBeatmap(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        room_info.status = RoomStatus.PLAYING
+        await sio.emit('roomStatusChanged', data=room_info.status, namespace=self.namespace)
+        await sio.emit('playBeatmap', namespace=self.namespace)
+        for player in room_info.players:
+            await sio.emit('playerStatusChanged', (str(player.uid), int(PlayerStatus.PLAYING)), namespace=self.namespace)
+        
+    async def on_beatmapLoadComplete(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                room_info.match.beatmap_load_status.append({player.uid, True})
+        if len(room_info.match.beatmap_load_status) == len(room_info.players):
+            await sio.emit('allPlayersBeatmapLoadComplete', namespace=self.namespace)
+        
         
     
     
@@ -266,6 +285,7 @@ async def create_room():
 
     except:
         beatmap = data.get('beatmap', {})
+        room.map = Beatmap()
         room.map.title = beatmap.get('title', '')
         room.map.artist = beatmap.get('artist', '')
         room.map.version = beatmap.get('version', '')
