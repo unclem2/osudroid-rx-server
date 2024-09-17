@@ -264,8 +264,13 @@ class MultiNamespace(socketio.AsyncNamespace):
         if len(room_info.match.beatmap_load_status) == len(room_info.players):
             await sio.emit('allPlayersBeatmapLoadComplete', namespace=self.namespace)
         
-    
-    
+    async def on_liveScoreData(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        for player in room_info.players:
+            if player.sid == sid:
+                room_info.match.live_score_data[player.uid] = args[0]
+        
+        await sio.emit('liveScoreData', data=room_info.match.live_score_data, namespace=self.namespace, to=sid)
     
 @bp.route('/createroom', methods=['POST'])
 async def create_room():

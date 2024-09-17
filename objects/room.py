@@ -122,11 +122,9 @@ class WinCondition:
         
 class Match:
     def __init__(self):
-        self.room_id: int = 0
         self.beatmap_load_status: dict = {}
-        self.players: list = []
-        self.skip_requests: list = []
-        self.live_score_data: set = set()
+        self.skip_requests: dict = {}
+        self.live_score_data: dict = {}
         
         
         
