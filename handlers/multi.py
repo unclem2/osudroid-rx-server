@@ -293,9 +293,13 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.match.submitted_scores[player.uid] = args[0]
         if len(room_info.match.submitted_scores) == len(room_info.match.live_score_data):
             data = []
-            data.append(room_info.match.submitted_scores)
+            for player in room_info.players:
+                try:
+                    data.append(room_info.match.submitted_scores[player.uid])
+                except:
+                    pass
                 
-            await sio.emit('allPlayersScoreSubmitted', namespace=self.namespace)
+            await sio.emit('allPlayersScoreSubmitted', data=data, namespace=self.namespace)
         
 @bp.route('/createroom', methods=['POST'])
 async def create_room():
