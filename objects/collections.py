@@ -43,6 +43,9 @@ class BaseCollection:
       if getattr(x, attr) == val:
         return x
 
+  def remove(self, o: object):
+    self.storage.remove(o)
+    logging.info(f"Removed {o} from {self.name}")
 
 class PlayerList(BaseCollection):
   name = 'PlayerList'
@@ -55,6 +58,21 @@ class PlayerList(BaseCollection):
 
     return attr, val
 
+class RoomList(BaseCollection):
+    name = 'RoomList'
+    attrs = ['id']
+    _id_counter = 0  # Class-level counter
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.id = self._get_next_id()
 
+    @classmethod
+    def _get_next_id(cls):
+        cls._id_counter += 1
+        return cls._id_counter
 
+    def fix_attr(self, attr: str, val: str):
+        if attr == 'id':
+            val = int(val)
+        return attr, val

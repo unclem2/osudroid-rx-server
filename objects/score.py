@@ -137,7 +137,7 @@ class Score:
 
 
     async def calc_lb_placement(self):
-        res = await glob.db.fetch("SELECT count(*) as c FROM scores WHERE mapHash = $1 AND score > $2", [self.map_hash, self.score])
+        res = await glob.db.fetch("SELECT count(*) as c FROM scores WHERE mapHash = $1 AND pp > $2", [self.map_hash, self.pp])
         return int(res['c']) + 1 if res else 1
 
 
