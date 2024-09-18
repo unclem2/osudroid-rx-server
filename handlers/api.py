@@ -1,6 +1,7 @@
 import json
 from quart import Blueprint, request, jsonify, render_template_string
 import html_templates
+import aiohttp
 
 from objects import glob
 from objects.beatmap import Beatmap, RankedStatus
@@ -15,6 +16,17 @@ bp.prefix = '/api/'
 async def get_online():
   return {'online': len([_ for _ in glob.players if _.online])}
 
+
+async def discord_notify(msg: str):
+    async with aiohttp.ClientSession() as session:
+        webhook_data = {
+            "content": msg
+        }
+        async with session.post(glob.config.discord_hook, json=webhook_data) as response:
+            if response.status != 204:
+                print(f"Failed to send webhook: {response.status}")
+            else:
+                print("Webhook sent successfully")
 
 def get_player(args: list):
   if 'id' not in args and 'name' not in args:
@@ -188,7 +200,8 @@ async def whitelist_add():
     if data.get('bid') is not None:
       map = await Beatmap.from_bid_osuapi(data.get('bid'))
     await map.download()
-    await map.update_stats()   
+    await map.update_stats()  
+    await discord_notify(msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted")
     return {'status': 'success'}
   
 @bp.route('/wl_remove', methods=['GET'])

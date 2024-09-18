@@ -126,12 +126,12 @@ class Player:
     # Calculate average accuracy
     if stats is None:
         stats = Stats(id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0)
-    top_scores = scores[:50]
+    top_scores = scores[:100]
     stats.acc = sum(row['acc'] for row in top_scores) / min(50, len(scores))
 
     # Calculate performance points (pp)
     total_pp = 0
-    for i, row in enumerate(scores):
+    for i, row in enumerate(top_scores):
         weight = 0.95 ** i
         weighted_pp = row['pp'] * weight
         total_pp += weighted_pp
