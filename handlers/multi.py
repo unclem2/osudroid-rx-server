@@ -105,7 +105,6 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                print("aa")
                 player.mods.mods = args[0]['mods']
                 player.mods.speedMultiplier = args[0]['speedMultiplier']
                 player.mods.flFollowDelay = args[0]['flFollowDelay']
