@@ -125,7 +125,7 @@ class Match:
         self.skip_requests: dict = {}
         self.live_score_data: dict = {}
         self.submitted_scores: dict = {}
-        self.players: dict = []
+        self.players: list = []
         
 class Room:
     def __init__(self):

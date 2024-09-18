@@ -123,14 +123,14 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                #what the point
                 if args[0] == 0:
                     player.status = PlayerStatus.IDLE
-                    if room_info.status == RoomStatus.PLAYING: 
-                        #if player is leaving while playing, remove him from the match data
+                    if room_info.status == RoomStatus.PLAYING and player.status != PlayerStatus.IDLE: 
                         room_info.match.live_score_data[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
                         room_info.match.submitted_scores[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
+                        print(room_info.match.players)
                         room_info.match.players.remove(player)
+                        print(room_info.match.players)
                     if len(room_info.match.players) == 0:
                         room_info.status = RoomStatus.IDLE
                         await sio.emit('roomStatusChanged', int(room_info.status), namespace=self.namespace)
