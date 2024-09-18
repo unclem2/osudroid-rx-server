@@ -299,6 +299,17 @@ class MultiNamespace(socketio.AsyncNamespace):
                     'accuracy': room_info.match.live_score_data[player.uid]['accuracy'],
                     'isAlive': room_info.match.live_score_data[player.uid]['isAlive'],
                 })
+            
+            
+            if room_info.winCondition == WinCondition.SCOREV1:
+                live_score_data = sorted(live_score_data, key=lambda x: x['score'], reverse=True)
+            if room_info.winCondition == WinCondition.ACC:
+                live_score_data = sorted(live_score_data, key=lambda x: x['accuracy'], reverse=True)
+            if room_info.winCondition == WinCondition.COMBO:
+                live_score_data = sorted(live_score_data, key=lambda x: x['combo'], reverse=True)
+            if room_info.winCondition == WinCondition.SCOREV2:
+                live_score_data = sorted(live_score_data, key=lambda x: x['score'], reverse=True)
+                
 
         await sio.emit('liveScoreData', live_score_data, namespace=self.namespace)
         
