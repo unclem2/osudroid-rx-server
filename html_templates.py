@@ -223,7 +223,7 @@ main_page = """
     <p>Number of players: {{ players }}</p>
     <p>Number of online players: {{ online }}</p>
     <p>Client version: {{ version }}</p>
-    <p>Link to client <a href="{{ client_link }}">here</a></p>
+    <p>Link to client <a href="{{ download_link }}">here</a></p>
     <p>Changelog: {{ changelog }}</p>
 {% endblock %}"""
 
