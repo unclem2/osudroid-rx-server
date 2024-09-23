@@ -60,6 +60,11 @@ def get_forcear(mods):
     
     return match.group(1) if match else None
 
+def get_forcecs(mods):
+    match = re.search(r'\bCS(\d+\.\d+)\b', mods)
+    
+    return match.group(1) if match else None   
+
 def get_used_mods(mods):
     """
     Removes unwanted characters from the mods string.
@@ -105,7 +110,8 @@ class PPCalculator:
             speed_multiplier = 1
         speed_multiplier = float(speed_multiplier)
         
-        force_ar = get_forcear(mods)
+        force_ar = get_forcear(s.mods)
+        force_cs = get_forcecs(s.mods)
 
         # Get and convert the used mods
         mods = get_used_mods(s.mods)
@@ -173,7 +179,7 @@ class PPCalculator:
         acc_factor = math.exp(-acc_factor)
         
         speed_reduction = attributes.pp_speed/attributes.pp
-        # speed_reduction_factor = math.exp(-speed_reduction)
+        speed_reduction_factor = math.exp(-speed_reduction)
         
         ar_bonus = 1
         if attributes.difficulty.ar > 10.33:
@@ -185,12 +191,13 @@ class PPCalculator:
         if force_ar is not None:
             force_ar_penalty = 0
 
-                
+        if force_cs is not None:
+            return 0  
             
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
-        pp_return = pp_return * acc_factor * speed_reduction * force_ar_penalty
+        pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
         return pp_return
 
 async def recalc_scores():
