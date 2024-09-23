@@ -62,7 +62,6 @@ class MultiNamespace(socketio.AsyncNamespace):
         resp = {
             'id': room_info.id,
             'name': room_info.name,
-            'name': room_info.name,
             'beatmap': {
                 'md5': room_info.map.md5,
                 'title': room_info.map.title,
@@ -109,6 +108,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                 player.mods.speedMultiplier = args[0]['speedMultiplier']
                 player.mods.flFollowDelay = args[0]['flFollowDelay']
                 try:
+                    #possibly broken
                     player.mods.customAR = args[0].get('customAR', 0)
                     player.mods.customOD = args[0].get('customOD', 0)
                     player.mods.customCS = args[0].get('customCS', 0)
@@ -124,13 +124,14 @@ class MultiNamespace(socketio.AsyncNamespace):
         for player in room_info.players:
             if player.sid == sid:
                 if args[0] == 0:
-                    player.status = PlayerStatus.IDLE
-                    if room_info.status == RoomStatus.PLAYING and player.status != PlayerStatus.IDLE: 
+                    #possibly broken
+                    if room_info.status == RoomStatus.PLAYING and player.status == PlayerStatus.PLAYING: 
                         room_info.match.live_score_data[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
                         room_info.match.submitted_scores[player.uid] = {'score': 0, 'combo': 0, 'accuracy': 0, 'isAlive': False}
                         print(room_info.match.players)
                         room_info.match.players.remove(player)
                         print(room_info.match.players)
+                        player.status = PlayerStatus.IDLE
                     if len(room_info.match.players) == 0:
                         room_info.status = RoomStatus.IDLE
                         await sio.emit('roomStatusChanged', int(room_info.status), namespace=self.namespace)
@@ -155,6 +156,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.mods.speedMultiplier = args[0]['speedMultiplier']
         room_info.mods.flFollowDelay = args[0]['flFollowDelay']
         try:
+            #possibly broken
             room_info.mods.customAR = args[0].get('customAR', 0)
             room_info.mods.customOD = args[0].get('customOD', 0)
             room_info.mods.customCS = args[0].get('customCS', 0)
@@ -303,12 +305,12 @@ class MultiNamespace(socketio.AsyncNamespace):
             }
         }
 
-        for player in room_info.players:
+        for player in room_info.match.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
 
         if len(room_info.match.live_score_data) == len(room_info.match.players):
-            for player in room_info.players:
+            for player in room_info.match.players:
                 data = room_info.match.live_score_data[player.uid]
                 if room_info.teamMode == 0:
                     live_score_data.append({
