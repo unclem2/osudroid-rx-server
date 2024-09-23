@@ -327,6 +327,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             if room_info.teamMode == 1:
                 for team in team_data.values():
                     team['accuracy'] /= len(room_info.match.players)
+                    team['isAlive'] = any([data['isAlive'] for data in room_info.match.live_score_data.values()])
                 await sio.emit('liveScoreData', data=list(team_data.values()), namespace=self.namespace)
             else:
                 if room_info.winCondition == WinCondition.SCOREV1 or room_info.winCondition == WinCondition.SCOREV2:
