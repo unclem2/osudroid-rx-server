@@ -286,69 +286,57 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         live_score_data = []
-        blue_team_data = {
-            'username': 'Blue Team',
-            'score': 0,
-            'combo': 0,
-            'accuracy': 0,
-            'isAlive': False
+        team_data = {
+            PlayerTeam.RED: {
+                'username': 'Red Team',
+                'score': 0,
+                'combo': 0,
+                'accuracy': 0,
+                'isAlive': True
+            },
+            PlayerTeam.BLUE: {
+                'username': 'Blue Team',
+                'score': 0,
+                'combo': 0,
+                'accuracy': 0,
+                'isAlive': True
+            }
         }
-            
-        red_team_data = {
-            'username': 'Red Team',
-            'score': 0,
-            'combo': 0,
-            'accuracy': 0,
-            'isAlive': False
-        }
-        
-            
-        
+
         for player in room_info.players:
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
-            
-            if len(room_info.match.live_score_data) == len(room_info.match.players) and room_info.teamMode == 0:
-        
-                live_score_data.append({
-                    'username': player.username,
-                    'score': room_info.match.live_score_data[player.uid]['score'],
-                    'combo': room_info.match.live_score_data[player.uid]['combo'],
-                    'accuracy': room_info.match.live_score_data[player.uid]['accuracy'],
-                    'isAlive': room_info.match.live_score_data[player.uid]['isAlive'],
-                })
-                
-            if len(room_info.match.live_score_data) == len(room_info.match.players) and room_info.teamMode == 1:
-                team_data = []
-                if player.team == PlayerTeam.RED:
-                    red_team_data['score'] += room_info.match.live_score_data[player.uid]['score']
-                    red_team_data['combo'] += room_info.match.live_score_data[player.uid]['combo']
-                    red_team_data['accuracy'] += room_info.match.live_score_data[player.uid]['accuracy']
-                    
-                if player.team == PlayerTeam.BLUE:
-                    blue_team_data['score'] += room_info.match.live_score_data[player.uid]['score']
-                    blue_team_data['combo'] += room_info.match.live_score_data[player.uid]['combo']
-                    blue_team_data['accuracy'] += room_info.match.live_score_data[player.uid]['accuracy']
 
-                red_team_data['accuracy'] = red_team_data['accuracy'] / len(room_info.match.players)
-                blue_team_data['accuracy'] = blue_team_data['accuracy'] / len(room_info.match.players)
+        if len(room_info.match.live_score_data) == len(room_info.match.players):
+            for player in room_info.players:
+                data = room_info.match.live_score_data[player.uid]
+                if room_info.teamMode == 0:
+                    live_score_data.append({
+                        'username': player.username,
+                        'score': data['score'],
+                        'combo': data['combo'],
+                        'accuracy': data['accuracy'],
+                        'isAlive': data['isAlive'],
+                    })
+                elif room_info.teamMode == 1:
+                    team = team_data[player.team]
+                    team['score'] += data['score']
+                    team['combo'] += data['combo']
+                    team['accuracy'] += data['accuracy']
+
+            if room_info.teamMode == 1:
+                for team in team_data.values():
+                    team['accuracy'] /= len(room_info.match.players)
+                await sio.emit('liveScoreData', data=list(team_data.values()), namespace=self.namespace)
+            else:
+                if room_info.winCondition == WinCondition.SCOREV1 or room_info.winCondition == WinCondition.SCOREV2:
+                    live_score_data.sort(key=lambda x: x['score'], reverse=True)
+                elif room_info.winCondition == WinCondition.ACC:
+                    live_score_data.sort(key=lambda x: x['accuracy'], reverse=True)
+                elif room_info.winCondition == WinCondition.COMBO:
+                    live_score_data.sort(key=lambda x: x['combo'], reverse=True)
+                await sio.emit('liveScoreData', live_score_data[:100], namespace=self.namespace)   
                 
-                
-            if room_info.winCondition == WinCondition.SCOREV1:
-                live_score_data = sorted(live_score_data, key=lambda x: x['score'], reverse=True)
-            if room_info.winCondition == WinCondition.ACC:
-                live_score_data = sorted(live_score_data, key=lambda x: x['accuracy'], reverse=True)
-            if room_info.winCondition == WinCondition.COMBO:
-                live_score_data = sorted(live_score_data, key=lambda x: x['combo'], reverse=True)
-            if room_info.winCondition == WinCondition.SCOREV2:
-                live_score_data = sorted(live_score_data, key=lambda x: x['score'], reverse=True)
-        
-        team_data = [blue_team_data, red_team_data]       
-        if room_info.teamMode == 1:
-            await sio.emit('liveScoreData', data=team_data, namespace=self.namespace)
-        if room_info.teamMode == 0:    
-            await sio.emit('liveScoreData', live_score_data, namespace=self.namespace)
-        
     async def on_scoreSubmission(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.match.players:
