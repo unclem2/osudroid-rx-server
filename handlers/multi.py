@@ -291,7 +291,8 @@ class MultiNamespace(socketio.AsyncNamespace):
             if player.sid == sid:
                 room_info.match.live_score_data[player.uid] = args[0]
             
-            if len(room_info.match.live_score_data) == len(room_info.match.players):
+            if len(room_info.match.live_score_data) == len(room_info.match.players) and room_info.teamMode == 0:
+        
                 live_score_data.append({
                     'username': player.username,
                     'score': room_info.match.live_score_data[player.uid]['score'],
@@ -299,7 +300,33 @@ class MultiNamespace(socketio.AsyncNamespace):
                     'accuracy': room_info.match.live_score_data[player.uid]['accuracy'],
                     'isAlive': room_info.match.live_score_data[player.uid]['isAlive'],
                 })
-            
+            if len(room_info.match.live_score_data) == len(room_info.match.players) and room_info.teamMode == 1:
+                red_team_scores = []
+                blue_team_scores = []
+                for player in room_info.match.players.values():
+                    if player.team == PlayerTeam.RED:
+                        red_team_scores.append(room_info.match.live_score_data[player.uid])
+                    elif player.team == PlayerTeam.BLUE:
+                        blue_team_scores.append(room_info.match.live_score_data[player.uid])
+                    
+                    red_team_total = {
+                        'team': 'Blue',
+                        'score': sum([data['score'] for data in red_team_scores]),
+                        'combo': sum([data['combo'] for data in red_team_scores]),
+                        'accuracy': sum([data['accuracy'] for data in red_team_scores]) / len(red_team_scores),
+                        'isAlive': all([data['isAlive'] for data in red_team_scores]),
+                    }
+                    
+                    blue_team_total = {
+                        'team': 'Blue Team',
+                        'score': sum([data['score'] for data in blue_team_scores]),
+                        'combo': sum([data['combo'] for data in blue_team_scores]),
+                        'accuracy': sum([data['accuracy'] for data in blue_team_scores]) / len(blue_team_scores),
+                        'isAlive': all([data['isAlive'] for data in blue_team_scores]),
+                    }
+                    
+                    live_score_data.extend([red_team_total, blue_team_total])
+                    
             
             if room_info.winCondition == WinCondition.SCOREV1:
                 live_score_data = sorted(live_score_data, key=lambda x: x['score'], reverse=True)
@@ -326,6 +353,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     data.append(room_info.match.submitted_scores[player.uid])  
                 except:
                     pass
+                
             if room_info.winCondition == WinCondition.SCOREV1:
                 data = sorted(data, key=lambda x: x['score'], reverse=True)
             if room_info.winCondition == WinCondition.ACC:
