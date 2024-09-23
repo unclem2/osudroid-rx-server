@@ -326,6 +326,15 @@ class MultiNamespace(socketio.AsyncNamespace):
                     data.append(room_info.match.submitted_scores[player.uid])  
                 except:
                     pass
+            if room_info.winCondition == WinCondition.SCOREV1:
+                data = sorted(data, key=lambda x: x['score'], reverse=True)
+            if room_info.winCondition == WinCondition.ACC:
+                data = sorted(data, key=lambda x: x['accuracy'], reverse=True)
+            if room_info.winCondition == WinCondition.COMBO:
+                data = sorted(data, key=lambda x: x['combo'], reverse=True)
+            if room_info.winCondition == WinCondition.SCOREV2:
+                data = sorted(data, key=lambda x: x['score'], reverse=True)
+            
 
             await sio.emit('allPlayersScoreSubmitted', data=data, namespace=self.namespace)
             
