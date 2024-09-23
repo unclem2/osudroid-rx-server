@@ -328,6 +328,13 @@ class MultiNamespace(socketio.AsyncNamespace):
                 for team in team_data.values():
                     team['accuracy'] /= len(room_info.match.players)
                     team['isAlive'] = any([data['isAlive'] for data in room_info.match.live_score_data.values()])
+                if room_info.winCondition == WinCondition.SCOREV1 or room_info.winCondition == WinCondition.SCOREV2:
+                    team_data = sorted(team_data.values(), key=lambda x: x['score'], reverse=True)
+                if room_info.winCondition == WinCondition.ACC:
+                    team_data = sorted(team_data.values(), key=lambda x: x['accuracy'], reverse=True)
+                if room_info.winCondition == WinCondition.COMBO:
+                    team_data = sorted(team_data.values(), key=lambda x: x['combo'], reverse=True)
+                
                 await sio.emit('liveScoreData', data=list(team_data.values()), namespace=self.namespace)
             else:
                 if room_info.winCondition == WinCondition.SCOREV1 or room_info.winCondition == WinCondition.SCOREV2:
