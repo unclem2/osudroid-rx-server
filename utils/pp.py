@@ -55,6 +55,16 @@ def get_multiplier(mods):
     match = re.search(r'\bx(\d+\.\d+)\b', mods, re.IGNORECASE)
     return match.group(1) if match else None
 
+def get_forcear(mods):
+    match = re.search(r'\bAR(\d+\.\d+)\b', mods)
+    
+    return match.group(1) if match else None
+
+def get_forcecs(mods):
+    match = re.search(r'\bCS(\d+\.\d+)\b', mods)
+    
+    return match.group(1) if match else None   
+
 def get_used_mods(mods):
     """
     Removes unwanted characters from the mods string.
@@ -99,6 +109,9 @@ class PPCalculator:
         if speed_multiplier is None:
             speed_multiplier = 1
         speed_multiplier = float(speed_multiplier)
+        
+        force_ar = get_forcear(s.mods)
+        force_cs = get_forcecs(s.mods)
 
         # Get and convert the used mods
         mods = get_used_mods(s.mods)
@@ -108,7 +121,7 @@ class PPCalculator:
         beatmap_content = self.bm_path.read_text()
         beatmap = osu_pp.Beatmap(content=beatmap_content)
         original_od = beatmap.od
-
+        
         # Adjust OD if PR mod is present
         if pr:
             original_od += 4
@@ -146,7 +159,7 @@ class PPCalculator:
                     applied = True
                     break
 
-                
+      
         # Create the performance object
         performance = osu_pp.Performance(
             accuracy=s.acc,
@@ -173,10 +186,18 @@ class PPCalculator:
             ar_bonus = 1 + (attributes.difficulty.ar - 10.33) * 0.4
         if attributes.difficulty.ar < 8:
             ar_bonus = 1 + (8 - attributes.difficulty.ar) * 0.4
+            
+        force_ar_penalty = 1
+        if force_ar is not None:
+            force_ar_penalty = 0
+
+        if force_cs is not None:
+            return 0  
+            
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
-        pp_return = pp_return * acc_factor * speed_reduction_factor
+        pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
         return pp_return
 
 async def recalc_scores():
