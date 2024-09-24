@@ -104,18 +104,17 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                player.mods.mods = args[0]['mods']
-                player.mods.speedMultiplier = args[0]['speedMultiplier']
-                player.mods.flFollowDelay = args[0]['flFollowDelay']
-                try:
-                    player.mods.customAR = args[0].get('customAR', 0)
-                    player.mods.customOD = args[0].get('customOD', 0)
-                    player.mods.customCS = args[0].get('customCS', 0)
-                    player.mods.customHP = args[0].get('customHP', 0)
-                except:
-                    pass
+                mods = player.mods
+                mods_data = args[0]
+                mods.mods = mods_data['mods']
+                mods.speedMultiplier = mods_data['speedMultiplier']
+                mods.flFollowDelay = mods_data['flFollowDelay']
+                mods.customAR = mods_data.get('customAR', 0)
+                mods.customOD = mods_data.get('customOD', 0)
+                mods.customCS = mods_data.get('customCS', 0)
+                mods.customHP = mods_data.get('customHP', 0)
                 
-                await sio.emit('playerModsChanged', (str(player.uid), args[0]), namespace=self.namespace)
+                await sio.emit('playerModsChanged', (str(player.uid), mods_data), namespace=self.namespace)
                 break
       
     async def on_playerStatusChanged(self, sid, *args):
@@ -150,25 +149,30 @@ class MultiNamespace(socketio.AsyncNamespace):
                 
     async def on_roomModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        room_info.mods.mods = args[0]['mods']
-        room_info.mods.speedMultiplier = args[0]['speedMultiplier']
-        room_info.mods.flFollowDelay = args[0]['flFollowDelay']
-        try:
-            room_info.mods.customAR = args[0].get('customAR', 0)
-            room_info.mods.customOD = args[0].get('customOD', 0)
-            room_info.mods.customCS = args[0].get('customCS', 0)
-            room_info.mods.customHP = args[0].get('customHP', 0)
-        except:
-            pass
-        await sio.emit('roomModsChanged', args[0], namespace=self.namespace)
+        mods_data = args[0]
+        mods = room_info.mods
+
+        mods.mods = mods_data['mods']
+        mods.speedMultiplier = mods_data['speedMultiplier']
+        mods.flFollowDelay = mods_data['flFollowDelay']
+        mods.customAR = mods_data.get('customAR', 0)
+        mods.customOD = mods_data.get('customOD', 0)
+        mods.customCS = mods_data.get('customCS', 0)
+        mods.customHP = mods_data.get('customHP', 0)
+
+        await sio.emit('roomModsChanged', mods_data, namespace=self.namespace)
      
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        room_info.gameplaySettings.isRemoveSliderLock = args[0].get('isRemoveSliderLock', room_info.gameplaySettings.isRemoveSliderLock)
-        room_info.gameplaySettings.isFreeMod = args[0].get('isFreeMod', room_info.gameplaySettings.isFreeMod)
-        room_info.gameplaySettings.allowForceDifficultyStatistics = args[0].get('allowForceDifficultyStatistics', room_info.gameplaySettings.allowForceDifficultyStatistics)
-        await sio.emit('roomGameplaySettingsChanged', room_info.gameplaySettings.as_json(), namespace=self.namespace)
-    
+        gameplay_settings = room_info.gameplaySettings
+        settings_data = args[0]
+
+        gameplay_settings.isRemoveSliderLock = settings_data.get('isRemoveSliderLock', gameplay_settings.isRemoveSliderLock)
+        gameplay_settings.isFreeMod = settings_data.get('isFreeMod', gameplay_settings.isFreeMod)
+        gameplay_settings.allowForceDifficultyStatistics = settings_data.get('allowForceDifficultyStatistics', gameplay_settings.allowForceDifficultyStatistics)
+
+        await sio.emit('roomGameplaySettingsChanged', gameplay_settings.as_json(), namespace=self.namespace)
+        
     async def on_chatMessage(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
@@ -182,14 +186,14 @@ class MultiNamespace(socketio.AsyncNamespace):
     
     async def on_roomPasswordChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
-        if room_info.isLocked == True:
-            room_info.password = args[0]
-        if args[0] == "":
+        new_password = args[0]
+
+        if new_password == "":
             room_info.isLocked = False
             room_info.password = ""
-        if room_info.isLocked != True:
+        else:
             room_info.isLocked = True
-            room_info.password = args[0]
+            room_info.password = new_password
             
     async def on_winConditionChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
