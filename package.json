@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@rian8337/osu-base": "^3.3.0",
-    "@rian8337/osu-difficulty-calculator": "^3.3.2",
-    "ts": "^0.2.2"
-  }
-}
