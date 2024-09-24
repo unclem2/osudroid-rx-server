@@ -173,6 +173,8 @@ async def send_update():
 async def map_status(md5:str):
   
   map = await Beatmap.from_md5(md5)
+  if map is None:
+    return {'md5': '', 'ranked': -1}
   await map.download()
  
   if map.status == RankedStatus.Whitelisted:
@@ -199,10 +201,19 @@ async def whitelist_add():
       map = await Beatmap.from_md5(data.get('md5'))
     if data.get('bid') is not None:
       map = await Beatmap.from_bid_osuapi(data.get('bid'))
+    if map is None:
+      return {'status': 'error', 'message': 'Map not exist'}
     await map.download()
     await map.update_stats()  
     await discord_notify(msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted")
-    return {'status': 'success'}
+    map_data = {
+      "title": f"{map.artist} - {map.title} ({map.creator}) [{map.version}]",
+      "md5": map.md5,
+      "stats": f"CS: {map.cs} AR: {map.ar} OD: {map.od} HP: {map.hp} BPM: {map.bpm} Stars: {map.star}",
+      "status": map.status
+    }
+      
+    return map_data
   
 @bp.route('/wl_remove', methods=['GET'])
 async def whitelist_remove():
