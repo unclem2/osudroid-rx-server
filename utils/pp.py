@@ -63,7 +63,12 @@ def get_forcear(mods):
 def get_forcecs(mods):
     match = re.search(r'\bCS(\d+\.\d+)\b', mods)
     
-    return match.group(1) if match else None   
+    return match.group(1) if match else None 
+
+def get_fldelay(mods):
+    match = re.search(r'\bFLD(\d+\.\d+)\b', mods)
+    
+    return match.group(1) if match else None  
 
 def get_used_mods(mods):
     """
@@ -112,7 +117,13 @@ class PPCalculator:
         
         force_ar = get_forcear(s.mods)
         force_cs = get_forcecs(s.mods)
+        fl_delay = get_fldelay(s.mods)
 
+        if force_cs is not None:
+            return 0  
+        if fl_delay is not None:
+            return 0
+        
         # Get and convert the used mods
         mods = get_used_mods(s.mods)
         mods, pr = convert_droid(mods)
@@ -128,6 +139,12 @@ class PPCalculator:
 
         # Adjust speed change settings for DT and HT mods
         applied = None
+        for i, mod in enumerate(mods):
+            if mod['acronym'] == 'REZ':
+                beatmap.ar -= 0.5
+                beatmap.od /= 2
+                beatmap.cs -= 2
+                
         if speed_multiplier != 1:
             
             for i, mod in enumerate(mods):
@@ -191,8 +208,7 @@ class PPCalculator:
         if force_ar is not None:
             force_ar_penalty = 0
 
-        if force_cs is not None:
-            return 0  
+
             
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
