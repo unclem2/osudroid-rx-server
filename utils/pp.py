@@ -139,11 +139,7 @@ class PPCalculator:
 
         # Adjust speed change settings for DT and HT mods
         applied = None
-        for i, mod in enumerate(mods):
-            if mod['acronym'] == 'REZ':
-                beatmap.ar -= 0.5
-                beatmap.od /= 2
-                beatmap.cs -= 2
+
                 
         if speed_multiplier != 1:
             
@@ -188,6 +184,12 @@ class PPCalculator:
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
         # performance.set_cs(beatmap.cs-2, cs_with_mods = False)
+        for i, mod in enumerate(mods):
+            if mod['acronym'] == 'REZ':
+                performance.set_ar(beatmap.ar-0.5, ar_with_mods = False)
+                original_od = original_od - 4
+                performance.set_od(original_od, od_with_mods = False)
+                performance.set_cs(beatmap.cs-2, cs_with_mods = False)
         performance.set_od(original_od-4, od_with_mods = False)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
