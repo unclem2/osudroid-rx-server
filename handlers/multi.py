@@ -1,8 +1,6 @@
 import socketio
 from quart import Blueprint, request, jsonify
-import json
 from objects import glob
-from objects.player import Player
 from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam, Match
 from objects.beatmap import Beatmap
 import utils
@@ -49,11 +47,11 @@ class MultiNamespace(socketio.AsyncNamespace):
         if len(room_info.players) == 0:
             glob.rooms.pop(self.room_id)
         
-    async def on_connect(self, sid, environ, *args):
+    async def on_connect(self, sid, *args):
         
         print(f"Client connected: {sid}")
         room_info = glob.rooms.get(self.room_id)
-        if room_info.isLocked == True:
+        if room_info.isLocked:
             if args[0]['password'] != room_info.password:
                 await sio.emit('error', 'Wrong password', namespace=self.namespace, to=sid)
                 await sio.disconnect(sid=sid, namespace=self.namespace)
@@ -147,7 +145,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info.host = PlayerMulti().player(int(args[0]), sid=sid)
         await sio.emit(event='hostChanged', data=str(room_info.host.uid), namespace=self.namespace)
                 
-    async def on_roomModsChanged(self, sid, *args):
+    async def on_roomModsChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         mods_data = args[0]
         mods = room_info.mods
@@ -162,7 +160,7 @@ class MultiNamespace(socketio.AsyncNamespace):
 
         await sio.emit('roomModsChanged', mods_data, namespace=self.namespace)
      
-    async def on_roomGameplaySettingsChanged(self, sid, *args):
+    async def on_roomGameplaySettingsChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         gameplay_settings = room_info.gameplaySettings
         settings_data = args[0]
@@ -179,12 +177,12 @@ class MultiNamespace(socketio.AsyncNamespace):
             if player.sid == sid:
                 await sio.emit('chatMessage', data=(str(player.uid), args[0]), namespace=self.namespace)
   
-    async def on_roomNameChanged(self, sid, *args):
+    async def on_roomNameChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.name = args[0]
         await sio.emit('roomNameChanged', data=str(room_info.name), namespace=self.namespace)
     
-    async def on_roomPasswordChanged(self, sid, *args):
+    async def on_roomPasswordChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         new_password = args[0]
 
@@ -195,7 +193,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             room_info.isLocked = True
             room_info.password = new_password
             
-    async def on_winConditionChanged(self, sid, *args):
+    async def on_winConditionChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         if args[0] == 0:
             room_info.winCondition = WinCondition.SCOREV1
@@ -208,7 +206,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             
         await sio.emit('winConditionChanged', data=room_info.winCondition, namespace=self.namespace)
     
-    async def on_teamModeChanged(self, sid, *args):
+    async def on_teamModeChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.teamMode = args[0]
         await sio.emit('teamModeChanged', room_info.teamMode, namespace=self.namespace)
@@ -227,7 +225,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     player.team = PlayerTeam.BLUE
                 await sio.emit('teamChanged', data=(str(player.uid), player.team), namespace=self.namespace)
     
-    async def on_beatmapChanged(self, sid, *args):
+    async def on_beatmapChanged(self, *args):
         room_info = glob.rooms.get(self.room_id)
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
@@ -245,12 +243,8 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.map.creator = args[0].get('creator', '')
                 room_info.map.md5 = args[0].get('md5', '')
             
-            return_data = {}
-            return_data['md5'] = room_info.map.md5
-            return_data['title'] = room_info.map.title
-            return_data['artist'] = room_info.map.artist
-            return_data['version'] = room_info.map.version
-            return_data['creator'] = room_info.map.creator
+            return_data = {'md5': room_info.map.md5, 'title': room_info.map.title, 'artist': room_info.map.artist,
+                           'version': room_info.map.version, 'creator': room_info.map.creator}
             try:
                 return_data['beatmapSetId'] = room_info.map.set_id
             except:
