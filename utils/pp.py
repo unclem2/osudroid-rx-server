@@ -189,7 +189,7 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar-0.5, ar_with_mods = False)
                 original_od = original_od - 4
                 performance.set_od(original_od, od_with_mods = False)
-                performance.set_cs(beatmap.cs-2, cs_with_mods = False)
+                performance.set_cs(beatmap.cs-3, cs_with_mods = False)
         performance.set_od(original_od-4, od_with_mods = False)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
