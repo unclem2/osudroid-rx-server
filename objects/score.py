@@ -56,7 +56,6 @@ class Score:
 
     @classmethod
     async def from_sql(cls, score_id: int):
-        #res = await glob.db.getPlay(score_id)
         res = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [score_id])
         if not res:
             return
@@ -144,7 +143,7 @@ class Score:
     async def calc_status(self):
         #res = await glob.db.userScore(id=self.player.id, mapHash=self.mapHash)
         try:
-            res = await glob.db.fetch('SELECT * FROM scores WHERE playerID = $1 AND mapHash = $2', [self.player.id, self.map_hash])
+            res = await glob.db.fetch('SELECT * FROM scores WHERE playerID = $1 AND mapHash = $2 AND status= $3', [self.player.id, self.map_hash, 2])
         except:
             res = None
         if res:
@@ -153,6 +152,7 @@ class Score:
             if self.pp > res['pp']:
                 self.status = SubmissionStatus.BEST
                 self.prev_best.status = SubmissionStatus.SUBMITTED
+                await glob.db.execute('UPDATE scores SET status = $1 WHERE id = $2',[1, res['id']])
 
         else:
             self.status = SubmissionStatus.BEST

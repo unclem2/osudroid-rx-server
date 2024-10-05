@@ -1,9 +1,11 @@
-quart
-coloredlogs
+quart~=0.19.6
+coloredlogs~=15.0.1
 aiosqlite
-aiohttp
+aiohttp~=3.10.5
 aiofiles
-hypercorn
+hypercorn~=0.17.3
 git+https://github.com/The-CJ/oppadc.py.git#egg=oppadc
 argon2-cffi
-asyncpg
+asyncpg~=0.29.0
+python-dotenv~=1.0.1
+Werkzeug~=3.0.4

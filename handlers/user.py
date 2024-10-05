@@ -1,31 +1,26 @@
 import os
-import logging
-import copy
 import time
 import hashlib
 from quart import Blueprint, request, send_file, render_template_string, make_response
 from argon2 import PasswordHasher
 import aiohttp
 from objects import glob
-from objects.player import Player
-from objects.score import Score, SubmissionStatus
-from objects.beatmap import RankedStatus, Beatmap
-from handlers.response import Failed, Success, Failure
+from objects.beatmap import Beatmap
+from handlers.response import Success
 import pathlib
-import utils
 import html_templates
-import requests
 from werkzeug.utils import secure_filename
 
 bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
 
+
 @bp.route('/avatar/<int:uid>.png')
 async def avatar(uid: int):
-    
     avatar = pathlib.Path(f'./data/avatar/{uid}.png')
 
     return await send_file(avatar, mimetype='image/png')
+
 
 @bp.route('/leaderboard.php')
 async def leaderboard():
@@ -33,7 +28,8 @@ async def leaderboard():
         async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/leaderboard") as resp:
             data = await resp.json()
             return await render_template_string(html_templates.leaderboard_temp, leaderboard=data)
-        
+
+
 @bp.route('/profile.php')
 async def profile():
     params = request.args
@@ -64,12 +60,14 @@ async def profile():
             try:
                 top_scores = await resp.json()
                 for score in top_scores:
-                    bmap = await Beatmap.from_md5_sql(score['maphash'])                
+                    bmap = await Beatmap.from_md5_sql(score['maphash'])
                     score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
                     score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
             except:
                 top_scores = []
-    return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores, top_scores=top_scores)
+    return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores,
+                                        top_scores=top_scores)
+
 
 @bp.route('/set_avatar.php', methods=['GET', 'POST'])
 async def set_avatar():
@@ -110,15 +108,18 @@ async def set_avatar():
             file_path = os.path.join('data/avatar', filename)
             await file.save(file_path)
 
-            return await render_template_string(html_templates.success_template, success_message='Avatar uploaded successfully')
+            return await render_template_string(html_templates.success_template,
+                                                success_message='Avatar uploaded successfully')
         else:
             return await render_template_string(html_templates.error_template, error_message='Invalid file format')
 
     return await render_template_string(html_templates.set_avatar_temp)
 
+
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 
 @bp.route('/web_login.php', methods=['GET', 'POST'])
 async def web_login():
@@ -133,7 +134,8 @@ async def web_login():
         password = req.get('password')
 
         if not username or not password:
-            return await render_template_string(html_templates.error_template, error_message='Invalid username or password')
+            return await render_template_string(html_templates.error_template,
+                                                error_message='Invalid username or password')
 
         # Append salt to the password and hash it using MD5
         salted_password = f"{password}taikotaiko"
@@ -168,8 +170,9 @@ async def web_login():
 
         # Create a response object and set a cookie with the login state
         response = await make_response(Success('Login successful'))
-        response.set_cookie('login_state', f'{username}-{player.id}', max_age=60*60*24*30*12)  # Cookie expires in 1 day
-        
+        response.set_cookie('login_state', f'{username}-{player.id}',
+                            max_age=60 * 60 * 24 * 30 * 12)  # Cookie expires in 1 day
+
         return response
 
     # Render the login template for GET requests

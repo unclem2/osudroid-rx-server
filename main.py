@@ -1,4 +1,3 @@
-import os
 import logging
 import asyncio
 import coloredlogs
@@ -14,13 +13,10 @@ from objects.db import PostgresDB
 from handlers import (cho, api, user, multi)
 from handlers.response import Failed
 import utils
-from utils import pp
-from objects.beatmap import Beatmap
 import html_templates
 
 def make_app():
     app = Quart(__name__)
-    glob.db = PostgresDB()
 
     # Register existing routes
     routes = [cho, api, user, multi]
@@ -39,14 +35,14 @@ async def init_shit():
 
     # Initialize players
     player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
-    for id in player_ids:
-        p = await Player.from_sql(id['id'])
-        glob.players.add(p)
+    for player_id in player_ids:
+        player = await Player.from_sql(player_id['id'])
+        glob.players.add(player)
 
     async def background_tasks():
         async def update_players_stats():
-            for p in glob.players:
-                await p.update_stats()
+            for player in glob.players:
+                await player.update_stats()
 
         tasks = [update_players_stats]
         for task in tasks:
