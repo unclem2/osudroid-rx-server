@@ -103,7 +103,11 @@ class PPCalculator:
 
     @classmethod
     async def from_md5(cls, md5: str, **kwargs):
-        if glob.config.pp is False or not (res := await cls.file_from_osu(md5)):
+        if not glob.config.pp:
+            return False
+
+        res = await cls.file_from_osu(md5)
+        if not res:
             return False
 
         return cls(res, **kwargs)
