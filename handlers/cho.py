@@ -323,7 +323,7 @@ async def submit_play():
         ## Update stats one more time - i know this is retarded cuz we're already doing it above but im basing it from the old code so
         await s.player.update_stats()
 
-        await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
+       # await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
         return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
             rank=int(stats.rank),
             rank_by=int(stats.rank_by),
