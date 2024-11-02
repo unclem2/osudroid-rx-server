@@ -1,9 +1,5 @@
-import asyncio
 import logging
-import oppadc
 from pathlib import Path
-from enum import Enum, IntEnum, unique
-import subprocess
 from objects import glob
 from objects.beatmap import Beatmap
 import re
@@ -80,25 +76,8 @@ def get_used_mods(mods):
     return mods
 
 class PPCalculator:
-    """
-     https://github.com/cmyui/gulag/blob/master/utils/recalculator.py
-    """
-    def __init__(self, path: Path, **kwargs):
+    def __init__(self, path):
             self.bm_path = path
-
-            self.mods = convert_droid(kwargs.get('mods', '-'))
-            self.combo = kwargs.get('combo', 0)
-            self.nmiss = kwargs.get('nmiss', 0)
-            self.acc = kwargs.get('acc', 100.00)
-
-    @classmethod
-    async def file_from_osu(cls, md5: str):
-        if not (bmap := await Beatmap.from_md5(md5)):
-            return logging.error(f"Failed to get map: {md5}")
-
-
-        return await bmap.download()
-
 
 
     @classmethod
@@ -106,7 +85,11 @@ class PPCalculator:
         if not glob.config.pp:
             return False
 
-        res = await cls.file_from_osu(md5)
+        if not (bmap := await Beatmap.from_md5(md5)):
+            logging.error(f"Failed to get map: {md5}")
+            return False
+
+        res = await bmap.download()
         if not res:
             return False
 
@@ -194,6 +177,8 @@ class PPCalculator:
                 original_od = original_od - 4
                 performance.set_od(original_od, od_with_mods = False)
                 performance.set_cs(beatmap.cs-3, cs_with_mods = False)
+            if mod['acronym'] == 'AP':
+                return 0
         performance.set_od(original_od-4, od_with_mods = False)
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
