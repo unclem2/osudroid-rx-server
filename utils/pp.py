@@ -163,6 +163,7 @@ class PPCalculator:
             if mod['acronym'] == 'REZ':
                 for a, modq in enumerate(mods):
                     if modq['acronym'] == 'EZ':
+                        print("REZ and EZ")
                         mods.pop(a)
                         break
                 break
