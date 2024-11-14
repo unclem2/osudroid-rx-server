@@ -16,16 +16,7 @@ async def get_online():
     return {'online': len(online_players)}
 
 
-async def discord_notify(msg: str):
-    async with aiohttp.ClientSession() as session:
-        webhook_data = {
-            "content": msg
-        }
-        async with session.post(glob.config.discord_hook, json=webhook_data) as response:
-            if response.status != 204:
-                print(f"Failed to send webhook: {response.status}")
-            else:
-                print("Webhook sent successfully")
+
 
 
 def get_player(args):
@@ -204,7 +195,6 @@ async def whitelist_add():
         return {'status': 'error', 'message': 'Map not exist'}
     await map.download()
     await map.update_stats()
-    await discord_notify(msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted")
     map_data = {
         "title": f"{map.artist} - {map.title} ({map.creator}) [{map.version}]",
         "md5": map.md5,

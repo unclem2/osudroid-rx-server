@@ -20,16 +20,6 @@ bp = Blueprint('cho', __name__)
 bp.prefix = '/api/'
 
 
-async def discord_notify(msg: str):
-    async with aiohttp.ClientSession() as session:
-        webhook_data = {
-            "content": msg
-        }
-        async with session.post(glob.config.discord_hook, json=webhook_data) as response:
-            if response.status != 204:
-                print(f"Failed to send webhook: {response.status}")
-            else:
-                print("Webhook sent successfully")
 
 
 ## Register / Login
