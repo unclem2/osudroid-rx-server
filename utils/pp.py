@@ -158,7 +158,14 @@ class PPCalculator:
                     }
                     applied = True
                     break
-
+        
+        for i, mod in enumerate(mods):
+            if mod['acronym'] == 'REZ':
+                for a, mod in enumerate(mods):
+                    if mod['acronym'] == 'EZ':
+                        mods.pop(a)
+                        break
+                break
       
         # Create the performance object
         performance = osu_pp.Performance(
@@ -177,13 +184,7 @@ class PPCalculator:
                 original_od = original_od - 4
                 performance.set_od(original_od, od_with_mods = False)
                 performance.set_cs(beatmap.cs-3, cs_with_mods = False)
-                for i, mod in enumerate(mods):
-                    if mod['acronym'] == 'EZ':
-                        performance.set_ar(beatmap.ar-1, ar_with_mods = False)
-                        original_od = original_od - 4
-                        performance.set_od(original_od, od_with_mods = False)
-                        performance.set_cs(beatmap.cs-4, cs_with_mods = False)
-                        mods.pop(i)
+
             if mod['acronym'] == 'AP':
                 return 0
         performance.set_od(original_od-4, od_with_mods = False)
