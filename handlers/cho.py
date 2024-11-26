@@ -237,89 +237,80 @@ async def upload_replay():
 @bp.route('/submit.php', methods=['POST'])
 async def submit_play():
     params = await request.form
-
     if 'userID' not in params:
         return Failed('Not enough argument.')
 
-    p = glob.players.get(id=int(params['userID']))
-    p.last_online = time.time()
-
-    if not p:
+    player = glob.players.get(id=int(params['userID']))
+    player.last_online = time.time()
+    if not player:
         return Failed('Player not found, report to server admin.')
 
     if 'ssid' in params:
-        if params['ssid'] != p.uuid:
+        if params['ssid'] != player.uuid:
             return Failed('Server restart, please relogin.')
 
     if glob.config.disable_submit:
         return Failed('Score submission is disable right now.')
 
     if (map_hash := params.get('hash', None)):
-        logging.info(f'Changed {p} playing to {map_hash}')
-        p.stats.playing = map_hash
-        return Success(1, p.id)
+        logging.info(f'Changed {player} playing to {map_hash}')
+        player.stats.playing = map_hash
+        return Success(1, player.id)
 
     elif (play_data := params.get('data')):
-        s = await Score.from_submission(play_data)
-
-        if not s:
+        score = await Score.from_submission(play_data)
+        if not score:
             return Failed('Failed to read score data.')
-
-        if s.status == SubmissionStatus.BEST:
-            # if this score is better change old play status to 1
+        
+        if score.status == SubmissionStatus.BEST:
             await glob.db.execute('UPDATE scores SET status = 1 WHERE status = 2 AND mapHash = $1 AND playerID = $2',
-                                  [s.map_hash, s.player.id])
-        if s.map_hash == None:
+                                  [score.map_hash, score.player.id])
+            
+        if score.map_hash == None:
             return Failed('Server cannot find your recent play, maybe it restarted?')
-        elif not s.player:
+        
+        if not score.player:
             return Failed('Player not found, report to server admin.')
-        elif not s.bmap:
-            # Map does not exists, most likely its a shit map.
-            # Returns current stats
-            return Success(s.player.stats.droid_submit_stats)
-        elif s.bmap.status == RankedStatus.Pending:
-            # User can remove this themselves, I'm just following gulag's osuSubmitModularSelector.
-            return Success(s.player.stats.droid_submit_stats)
+        
+        if not score.bmap:
+            return Success(score.player.stats.droid_submit_stats)
+        
+        if score.bmap.status == RankedStatus.Pending:
+            return Success(score.player.stats.droid_submit_stats)
 
-        vals = [s.status, s.map_hash, s.player.id, s.score, s.max_combo, s.grade, s.acc, s.h300, s.hgeki, s.h100,
-                s.hkatsu, s.h50, s.hmiss, s.mods, s.pp, s.bmap.id, s.date]
-        s.id = await glob.db.execute('''
+        vals = [score.status, score.map_hash, score.player.id, score.score, score.max_combo, score.grade, score.acc, score.h300, score.hgeki, score.h100,
+                score.hkatsu, score.h50, score.hmiss, score.mods, score.pp, score.bmap.id, score.date]
+        score.id = await glob.db.execute('''
             INSERT INTO scores (status, mapHash, playerID, score, combo, rank, acc, hit300, hitgeki, hit100, hitkatsu, hit50, hitmiss, mods, pp, mapid, date)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         ''', vals)
+        
         upload_replay = False
-        if s.status == SubmissionStatus.BEST:
+        if score.status == SubmissionStatus.BEST:
             upload_replay = True
 
-        ## Update stats
-        stats = s.player.stats
-
+        stats = score.player.stats
         stats.plays += 1
-        stats.tscore = s.score
-
-        if s.status == SubmissionStatus.BEST and s.bmap.gives_reward:
-            additive = s.score
-
-            if s.prev_best:
-                additive -= s.prev_best.score
-
+        stats.tscore = score.score
+        
+        if score.status == SubmissionStatus.BEST and score.bmap.gives_reward:
+            additive = score.score
+            if score.prev_best:
+                additive -= score.prev_best.score
             stats.rscore += additive
 
-        ## Update Ranked Score stats to db
         await glob.db.execute(
             'UPDATE stats SET rscore = $1, tscore = $2, plays = $3 WHERE id = $4',
-            [stats.rscore, stats.tscore, stats.plays, s.player.id])
+            [stats.rscore, stats.tscore, stats.plays, score.player.id])
 
-        ## Update stats one more time - i know this is retarded cuz we're already doing it above but im basing it from the old code so
-        await s.player.update_stats()
+        await score.player.update_stats()
 
-       # await discord_notify(f'{s.player.name} has submitted a play on {s.bmap.full} with {s.pp}pp!')
         return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
             rank=int(stats.rank),
             rank_by=int(stats.rank_by),
             acc=stats.droid_acc,
-            map_rank=s.rank,
-            score_id=s.id if upload_replay else ""
+            map_rank=score.rank,
+            score_id=score.id if upload_replay else ""
         ))
 
-    return Failed('Huh?')  # Client wasnt supposed to get here.
+    return Failed('Huh?') 

@@ -9,22 +9,15 @@ class RoomStatus(IntEnum):
     CHANGING_BEATMAP = 1
     PLAYING = 2
 
-
 class PlayerStatus(IntEnum):
     IDLE = 0
     READY = 1
     NOMAP = 2
     PLAYING = 3
 
-
-
-
 class PlayerTeam(IntEnum):
     RED = 0
     BLUE = 1
-
-
-
 
 class Mods:
     def __init__(self):
@@ -99,7 +92,6 @@ class WinCondition:
     ACC = 1
     COMBO = 2
     SCOREV2 = 3
-
 
 
 class Match:
