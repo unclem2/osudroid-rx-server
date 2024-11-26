@@ -1,7 +1,7 @@
 import os
 import time
 import hashlib
-from quart import Blueprint, request, send_file, render_template_string, make_response
+from quart import Blueprint, request, send_file, render_template_string, make_response, jsonify
 from argon2 import PasswordHasher
 import aiohttp
 from objects import glob
@@ -24,10 +24,13 @@ async def avatar(uid: int):
 
 @bp.route('/leaderboard.php')
 async def leaderboard():
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/leaderboard") as resp:
-            data = await resp.json()
-            return await render_template_string(html_templates.leaderboard_temp, leaderboard=data)
+    players_stats = await glob.db.fetchall(
+        'SELECT stats.id, stats.rank, stats.pp, stats.plays, users.username '
+        'FROM stats '
+        'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
+    )
+
+    return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats)
 
 
 @bp.route('/profile.php')
@@ -46,25 +49,33 @@ async def profile():
     p = glob.players.get(id=id)
     if not p:
         return await render_template_string(html_templates.error_template, error_message='Player not found')
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/get_scores?id={p.id}") as resp:
-            try:
-                recent_scores = await resp.json()
-                for score in recent_scores:
-                    bmap = await Beatmap.from_md5_sql(score['maphash'])
-                    score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
-                    score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
-            except:
-                recent_scores = []
-        async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/top_scores?id={p.id}") as resp:
-            try:
-                top_scores = await resp.json()
-                for score in top_scores:
-                    bmap = await Beatmap.from_md5_sql(score['maphash'])
-                    score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
-                    score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
-            except:
-                top_scores = []
+    
+    try:
+        recent_scores = await glob.db.fetchall(
+        'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
+        'ORDER BY id DESC LIMIT $2',
+        [p.id, 50]
+        )
+        for score in recent_scores:
+            bmap = await Beatmap.from_md5_sql(score['maphash'])
+            score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
+            score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+    except:
+        recent_scores = []
+    try:
+        top_scores = await glob.db.fetchall(
+        'SELECT id, status, maphash, score, combo, rank, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
+        'ORDER BY pp DESC',
+        [id]
+        )
+        for score in top_scores:
+            bmap = await Beatmap.from_md5_sql(score['maphash'])
+            score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
+            score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+    except:
+        top_scores = []
     return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores,
                                         top_scores=top_scores)
 
@@ -177,3 +188,54 @@ async def web_login():
 
     # Render the login template for GET requests
     return await render_template_string(html_templates.web_login_temp)
+
+@bp.route('/change_password.php', methods=['GET', 'POST'])
+async def change_password():
+    
+    login_state = request.cookies.get('login_state')
+    if login_state is None:
+        return await render_template_string(html_templates.error_template, error_message='Not logged in')
+
+    if request.method == 'POST':
+        req = await request.form
+        old_password = req.get('old_password')
+        new_password = req.get('new_password')
+
+        if not old_password or not new_password:
+            return await render_template_string(html_templates.error_template,
+                                                error_message='Invalid old or new password')
+
+        # Append salt to the password and hash it using MD5
+        salted_old_password = f"{old_password}taikotaiko"
+        salted_new_password = f"{new_password}taikotaiko"
+        
+        md5_hash = hashlib.md5()
+        md5_hash.update(salted_old_password.encode('utf-8'))
+        md5_hash_new = hashlib.md5()
+        md5_hash_new.update(salted_new_password.encode('utf-8'))
+        
+        hashed_old_password = md5_hash.hexdigest()
+        hashed_new_password = md5_hash_new.hexdigest()
+
+        # Retrieve player information
+        ph = PasswordHasher()
+        username, player_id = login_state.split('-')
+        player = glob.players.get(id=int(player_id))
+        if not player or player.id != int(player_id):
+            return await render_template_string(html_templates.error_template, error_message='Player not found')
+
+        # Fetch password hash and status from the database
+        res = await glob.db.fetch("SELECT password_hash, status FROM users WHERE id = $1", [player.id])
+        if not res:
+            return await render_template_string(html_templates.error_template, error_message='Player not found')
+
+        stored_password_hash = res['password_hash']
+
+        try:
+            ph.verify(stored_password_hash, hashed_old_password)
+        except:
+            return await render_template_string(html_templates.error_template, error_message='Wrong password')
+        new_password_hash = ph.hash(hashed_new_password)
+        await glob.db.execute("UPDATE users SET password_hash = $1 WHERE id = $2", [new_password_hash, player.id])
+        return await render_template_string(html_templates.success_template, success_message='Password changed successfully')
+    return await render_template_string(html_templates.change_password_template)

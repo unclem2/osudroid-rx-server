@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from objects import glob
 from objects.beatmap import Beatmap
 import re
@@ -27,20 +26,18 @@ def convert_droid(mods: str):
         'l': {"acronym": "REZ"},
         'm': {"acronym": "SC"},
         'f': {"acronym": "PF"},
-        'b': {"acronym": "SU"}
+        'b': {"acronym": "SU"},
+        's': {"acronym": "PR"}
     }
     
     used_mods = []
-    pr = None
+   
     
     for char in mods:
         if char in mod_mapping:
-            if char == 's':
-                pr = True
-                continue
             used_mods.append(mod_mapping[char])
     
-    return used_mods, pr
+    return used_mods
 
 
 def get_multiplier(mods):
@@ -78,6 +75,11 @@ def get_used_mods(mods):
 class PPCalculator:
     def __init__(self, path):
             self.bm_path = path
+            self.acc = 0
+            self.hmiss = 0
+            self.max_combo = 0
+            self.mods = ''
+            
 
 
     @classmethod
@@ -95,34 +97,32 @@ class PPCalculator:
 
         return cls(res, **kwargs)
  
-    async def calc(self, s):
+    async def calc(self):
         # Get the speed multiplier for the mods
-        speed_multiplier = get_multiplier(s.mods)
+        speed_multiplier = get_multiplier(self.mods)
         if speed_multiplier is None:
             speed_multiplier = 1
         speed_multiplier = float(speed_multiplier)
         
-        force_ar = get_forcear(s.mods)
-        force_cs = get_forcecs(s.mods)
-        fl_delay = get_fldelay(s.mods)
+        force_ar = get_forcear(self.mods)
+        force_cs = get_forcecs(self.mods)
+        fl_delay = get_fldelay(self.mods)
+        
+        mods = get_used_mods(self.mods)
+        mods = convert_droid(mods)
 
         if force_cs is not None:
             return 0  
         if fl_delay is not None:
             return 0
         
-        # Get and convert the used mods
-        mods = get_used_mods(s.mods)
-        mods, pr = convert_droid(mods)
 
         # Read the beatmap content
         beatmap_content = self.bm_path.read_text()
         beatmap = osu_pp.Beatmap(content=beatmap_content)
-        original_od = beatmap.od
+        original_od = beatmap.od - 4
         
-        # Adjust OD if PR mod is present
-        if pr:
-            original_od += 4
+
 
         # Adjust speed change settings for DT and HT mods
         applied = None
@@ -159,43 +159,46 @@ class PPCalculator:
                     applied = True
                     break
         
-        for i, mod in enumerate(mods):
-            if mod['acronym'] == 'REZ':
-                for a, modq in enumerate(mods):
-                    if modq['acronym'] == 'EZ':
-                        print("REZ and EZ")
-                        mods.pop(a)
-                        break
-                break
+
       
         # Create the performance object
         performance = osu_pp.Performance(
-            accuracy=s.acc,
+            accuracy=self.acc,
             mods=mods,
-            misses=s.hmiss,
-            combo=s.max_combo,
+            misses=self.hmiss,
+            combo=self.max_combo,
             
         )
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
-        # performance.set_cs(beatmap.cs-2, cs_with_mods = False)
+            
+        
         for i, mod in enumerate(mods):
-            if mod['acronym'] == 'REZ':
-                performance.set_ar(beatmap.ar-0.5, ar_with_mods = False)
-                original_od = original_od - 4
-                performance.set_od(original_od, od_with_mods = False)
-                performance.set_cs(beatmap.cs-3, cs_with_mods = False)
-
+            if mod['acronym'] == 'PR':
+                original_od = original_od + 4
+                performance.set_od(original_od, od_with_mods=False)
             if mod['acronym'] == 'AP':
                 return 0
-        performance.set_od(original_od-4, od_with_mods = False)
+            
+        
+        for i, mod in enumerate(mods):
+            if mod['acronym'] == 'REZ':
+                original_od = original_od / 2
+                performance.set_cs(beatmap.cs*0.66, cs_with_mods=False)
+                performance.set_ar(beatmap.ar-0.5, ar_with_mods=True)
+                performance.set_od(original_od, od_with_mods=False)
+            
+                
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
-        acc_factor = (100-s.acc)/30
+        acc_factor = (100-self.acc)/30
         acc_factor = math.exp(-acc_factor)
+        try:
+            speed_reduction = attributes.pp_speed/attributes.pp
+        except ZeroDivisionError:
+            return 0
         
-        speed_reduction = attributes.pp_speed/attributes.pp
         speed_reduction_factor = math.exp(-speed_reduction)
         
         ar_bonus = 1
@@ -228,9 +231,8 @@ async def recalc_scores():
             m.acc = score['acc']
             m.hmiss = score['hitmiss']
             m.max_combo = score['combo']
-            m.bmap = await Beatmap.from_md5(score['maphash'])
             m.mods = score['mods']
-            pp = await m.calc(m)
+            pp = await m.calc()
 
             print(score['id'], score['maphash'], pp)
 

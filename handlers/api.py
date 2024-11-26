@@ -16,9 +16,6 @@ async def get_online():
     return {'online': len(online_players)}
 
 
-
-
-
 def get_player(args):
     if 'id' not in args and 'name' not in args:
         return 'Need id or name', 400
