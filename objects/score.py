@@ -123,13 +123,14 @@ class Score:
         s.fc = (data[12] == 'true') or (data[12] == '1') # 1.6.8 Fix
         s.date = int(data[11]) # 1.6.8: Int?
 
-        s.pp.acc = s.acc
-        s.pp.hmiss = s.hmiss
-        s.pp.max_combo = s.max_combo
-        s.pp.mods = s.mods
+
         
         
         if s.bmap:
+            s.pp.acc = s.acc
+            s.pp.hmiss = s.hmiss
+            s.pp.max_combo = s.max_combo
+            s.pp.mods = s.mods
             s.pp = await s.pp.calc()
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
