@@ -5,10 +5,11 @@ import re
 from objects.player import Player
 import rosu_pp_py as osu_pp
 import math
+from utils.beatmap_s import Beatmap as BeatmapS
+import utils.stream as stream
 
 def convert_droid(mods: str):
     mod_mapping = {
-        'nm': {"acronym": ""},
         'n': {"acronym": "NF"},
         'e': {"acronym": "EZ"},
         'h': {"acronym": "HD"},
@@ -210,14 +211,19 @@ class PPCalculator:
         force_ar_penalty = 1
         if force_ar is not None:
             force_ar_penalty = 0
-
-
+        try:
+            map_s_file = open(self.bm_path, 'r')
+            map_s = BeatmapS(map_s_file)
+            stream_percentage = stream.check(map_s)['stream_percentage'] / 100
+        except:
+            stream_percentage = 1
             
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
+        aim_pp -= aim_pp * stream_percentage
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
         pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
-        return pp_return
+        return pp_return 
 
 async def recalc_scores():
     ''' never use this unless something fucked up/testing '''

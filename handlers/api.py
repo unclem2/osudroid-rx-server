@@ -3,7 +3,7 @@ import aiohttp
 from objects import glob
 from objects.beatmap import Beatmap, RankedStatus
 from objects.score import Score
-from utils.pp import PPCalculator
+import utils.pp
 from handlers.response import Failed
 
 bp = Blueprint('api', __name__)
@@ -127,7 +127,7 @@ async def calculate():
     score.mods = data.get('mods')
 
     await score.bmap.download()
-    score.pp = await PPCalculator.from_md5(score.bmap.md5)
+    score.pp = await utils.pp.PPCalculator.from_md5(score.bmap.md5)
     score.pp = await score.pp.calc(score)
 
     result = {
