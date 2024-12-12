@@ -6,6 +6,7 @@ from objects.score import Score
 import utils.pp
 from handlers.response import Failed
 from dotenv import load_env
+import os
 
 load_dotenv()
 
