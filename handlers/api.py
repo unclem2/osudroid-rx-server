@@ -123,7 +123,7 @@ async def calculate():
         score.max_combo = int(score.bmap.max_combo)
     else:
         score.max_combo = int(data.get('combo'))
-    score.miss = int(data.get('miss'))
+    score.hmiss = int(data.get('miss'))
     score.mods = data.get('mods')
 
     await score.bmap.download()
@@ -137,7 +137,7 @@ async def calculate():
         "creator": score.bmap.creator,
         "version": score.bmap.version,
         "max_combo": score.max_combo,
-        "miss": score.miss,
+        "miss": score.hmiss,
         "mods": score.mods,
         "acc": score.acc,
     }

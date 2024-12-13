@@ -2,6 +2,7 @@ import math
 import time
 
 
+
 def determine(map, beatmap):  # Determine BPM changes
     default_bpm = beatmap["bpm"]["default"]
 
@@ -49,7 +50,26 @@ def calculate_angle(previous_object, current_object, next_object):
 
     
     return degree
-    
+
+def calculate_distance(previous_object, current_object):
+    x1 = previous_object["x"]
+    y1 = previous_object["y"]
+    x2 = current_object["x"]
+    y2 = current_object["y"]
+    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+def calculate_penalty(previous_object, current_object, next_object):
+    penalty = 0.333
+    angle = current_object['angle']
+    distance_prev = calculate_distance(previous_object, current_object)
+    distance_next = calculate_distance(current_object, next_object)
+    if distance_prev == distance_next:
+        penalty += 0.167
+    if angle > 90:
+        penalty += ((angle-90) / 90) * 0.5
+
+    return penalty
+
 def adjust_beat_length(beat_length, new_bpm):
     current_bpm = new_bpm
     whole = beat_length
@@ -103,11 +123,12 @@ def get_results(map, beatmap):
         # Determine if quarter length
         if i != first_object:
             time_difference = hit_object["time"] - previous_object["time"]
-            angle = calculate_angle(previous_object, hit_object, next_object)
-            hit_object["angle"] = angle
             hit_object['is_stream'] = False
-            if quarter - 2 < time_difference < quarter + 2 and angle > 110:  
+            hit_object['angle'] = calculate_angle(previous_object, hit_object, next_object)
+            hit_object['penalty'] = 0.001
+            if quarter - 2 < time_difference < quarter + 2:  
                 hit_object['is_stream'] = True 
+                hit_object['penalty'] = calculate_penalty(previous_object, hit_object, next_object)
                 quarter_note_count += 1
                 if note_start_time == 0:
                     note_start_time = hit_object["time"]
@@ -121,12 +142,15 @@ def get_results(map, beatmap):
         objects_dict.append(hit_object)
         previous_object = hit_object
 
-    total_object_count = len(map.objects)
+    stream_percentage = 0
     try:
-        stream_percentage = total_stream_notes / total_object_count * 100
+        for obj in objects_dict:
+            stream_percentage += obj['penalty']
+        stream_percentage = stream_percentage / len(objects_dict) * 100
     except ZeroDivisionError:
         stream_percentage = 0
     return stream_percentage, objects_dict
+
 
 def check(map):
 
@@ -135,7 +159,13 @@ def check(map):
     }
     beatmap = determine(map, beatmap)
     stream_percentage, objects_dict = get_results(map, beatmap)
-    # print("Stream percentage: ", stream_percentage)
+    print("Stream percentage: ", stream_percentage)
+    stream_objects = 0
+    for obj in objects_dict:
+        if obj['is_stream']:
+            stream_objects += 1
+            
+    print("no penalty:", stream_objects/len(objects_dict)*100)
     if stream_percentage >= 0:
         fin_dict = {
             "stream_percentage": stream_percentage,
