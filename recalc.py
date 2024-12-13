@@ -8,8 +8,10 @@ glob.db = PostgresDB()
 async def recalc():
     await glob.db.connect()
     # await insert_whitelist()
-    await pp.recalc_scores()    
+    # await pp.recalc_scores() 
+    await pp.recalc_single_score(13061)   
     await pp.recalc_stats()
+    
     
 
 
