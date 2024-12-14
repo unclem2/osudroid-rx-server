@@ -220,7 +220,7 @@ class PPCalculator:
             
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
-        aim_pp -= aim_pp * stream_percentage
+        aim_pp = aim_pp - aim_pp * stream_percentage
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
         pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
         return pp_return 
@@ -231,6 +231,7 @@ async def recalc_scores():
 
     scores = await glob.db.fetchall('SELECT * FROM scores')
     for score in scores:
+
         m = await PPCalculator.from_md5(score['maphash'])
         if m:
             
@@ -238,11 +239,30 @@ async def recalc_scores():
             m.hmiss = score['hitmiss']
             m.max_combo = score['combo']
             m.mods = score['mods']
+            
             pp = await m.calc()
 
             print(score['id'], score['maphash'], pp)
 
             await glob.db.execute("UPDATE scores SET pp = $1 WHERE id = $2", [pp, score['id']])
+
+
+async def recalc_single_score(score_id: int):
+    ''' recalculate a single score '''
+    score = await glob.db.fetch('SELECT * FROM scores WHERE id = $1', [score_id])
+
+    m = await PPCalculator.from_md5(score['maphash'])
+    if m:
+        m.acc = score['acc']
+        m.hmiss = score['hitmiss']
+        m.max_combo = score['combo']
+        m.mods = score['mods']
+
+        pp = await m.calc()
+
+        print(score['id'], score['maphash'], pp)
+
+        await glob.db.execute("UPDATE scores SET pp = $1 WHERE id = $2", [pp, score['id']])
 
 async def recalc_stats():
     # Fetch players from the database
