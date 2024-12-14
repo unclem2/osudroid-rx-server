@@ -45,7 +45,7 @@ async def get_user():
     if not player:
         return 'Player not found', 404
 
-    return player.as_json()
+    return jsonify(player)
 
 
 @bp.route('/get_scores')
