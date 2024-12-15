@@ -66,6 +66,68 @@ profile_temp = """
 {% block title %}Player Profile{% endblock %}
 
 {% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        color: #333;
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #444;
+    }
+
+    table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #007BFF;
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    td {
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        table {
+            width: 100%;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+
+        h1, h2 {
+            font-size: 18px;
+        }
+    }
+</style>
+
 <h1>Profile of {{ player.name }}</h1>
 <h2>Recent Scores</h2>
 <table>
@@ -122,6 +184,7 @@ profile_temp = """
     </tbody>
 </table>
 {% endblock %}
+
 """
 
 set_avatar_temp = """

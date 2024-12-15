@@ -4,6 +4,7 @@ from enum import IntEnum, unique
 
 from objects.beatmap import Beatmap
 from utils.pp import PPCalculator
+import re
 
 @unique
 class SubmissionStatus(IntEnum):
