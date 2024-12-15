@@ -1,117 +1,11 @@
 import logging
 from objects import glob
 from objects.beatmap import Beatmap
-import re
-from objects.player import Player
 import rosu_pp_py as osu_pp
 import math
 from objects.beatmap_s import Beatmap as BeatmapS
 import utils.stream as stream
-
-def get_used_mods(mods: str):
-
-    mods = re.sub(r'\bx\d+\.\d+\b', '', mods, flags=re.IGNORECASE)
-
-    mods = re.sub(r'[^a-zA-Z]', '', mods)
-    return mods
-
-class Mods:
-    def __init__(self, mods: int):
-        self.mods = mods
-        self.used_mods = get_used_mods(mods)
-
-    @property
-    def convert_std(self):
-        mod_mapping = {
-            'n': "NF",
-            'e': "EZ",
-            'h': "HD",
-            'r': "HR",
-            'u': "SD",
-            'd': "DT",
-            'x': "",
-            't': "HT",
-            'c': "NC",
-            'i': "FL",
-            'v': "V2",
-            'p': "AP",
-            'a': "AT",
-            's': "PR",
-            'l': "REZ",
-            'm': "SC",
-            'f': "PF",
-            'b': "SU",
-            's': "PR"
-        }
-        
-        mods = ''
-    
-        for char in self.used_mods:
-            if char in mod_mapping:
-                mods += mod_mapping[char]
-        
-        return f"{mods}{self.speed_multiplier}" if self.speed_multiplier else mods
-    
-    @property
-    def convert_droid(self):
-        mod_mapping = {
-            'n': {"acronym": "NF"},
-            'e': {"acronym": "EZ"},
-            'h': {"acronym": "HD"},
-            'r': {"acronym": "HR"},
-            'u': {"acronym": "SD"},
-            'd': {"acronym": "DT"},
-            'x': {"acronym": ""},
-            't': {"acronym": "HT"},
-            'c': {"acronym": "NC"},
-            'i': {"acronym": "FL"},
-            'v': {"acronym": "V2"},
-            'p': {"acronym": "AP"},
-            'a': {"acronym": "AT"},
-            's': {"acronym": "PR"},
-            'l': {"acronym": "REZ"},
-            'm': {"acronym": "SC"},
-            'f': {"acronym": "PF"},
-            'b': {"acronym": "SU"},
-            's': {"acronym": "PR"}
-        }
-        
-        used_mods = []
-    
-        
-        for char in self.used_mods:
-            if char in mod_mapping:
-                used_mods.append(mod_mapping[char])
-        
-        return used_mods
-
-    @property
-    def speed_multiplier(self):
-        """
-        Extracts the multiplier value from the mods string.
-        For example, 'xs|x2.00' will return 'x2.00'.
-        """
-        match = re.search(r'\bx(\d+\.\d+)\b', self.mods, re.IGNORECASE)
-        return match.group(1) if match else None
-
-    @property
-    def forcear(self):
-        match = re.search(r'\bAR(\d+\.\d+)\b', self.mods)
-        
-        return match.group(1) if match else None
-
-    @property
-    def forcecs(self):
-        match = re.search(r'\bCS(\d+\.\d+)\b', self.mods)
-        
-        return match.group(1) if match else None 
-
-    @property
-    def fldelay(self):
-        match = re.search(r'\bFLD(\d+\.\d+)\b', self.mods)
-        
-        return match.group(1) if match else None  
-
+import objects.mods as Mods
 
 class PPCalculator:
     def __init__(self, path):
@@ -305,11 +199,3 @@ async def recalc_single_score(score_id: int):
 
         await glob.db.execute("UPDATE scores SET pp = $1 WHERE id = $2", [pp, score['id']])
 
-async def recalc_stats():
-    # Fetch players from the database
-    players = await glob.db.fetchall("SELECT id FROM users")
-
-    for player in players:
-        # Assuming you have a Player class that can update stats
-        player_obj = Player(id=int(player['id']))
-        await player_obj.update_stats()

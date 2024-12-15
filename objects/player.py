@@ -149,3 +149,13 @@ class Player:
         update_query = 'UPDATE stats SET acc = $1, rank = $2, pp = $3, rscore = $4, tscore = $5, plays= $6 WHERE id = $7'
         await glob.db.execute(update_query,
                               [stats.acc, stats.rank, stats.pp, stats.rscore, stats.tscore, stats.plays, self.id])
+
+
+async def recalc_stats():
+    # Fetch players from the database
+    players = await glob.db.fetchall("SELECT id FROM users")
+
+    for player in players:
+        # Assuming you have a Player class that can update stats
+        player_obj = Player(id=int(player['id']))
+        await player_obj.update_stats()

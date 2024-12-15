@@ -247,13 +247,3 @@ class Beatmap:
         )
 
 
-async def insert_whitelist():
-    with open('data/mapid_list.json') as f:
-        mapid_list = json.load(f)
-    for mapid in mapid_list:
-        try:
-            map = Beatmap()
-            map = await map.from_bid_osuapi(mapid)
-            await map.update_stats()
-        except:
-            print("not found")

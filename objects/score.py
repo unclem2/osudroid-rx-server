@@ -1,10 +1,9 @@
 from objects.player import Player
 from objects import glob
 from enum import IntEnum, unique
-
 from objects.beatmap import Beatmap
 from utils.pp import PPCalculator
-import re
+
 
 @unique
 class SubmissionStatus(IntEnum):
@@ -160,7 +159,6 @@ class Score:
                 self.status = SubmissionStatus.BEST
                 self.prev_best.status = SubmissionStatus.SUBMITTED
                 await glob.db.execute('UPDATE scores SET status = $1 WHERE id = $2',[1, res['id']])
-
         else:
             self.status = SubmissionStatus.BEST
 
