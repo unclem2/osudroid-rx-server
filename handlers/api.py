@@ -5,6 +5,10 @@ from objects.beatmap import Beatmap, RankedStatus
 from objects.score import Score
 import utils.pp
 from handlers.response import Failed
+from dotenv import load_env
+import os
+
+load_dotenv()
 
 bp = Blueprint('api', __name__)
 bp.prefix = '/api/'
@@ -184,6 +188,8 @@ async def whitelist():
 @bp.route('/wl_add', methods=['GET'])
 async def whitelist_add():
     data = request.args
+    if key != os.getenv("WL_KEY"):
+        return {'status': 'error', 'message': 'Key not specified or incorrect.'}
     if data.get('md5') is not None:
         map = await Beatmap.from_md5(data.get('md5'))
     if data.get('bid') is not None:
@@ -205,6 +211,8 @@ async def whitelist_add():
 @bp.route('/wl_remove', methods=['GET'])
 async def whitelist_remove():
     data = request.args
+    if key != os.getenv("WL_KEY"):
+        return {'status': 'error', 'message': 'Key not specified or incorrect.'}
     if data.get('md5') is not None:
         await glob.db.execute('DELETE FROM maps WHERE md5 = $1 AND status = 5', [data.get('md5')])
     if data.get('bid') is not None:
