@@ -10,7 +10,7 @@ from handlers.response import Success
 import pathlib
 import html_templates
 from werkzeug.utils import secure_filename
-from utils.pp import Mods
+from objects.mods import Mods
 
 bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
