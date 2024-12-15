@@ -8,7 +8,7 @@ port = os.getenv('PORT')  # server port
 host = os.getenv('SERVER_HOST')
 ## CRON ##
 # 1 = 1 Minute
-cron_delay = 15  # used for updating user stats, if your server is big, you might want to set it to 60 or higher to
+cron_delay = 10  # used for updating user stats, if your server is big, you might want to set it to 60 or higher to
 # make sure your server doesnt die lol
 
 ## RANKING ##
