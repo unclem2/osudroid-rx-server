@@ -49,7 +49,7 @@ async def get_user():
     if not player:
         return 'Player not found', 404
 
-    return player.as_json()
+    return player.as_json
 
 
 @bp.route('/get_scores')
