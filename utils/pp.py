@@ -35,7 +35,7 @@ class PPCalculator:
     async def calc(self):
         # Get the speed multiplier for the mods
         
-        mods = Mods(self.mods)
+        mods = Mods.Mods(self.mods)
         speed_multiplier = mods.speed_multiplier
         if speed_multiplier is None:
             speed_multiplier = 1
