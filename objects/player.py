@@ -42,6 +42,7 @@ class Stats:
             'is_playing': self.playing
 
         }
+    
 
 
 class Player:
@@ -85,9 +86,6 @@ class Player:
         if not user_data or not user_stats:
             raise Exception('Failed to get user from database.')
 
-        # user_data = user_data[0]
-        # user_stats = user_stats[0]
-
         # fix email_hash if its none and user got email (there should be)
         if user_data['email_hash'] is None and user_data['email'] is not None:
             email_hash = utils.make_md5(user_data['email'])
@@ -99,6 +97,8 @@ class Player:
         p.stats = Stats(**user_stats)
 
         return p
+    
+
 
     async def update_stats(self):
         # Fetch player scores

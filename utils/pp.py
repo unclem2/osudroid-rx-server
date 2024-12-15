@@ -5,73 +5,113 @@ import re
 from objects.player import Player
 import rosu_pp_py as osu_pp
 import math
-from utils.beatmap_s import Beatmap as BeatmapS
+from objects.beatmap_s import Beatmap as BeatmapS
 import utils.stream as stream
 
-def convert_droid(mods: str):
-    mod_mapping = {
-        'n': {"acronym": "NF"},
-        'e': {"acronym": "EZ"},
-        'h': {"acronym": "HD"},
-        'r': {"acronym": "HR"},
-        'u': {"acronym": "SD"},
-        'd': {"acronym": "DT"},
-        'x': {"acronym": ""},
-        't': {"acronym": "HT"},
-        'c': {"acronym": "NC"},
-        'i': {"acronym": "FL"},
-        'v': {"acronym": "V2"},
-        'p': {"acronym": "AP"},
-        'a': {"acronym": "AT"},
-        's': {"acronym": "PR"},
-        'l': {"acronym": "REZ"},
-        'm': {"acronym": "SC"},
-        'f': {"acronym": "PF"},
-        'b': {"acronym": "SU"},
-        's': {"acronym": "PR"}
-    }
-    
-    used_mods = []
-   
-    
-    for char in mods:
-        if char in mod_mapping:
-            used_mods.append(mod_mapping[char])
-    
-    return used_mods
+def get_used_mods(mods: str):
 
-
-def get_multiplier(mods):
-    """
-    Extracts the multiplier value from the mods string.
-    For example, 'xs|x2.00' will return 'x2.00'.
-    """
-    match = re.search(r'\bx(\d+\.\d+)\b', mods, re.IGNORECASE)
-    return match.group(1) if match else None
-
-def get_forcear(mods):
-    match = re.search(r'\bAR(\d+\.\d+)\b', mods)
-    
-    return match.group(1) if match else None
-
-def get_forcecs(mods):
-    match = re.search(r'\bCS(\d+\.\d+)\b', mods)
-    
-    return match.group(1) if match else None 
-
-def get_fldelay(mods):
-    match = re.search(r'\bFLD(\d+\.\d+)\b', mods)
-    
-    return match.group(1) if match else None  
-
-def get_used_mods(mods):
-    """
-    Removes unwanted characters from the mods string.
-    """
     mods = re.sub(r'\bx\d+\.\d+\b', '', mods, flags=re.IGNORECASE)
 
     mods = re.sub(r'[^a-zA-Z]', '', mods)
     return mods
+
+class Mods:
+    def __init__(self, mods: int):
+        self.mods = mods
+        self.used_mods = get_used_mods(mods)
+
+    @property
+    def convert_std(self):
+        mod_mapping = {
+            'n': "NF",
+            'e': "EZ",
+            'h': "HD",
+            'r': "HR",
+            'u': "SD",
+            'd': "DT",
+            'x': "",
+            't': "HT",
+            'c': "NC",
+            'i': "FL",
+            'v': "V2",
+            'p': "AP",
+            'a': "AT",
+            's': "PR",
+            'l': "REZ",
+            'm': "SC",
+            'f': "PF",
+            'b': "SU",
+            's': "PR"
+        }
+        
+        mods = ''
+    
+        for char in self.used_mods:
+            if char in mod_mapping:
+                mods += mod_mapping[char]
+        
+        return f"{mods}{self.speed_multiplier}" if self.speed_multiplier else mods
+    
+    @property
+    def convert_droid(self):
+        mod_mapping = {
+            'n': {"acronym": "NF"},
+            'e': {"acronym": "EZ"},
+            'h': {"acronym": "HD"},
+            'r': {"acronym": "HR"},
+            'u': {"acronym": "SD"},
+            'd': {"acronym": "DT"},
+            'x': {"acronym": ""},
+            't': {"acronym": "HT"},
+            'c': {"acronym": "NC"},
+            'i': {"acronym": "FL"},
+            'v': {"acronym": "V2"},
+            'p': {"acronym": "AP"},
+            'a': {"acronym": "AT"},
+            's': {"acronym": "PR"},
+            'l': {"acronym": "REZ"},
+            'm': {"acronym": "SC"},
+            'f': {"acronym": "PF"},
+            'b': {"acronym": "SU"},
+            's': {"acronym": "PR"}
+        }
+        
+        used_mods = []
+    
+        
+        for char in self.used_mods:
+            if char in mod_mapping:
+                used_mods.append(mod_mapping[char])
+        
+        return used_mods
+
+    @property
+    def speed_multiplier(self):
+        """
+        Extracts the multiplier value from the mods string.
+        For example, 'xs|x2.00' will return 'x2.00'.
+        """
+        match = re.search(r'\bx(\d+\.\d+)\b', self.mods, re.IGNORECASE)
+        return match.group(1) if match else None
+
+    @property
+    def forcear(self):
+        match = re.search(r'\bAR(\d+\.\d+)\b', self.mods)
+        
+        return match.group(1) if match else None
+
+    @property
+    def forcecs(self):
+        match = re.search(r'\bCS(\d+\.\d+)\b', self.mods)
+        
+        return match.group(1) if match else None 
+
+    @property
+    def fldelay(self):
+        match = re.search(r'\bFLD(\d+\.\d+)\b', self.mods)
+        
+        return match.group(1) if match else None  
+
 
 class PPCalculator:
     def __init__(self, path):
@@ -100,17 +140,18 @@ class PPCalculator:
  
     async def calc(self):
         # Get the speed multiplier for the mods
-        speed_multiplier = get_multiplier(self.mods)
+        
+        mods = Mods(self.mods)
+        speed_multiplier = mods.speed_multiplier
         if speed_multiplier is None:
             speed_multiplier = 1
         speed_multiplier = float(speed_multiplier)
         
-        force_ar = get_forcear(self.mods)
-        force_cs = get_forcecs(self.mods)
-        fl_delay = get_fldelay(self.mods)
+        force_ar = mods.forcear
+        force_cs = mods.forcecs
+        fl_delay = mods.fldelay
         
-        mods = get_used_mods(self.mods)
-        mods = convert_droid(mods)
+        mods = mods.convert_droid
 
         if force_cs is not None:
             return 0  

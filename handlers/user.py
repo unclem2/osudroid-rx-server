@@ -10,7 +10,7 @@ from handlers.response import Success
 import pathlib
 import html_templates
 from werkzeug.utils import secure_filename
-import utils.pp
+from utils.pp import Mods
 
 bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
@@ -62,6 +62,10 @@ async def profile():
             bmap = await Beatmap.from_md5_sql(score['maphash'])
             score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
             score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+            score['acc'] = f"{score['acc']:.2f}%"
+            score['pp'] = f"{score['pp']:.2f}" 
+            score['mods'] = f"{Mods(score['mods']).convert_std}"
+ 
     except:
         recent_scores = []
     try:
@@ -75,6 +79,9 @@ async def profile():
             bmap = await Beatmap.from_md5_sql(score['maphash'])
             score['date'] = time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(score['date'] / 1000))
             score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+            score['acc'] = f"{score['acc']:.2f}%"
+            score['pp'] = f"{score['pp']:.2f}"
+            score['mods'] = f"{Mods(score['mods']).convert_std}" 
     except:
         top_scores = []
     return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores,
