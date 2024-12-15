@@ -40,20 +40,15 @@ async def init_shit():
         glob.players.add(player)
 
     async def background_tasks():
-        async def update_players_stats():
-            for player in glob.players:
-                await player.update_stats()
-
-        tasks = [update_players_stats]
-        for task in tasks:
+        while True:
             try:
-                await task()
+                for player in glob.players:
+                    await player.update_stats()
             except Exception as err:
                 logging.error(f'Failed to complete task: {repr(err)}')
-
-        await asyncio.sleep(glob.config.cron_delay * 60)
-
-    asyncio.ensure_future(background_tasks())
+            await asyncio.sleep(glob.config.cron_delay * 60)
+                
+    asyncio.create_task(background_tasks())
 
 @app.after_serving
 async def close_shit():
