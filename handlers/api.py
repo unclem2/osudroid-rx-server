@@ -5,7 +5,7 @@ from objects.beatmap import Beatmap, RankedStatus
 from objects.score import Score
 import utils.pp
 from handlers.response import Failed
-from dotenv import load_env
+from dotenv import load_dotenv
 import os
 
 load_dotenv()
@@ -117,22 +117,30 @@ async def recent():
     return jsonify(recent) if recent else {'No score found.'}
 
 
-@bp.route('/calculate', methods=['POST'])
+@bp.route('/calculate', methods=['GET', 'POST'])
 async def calculate():
-    data = await request.json
+    data = request.args
     score = Score()
-    score.bmap = await Beatmap.from_bid_osuapi(data.get('bid'))
-    score.acc = float(data.get('acc'))
-    if data.get('combo') == 0:
-        score.max_combo = int(score.bmap.max_combo)
-    else:
-        score.max_combo = int(data.get('combo'))
-    score.hmiss = int(data.get('miss'))
-    score.mods = data.get('mods')
+    if data.get('md5') is not None:
+        score.bmap = await Beatmap.from_md5(data.get('md5', '')) 
+        score.bmap.md5 = data.get('md5', '')
+    elif data.get('bid') is not None:
+        score.bmap = await Beatmap.from_bid_osuapi(data.get('bid', 0))
+        
+    score.acc = float(data.get('acc', 100))
+    score.max_combo =  int(data.get('combo', score.bmap.max_combo))
+    score.hmiss = int(data.get('miss', 0))
+    score.mods = data.get('mods', '')
 
+    if score.bmap is None:
+        return {'error': 'Map not found'}
     await score.bmap.download()
     score.pp = await utils.pp.PPCalculator.from_md5(score.bmap.md5)
-    score.pp = await score.pp.calc(score)
+    score.pp.acc = score.acc
+    score.pp.hmiss = score.hmiss
+    score.pp.max_combo = score.max_combo
+    score.pp.mods = score.mods
+    score.pp = await score.pp.calc()
 
     result = {
         "pp": score.pp,
@@ -188,7 +196,7 @@ async def whitelist():
 @bp.route('/wl_add', methods=['GET'])
 async def whitelist_add():
     data = request.args
-    if key != os.getenv("WL_KEY"):
+    if data.get('key') != os.getenv("WL_KEY"):
         return {'status': 'error', 'message': 'Key not specified or incorrect.'}
     if data.get('md5') is not None:
         map = await Beatmap.from_md5(data.get('md5'))
@@ -211,10 +219,10 @@ async def whitelist_add():
 @bp.route('/wl_remove', methods=['GET'])
 async def whitelist_remove():
     data = request.args
-    if key != os.getenv("WL_KEY"):
+    if data.get('key') != os.getenv("WL_KEY"):
         return {'status': 'error', 'message': 'Key not specified or incorrect.'}
     if data.get('md5') is not None:
-        await glob.db.execute('DELETE FROM maps WHERE md5 = $1 AND status = 5', [data.get('md5')])
+        await glob.db.execute('UPDATE maps SET status = -2 WHERE md5 = $1', [data.get('md5')])
     if data.get('bid') is not None:
-        await glob.db.execute('DELETE FROM maps WHERE id = $1 AND status = 5', [int(data.get('bid'))])
+        await glob.db.execute('UPDATE maps SET status = -2 WHERE id = $1', [int(data.get('bid'))])
     return {'status': 'success'}
