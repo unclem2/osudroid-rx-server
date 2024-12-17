@@ -17,6 +17,7 @@ cron_delay = 10  # used for updating user stats, if your server is big, you migh
 pp = True
 pp_leaderboard = True  # Shows pp instead of score and sort by pp
 # used for beatmap info, unused if pp is disabled
+pp_max_value = 10000 # Max value for a play, if play is worth more than this it will return 0
 osu_key = os.getenv('OSU_KEY', '')
 db_url = os.getenv('DATABASE_URL', '')
 discord_hook = os.getenv('DISCORD', '')
