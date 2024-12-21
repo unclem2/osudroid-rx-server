@@ -1,9 +1,9 @@
 import os
+import dotenv
 import time
 import hashlib
-from quart import Blueprint, request, send_file, render_template_string, make_response, jsonify
+from quart import Blueprint, request, send_file, render_template_string, make_response
 from argon2 import PasswordHasher
-import aiohttp
 from objects import glob
 from objects.beatmap import Beatmap
 from handlers.response import Success
@@ -12,8 +12,30 @@ import html_templates
 from werkzeug.utils import secure_filename
 from objects.mods import Mods
 
+dotenv.load_dotenv()
+
 bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
+
+
+
+def get_md5_hash(string):
+    md5_hash = hashlib.md5()
+    md5_hash.update(string.encode('utf-8'))
+    hash = md5_hash.hexdigest()
+    return hash
+
+def allowed_file(filename):
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def check_md5(string, hash):
+    md5_hash = hashlib.md5()
+    md5_hash.update(string.encode('utf-8'))
+    hashed_string =  md5_hash.hexdigest()
+    if hashed_string == hash:
+        return True
+    return False
 
 
 @bp.route('/avatar/<int:uid>.png')
@@ -21,7 +43,6 @@ async def avatar(uid: int):
     avatar = pathlib.Path(f'./data/avatar/{uid}.png')
 
     return await send_file(avatar, mimetype='image/png')
-
 
 @bp.route('/leaderboard.php')
 async def leaderboard():
@@ -32,7 +53,6 @@ async def leaderboard():
     )
 
     return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats)
-
 
 @bp.route('/profile.php')
 async def profile():
@@ -97,15 +117,15 @@ async def set_avatar():
 
     # Validate the cookie format and extract username and player ID
     try:
-        username, player_id = auth_cookie.split('-')
+        username, player_id, hash = auth_cookie.split('-')
+        if check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
+            return await render_template_string(html_templates.error_template, error_message='Invalid login state')
         player_id = int(player_id)
     except ValueError:
         return await render_template_string(html_templates.error_template, error_message='Invalid login state')
 
     if request.method == 'POST':
-        # Await the request.files to ensure it's not a coroutine
         files = await request.files
-        form = await request.form
 
         # Check if the avatar file is part of the request
         if 'avatar' not in files:
@@ -135,9 +155,6 @@ async def set_avatar():
     return await render_template_string(html_templates.set_avatar_temp)
 
 
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
 @bp.route('/web_login.php', methods=['GET', 'POST'])
@@ -156,11 +173,7 @@ async def web_login():
             return await render_template_string(html_templates.error_template,
                                                 error_message='Invalid username or password')
 
-        # Append salt to the password and hash it using MD5
-        salted_password = f"{password}taikotaiko"
-        md5_hash = hashlib.md5()
-        md5_hash.update(salted_password.encode('utf-8'))
-        hashed_password = md5_hash.hexdigest()
+        hashed_password = get_md5_hash(f"{password}taikotaiko")
 
         # Retrieve player information
         ph = PasswordHasher()
@@ -174,10 +187,9 @@ async def web_login():
             return await render_template_string(html_templates.error_template, error_message='Player not found')
 
         stored_password_hash = res['password_hash']
-        status = res['status']
         cached_hashes = glob.cache['hashes']
 
-        # Verify the password
+        # Verify the password using ph
         if stored_password_hash in cached_hashes:
             if hashed_password != cached_hashes[stored_password_hash]:
                 return await render_template_string(html_templates.error_template, error_message='Wrong password')
@@ -187,14 +199,12 @@ async def web_login():
             except:
                 return await render_template_string(html_templates.error_template, error_message='Wrong password')
 
-        # Create a response object and set a cookie with the login state
         response = await make_response(Success('Login successful'))
-        response.set_cookie('login_state', f'{username}-{player.id}',
-                            max_age=60 * 60 * 24 * 30 * 12)  # Cookie expires in 1 day
+        response.set_cookie('login_state', f'{username}-{player.id}-{get_md5_hash(f"{username}-{player.id}-{os.getenv("KEY")}")}',
+                            max_age=60 * 60 * 24 * 30 * 12)  # Cookie expires in 1 year
 
         return response
 
-    # Render the login template for GET requests
     return await render_template_string(html_templates.web_login_temp)
 
 @bp.route('/change_password.php', methods=['GET', 'POST'])
@@ -204,8 +214,12 @@ async def change_password():
     if login_state is None:
         return await render_template_string(html_templates.error_template, error_message='Not logged in')
 
+
     if request.method == 'POST':
         req = await request.form
+        username, player_id, hash = login_state.split('-')
+        if check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
+            return await render_template_string(html_templates.error_template, error_message='Invalid login state')
         old_password = req.get('old_password')
         new_password = req.get('new_password')
 
@@ -213,26 +227,15 @@ async def change_password():
             return await render_template_string(html_templates.error_template,
                                                 error_message='Invalid old or new password')
 
-        # Append salt to the password and hash it using MD5
-        salted_old_password = f"{old_password}taikotaiko"
-        salted_new_password = f"{new_password}taikotaiko"
-        
-        md5_hash = hashlib.md5()
-        md5_hash.update(salted_old_password.encode('utf-8'))
-        md5_hash_new = hashlib.md5()
-        md5_hash_new.update(salted_new_password.encode('utf-8'))
-        
-        hashed_old_password = md5_hash.hexdigest()
-        hashed_new_password = md5_hash_new.hexdigest()
+        hashed_old_password = get_md5_hash(f"{old_password}taikotaiko")
+        hashed_new_password = get_md5_hash(f"{new_password}taikotaiko")
 
-        # Retrieve player information
         ph = PasswordHasher()
-        username, player_id = login_state.split('-')
+        
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
             return await render_template_string(html_templates.error_template, error_message='Player not found')
 
-        # Fetch password hash and status from the database
         res = await glob.db.fetch("SELECT password_hash, status FROM users WHERE id = $1", [player.id])
         if not res:
             return await render_template_string(html_templates.error_template, error_message='Player not found')
@@ -247,3 +250,9 @@ async def change_password():
         await glob.db.execute("UPDATE users SET password_hash = $1 WHERE id = $2", [new_password_hash, player.id])
         return await render_template_string(html_templates.success_template, success_message='Password changed successfully')
     return await render_template_string(html_templates.change_password_template)
+
+@bp.route('/logout.php', methods=['GET'])
+async def logout():
+    response = await make_response(Success('Logout successful'))
+    response.delete_cookie('login_state')
+    return response
