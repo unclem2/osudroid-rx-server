@@ -107,7 +107,7 @@ async def top_scores():
 async def recent():
     params = request.args
     id = int(params.get('id'))
-    index = params.get('index')
+    index = int(params.get('index'))
     recent = await glob.db.fetchall(
         'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
         '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerid" = $1 '
