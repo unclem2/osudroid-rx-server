@@ -111,11 +111,10 @@ async def recent():
     recent = await glob.db.fetchall(
         'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
         '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp FROM scores WHERE "playerid" = $1 '
-        'ORDER BY id DESC LIMIT 1 OFFSET $2',
+        'ORDER BY id DESC OFFSET $2',
         [id, index]
     )
-    return jsonify(recent) if recent else {'No score found.'}
-
+    return jsonify(recent) if len(recent) > 0 else 'No score found.'
 
 @bp.route('/calculate', methods=['GET', 'POST'])
 async def calculate():
