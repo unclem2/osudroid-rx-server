@@ -50,7 +50,7 @@ class Score:
         self.rank: str = ''
         self.fc: bool = None
         self.status: SubmissionStatus = SubmissionStatus.SUBMITTED
-        self.date: str = '' # unused
+        self.date: str = '' 
 
         self.prev_best: Score = None
 

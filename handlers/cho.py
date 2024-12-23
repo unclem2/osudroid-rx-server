@@ -304,7 +304,7 @@ async def submit_play():
             [stats.rscore, stats.tscore, stats.plays, score.player.id])
 
         await score.player.update_stats()
-
+        
         return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
             rank=int(stats.rank),
             rank_by=int(stats.rank_by),

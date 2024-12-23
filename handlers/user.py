@@ -92,8 +92,8 @@ async def profile():
         top_scores = await glob.db.fetchall(
         'SELECT id, status, maphash, score, combo, rank, acc, "hit300", "hitgeki", '
         '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
-        'ORDER BY pp DESC',
-        [id]
+        'ORDER BY pp DESC LIMIT $2',
+        [p.id, 50]
         )
         for score in top_scores:
             bmap = await Beatmap.from_md5_sql(score['maphash'])
