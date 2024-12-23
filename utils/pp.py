@@ -158,7 +158,7 @@ class PPCalculator:
         aim_pp = aim_pp - aim_pp * stream_percentage
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
         pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
-        if pp_return >= glob.config.max_pp_value:
+        if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
         return pp_return 
 
