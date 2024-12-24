@@ -58,9 +58,6 @@ class PPCalculator:
         beatmap = osu_pp.Beatmap(content=beatmap_content)
         original_od = beatmap.od - 4
         
-
-
-        # Adjust speed change settings for DT and HT mods
         applied = None
 
                 
@@ -107,24 +104,21 @@ class PPCalculator:
         )
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
-            
+           
+        performance.set_od(original_od, od_with_mods=True) 
         
         for i, mod in enumerate(mods):
             if mod['acronym'] == 'PR':
-                original_od = original_od + 4
+                original_od += 4
                 performance.set_od(original_od, od_with_mods=False)
             if mod['acronym'] == 'AP':
                 return 0
-            
-        
-        for i, mod in enumerate(mods):
             if mod['acronym'] == 'REZ':
                 original_od = original_od / 2
                 performance.set_cs(beatmap.cs*0.66, cs_with_mods=False)
                 performance.set_ar(beatmap.ar-0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
-            
-                
+        
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
@@ -160,6 +154,7 @@ class PPCalculator:
         pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
+        logging.info(f"attributes.pp_aim: {attributes.pp_aim}, stream_percentage: {stream_percentage}, aim_pp: {aim_pp}, acc_factor: {acc_factor}, speed_reduction_factor: {speed_reduction_factor}, force_ar_penalty: {force_ar_penalty}, pp_return: {pp_return}")
         return pp_return 
 
 async def recalc_scores():

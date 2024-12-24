@@ -1,7 +1,16 @@
 import math
 import time
+import numpy as np
 
+def calc_radius(map):
+    return 54.4 - 4.48 * map.cs
 
+def adjust_beat_length(beat_length, new_bpm):
+    current_bpm = new_bpm
+    whole = beat_length
+    half = whole / 2
+    quarter = half / 2
+    return current_bpm, whole, half, quarter
 
 def determine(map, beatmap):  # Determine BPM changes
     default_bpm = beatmap["bpm"]["default"]
@@ -23,59 +32,52 @@ def determine(map, beatmap):  # Determine BPM changes
     return beatmap
 
 def calculate_angle(previous_object, current_object, next_object):
+    # Используем numpy для быстрого вычисления
+    v1 = np.array([current_object["x"] - previous_object["x"],
+                   current_object["y"] - previous_object["y"]])
+    v2 = np.array([next_object["x"] - current_object["x"],
+                   next_object["y"] - current_object["y"]])
 
-    try:
-        vector1 = (current_object["x"] - previous_object["x"], current_object["y"] - previous_object["y"])
-        vector2 = (next_object["x"] - current_object["x"], next_object["y"] - current_object["y"])
-    except ZeroDivisionError:
-        return 0
-
-
-    dot_product = vector1[0] * vector2[0] + vector1[1] * vector2[1]
-    magnitude1 = math.sqrt(vector1[0]**2 + vector1[1]**2)
-    magnitude2 = math.sqrt(vector2[0]**2 + vector2[1]**2)
-
-    try:
-        cos_angle = dot_product / (magnitude1 * magnitude2)
-    except ZeroDivisionError:
-        return 180
-
-    try:
-        angle_radians = math.acos(cos_angle)
-    except ValueError:
-        return 180
-
-    angle_degrees = math.degrees(angle_radians)
-    degree = (360 - 2 * angle_degrees) / 2
-
+    norm1 = np.linalg.norm(v1)
+    norm2 = np.linalg.norm(v2)
     
-    return degree
+    # Проверяем на нулевые длины векторов
+    if norm1 == 0 or norm2 == 0:
+        return 180  # Если один из векторов отсутствует
+
+    # Угол через dot-product
+    cos_angle = np.clip(np.dot(v1, v2) / (norm1 * norm2), -1.0, 1.0)
+    angle_degrees = math.degrees(np.arccos(cos_angle))
+    return angle_degrees
+
 
 def calculate_distance(previous_object, current_object):
-    x1 = previous_object["x"]
-    y1 = previous_object["y"]
-    x2 = current_object["x"]
-    y2 = current_object["y"]
-    return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+    return np.linalg.norm([
+        current_object["x"] - previous_object["x"],
+        current_object["y"] - previous_object["y"]
+    ])
 
-def calculate_penalty(previous_object, current_object, next_object):
-    penalty = 0.333
-    angle = current_object['angle']
+
+def calculate_penalty(previous_object, current_object, next_object, radius):
+    penalty = 0.167
+    current_angle = current_object['angle']
+    prev_angle = previous_object['angle']
+
     distance_prev = calculate_distance(previous_object, current_object)
     distance_next = calculate_distance(current_object, next_object)
-    if distance_prev == distance_next:
-        penalty += 0.167
-    if angle > 90:
-        penalty += ((angle-90) / 90) * 0.5
-
+    penalty += 0.2 - 0.2 * (distance_prev / radius)
+    # angle penalty
+    penalty += 0.2 - 0.2 * (current_angle / 180)
+    # delta angle penalty
+    delta_angle = prev_angle - current_angle
+    penalty += 0.2 - 0.2 * (delta_angle / 180)
+    # distance penalty
+    penalty += 0.2 - 0.2 * abs(distance_next / radius - distance_prev / radius)
+    
+    if penalty < 0:
+        penalty = 0
     return penalty
-
-def adjust_beat_length(beat_length, new_bpm):
-    current_bpm = new_bpm
-    whole = beat_length
-    half = whole / 2
-    quarter = half / 2
-    return current_bpm, whole, half, quarter
+    
 
 def get_results(map, beatmap):
     first_object = map.objects[0]
@@ -125,10 +127,10 @@ def get_results(map, beatmap):
             time_difference = hit_object["time"] - previous_object["time"]
             hit_object['is_stream'] = False
             hit_object['angle'] = calculate_angle(previous_object, hit_object, next_object)
-            hit_object['penalty'] = 0.001
+            hit_object['penalty'] = 0.0001
             if quarter - 2 < time_difference < quarter + 2:  
                 hit_object['is_stream'] = True 
-                hit_object['penalty'] = calculate_penalty(previous_object, hit_object, next_object)
+                hit_object['penalty'] = calculate_penalty(previous_object, hit_object, next_object, calc_radius(map))
                 quarter_note_count += 1
                 if note_start_time == 0:
                     note_start_time = hit_object["time"]
@@ -149,8 +151,7 @@ def get_results(map, beatmap):
         stream_percentage = stream_percentage / len(objects_dict) * 100
     except ZeroDivisionError:
         stream_percentage = 0
-    return stream_percentage, objects_dict
-
+    return stream_percentage
 
 def check(map):
 
@@ -158,21 +159,13 @@ def check(map):
         "bpm": {"default": {"time": 0, "bpm": 0, "beatLength": 0}, "changes": []}
     }
     beatmap = determine(map, beatmap)
-    stream_percentage, objects_dict = get_results(map, beatmap)
-    print("Stream percentage: ", stream_percentage)
-    stream_objects = 0
-    for obj in objects_dict:
-        if obj['is_stream']:
-            stream_objects += 1
-            
-    print("no penalty:", stream_objects/len(objects_dict)*100)
+    stream_percentage = get_results(map, beatmap)
     if stream_percentage >= 0:
         fin_dict = {
-            "stream_percentage": stream_percentage,
-            "objects": objects_dict,
+            "stream_percentage": stream_percentage
         }
         return fin_dict
     
-    return 0
+    return False
 
   
