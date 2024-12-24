@@ -20,7 +20,11 @@ async def get_online():
     return {'online': len(online_players)}
 
 
-def get_player(args):
+
+@bp.route('/get_user')
+async def get_user():
+    args = request.args
+
     if 'id' not in args and 'name' not in args:
         return 'Need id or name', 400
 
@@ -35,16 +39,6 @@ def get_player(args):
 
         player = glob.players.get(name=args['name'])
 
-    return player
-
-
-@bp.route('/get_user')
-async def get_user():
-    args = request.args
-
-    player = get_player(args)
-    if isinstance(player, tuple):
-        return player
 
     if not player:
         return 'Player not found', 404
@@ -57,23 +51,17 @@ async def get_scores():
     params = request.args
 
     limit = min(int(params.get('limit', 50)), 50)
-
-    p = get_player(params)
-    if isinstance(p, tuple):
-        return p
-
-    if not p:
-        return 'Player not found', 404
+    id = int(params.get('id', 0))
 
     scores = await glob.db.fetchall(
         'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
         '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
         'ORDER BY id DESC LIMIT $2',
-        [p.id, limit]
+        [id, limit]
     )
 
     if len(scores) == 0:
-        return Failed('No scores found.')
+        return "No scores found.", 400
     if len(scores) > 0:
         return jsonify(scores)
 
@@ -132,7 +120,7 @@ async def calculate():
     score.mods = data.get('mods', '')
 
     if score.bmap is None:
-        return {'error': 'Map not found'}
+        return {'error': 'Map not found'}, 400
     await score.bmap.download()
     score.pp = await utils.pp.PPCalculator.from_md5(score.bmap.md5)
     score.pp.acc = score.acc
