@@ -304,6 +304,7 @@ async def submit_play():
             [stats.rscore, stats.tscore, stats.plays, score.player.id])
 
         await score.player.update_stats()
+        await utils.discord_notify(f'{score.player.name}  | {score.bmap.full} {score.mods} {score.acc} {score.max_combo}/{score.bmap.max_combo} {score.hmiss} #{score.rank} | {score.pp}', glob.config.discord_hook)
         
         return Success('{rank} {rank_by} {acc} {map_rank} {score_id}'.format(
             rank=int(stats.rank),
