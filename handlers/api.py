@@ -148,9 +148,9 @@ async def calculate():
 @bp.route('/update.php')
 async def send_update():
     data = {
-        "version_code": 1727108920,
-        "link": "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.13/osu.droid-1.13.240923.-debug-2024-09-23.apk",
-        "changelog": "public release"
+        "version_code": 1735348672,
+        "link": "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.13.1/osu.droid-1.13.241228.-debug-2024-12-28.apk",
+        "changelog": "https"
     }
     return data
 
