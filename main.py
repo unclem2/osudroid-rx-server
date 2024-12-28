@@ -67,7 +67,7 @@ async def index():
     online = len([_ for _ in glob.players if _.online])
     title = 'odrx server'
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://{glob.config.ip}:{glob.config.port}/api/update.php") as resp:
+        async with session.get(f"https://{glob.config.host}:{glob.config.port}/api/update.php") as resp:
             update = await resp.json()
             changelog = update['changelog']
             version = update['version_code']
@@ -93,5 +93,6 @@ if __name__ == '__main__':
         hypercorn_config.certfile = certfile
     else:
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
+        glob.config.host = glob.config.ip
 
     asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
