@@ -80,7 +80,7 @@ async def index():
 
 
 if __name__ == '__main__':
-    coloredlogs.install(level=logging.DEBUG)
+    coloredlogs.install(level=logging.WARNING)
 
     app_asgi = ASGIApp(sio, app)
     hypercorn_config = hypercorn.Config()
