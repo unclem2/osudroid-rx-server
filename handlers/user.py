@@ -11,6 +11,7 @@ import pathlib
 import html_templates
 from werkzeug.utils import secure_filename
 from objects.mods import Mods
+import utils
 
 dotenv.load_dotenv()
 
@@ -18,25 +19,9 @@ bp = Blueprint('user', __name__)
 bp.prefix = '/user/'
 
 
-
-def get_md5_hash(string):
-    md5_hash = hashlib.md5()
-    md5_hash.update(string.encode('utf-8'))
-    hash = md5_hash.hexdigest()
-    return hash
-
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def check_md5(string, hash):
-    md5_hash = hashlib.md5()
-    md5_hash.update(string.encode('utf-8'))
-    hashed_string =  md5_hash.hexdigest()
-    if hashed_string == hash:
-        return True
-    return False
-
 
 @bp.route('/avatar/<int:uid>.png')
 async def avatar(uid: int):
@@ -118,7 +103,7 @@ async def set_avatar():
     # Validate the cookie format and extract username and player ID
     try:
         username, player_id, hash = auth_cookie.split('-')
-        if check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
+        if utils.check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
             return await render_template_string(html_templates.error_template, error_message='Invalid login state')
         player_id = int(player_id)
     except ValueError:
@@ -173,7 +158,7 @@ async def web_login():
             return await render_template_string(html_templates.error_template,
                                                 error_message='Invalid username or password')
 
-        hashed_password = get_md5_hash(f"{password}taikotaiko")
+        hashed_password = utils.make_md5(f"{password}taikotaiko")
 
         # Retrieve player information
         ph = PasswordHasher()
@@ -200,7 +185,7 @@ async def web_login():
                 return await render_template_string(html_templates.error_template, error_message='Wrong password')
 
         response = await make_response(Success('Login successful'))
-        response.set_cookie('login_state', f'{username}-{player.id}-{get_md5_hash(f"{username}-{player.id}-{os.getenv("KEY")}")}',
+        response.set_cookie('login_state', f'{username}-{player.id}-{utils.make_md5(f"{username}-{player.id}-{os.getenv("KEY")}")}',
                             max_age=60 * 60 * 24 * 30 * 12)  # Cookie expires in 1 year
 
         return response
@@ -218,7 +203,7 @@ async def change_password():
     if request.method == 'POST':
         req = await request.form
         username, player_id, hash = login_state.split('-')
-        if check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
+        if utils.check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", hash) == False:
             return await render_template_string(html_templates.error_template, error_message='Invalid login state')
         old_password = req.get('old_password')
         new_password = req.get('new_password')
@@ -227,8 +212,8 @@ async def change_password():
             return await render_template_string(html_templates.error_template,
                                                 error_message='Invalid old or new password')
 
-        hashed_old_password = get_md5_hash(f"{old_password}taikotaiko")
-        hashed_new_password = get_md5_hash(f"{new_password}taikotaiko")
+        hashed_old_password = utils.make_md5(f"{old_password}taikotaiko")
+        hashed_new_password = utils.make_md5(f"{new_password}taikotaiko")
 
         ph = PasswordHasher()
         

@@ -86,11 +86,9 @@ if __name__ == '__main__':
     hypercorn_config = hypercorn.Config()
 
     if os.path.exists(f"./certs/live/{glob.config.host}"):
-        certfile = os.path.join(f'./certs/live/{glob.config.host}/fullchain.pem')
-        keyfile = os.path.join(f'./certs/live/{glob.config.host}/privkey.pem')
         hypercorn_config.bind = [f"0.0.0.0:443"]
-        hypercorn_config.keyfile = keyfile
-        hypercorn_config.certfile = certfile
+        hypercorn_config.keyfile = os.path.join(f'./certs/live/{glob.config.host}/privkey.pem')
+        hypercorn_config.certfile = os.path.join(f'./certs/live/{glob.config.host}/fullchain.pem')
     else:
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
         glob.config.host = glob.config.ip
