@@ -1,3 +1,4 @@
+import os
 import logging
 import asyncio
 import coloredlogs
@@ -5,7 +6,8 @@ from quart import Quart, render_template_string
 import aiohttp
 from handlers.multi import sio  # Import the socketio server
 from socketio import ASGIApp
-
+import ssl
+import hypercorn.asyncio
 # Other imports
 from objects import glob
 from objects.player import Player
@@ -14,6 +16,7 @@ from handlers import (cho, api, user, multi)
 from handlers.response import Failed
 import utils
 import html_templates
+
 
 def make_app():
     app = Quart(__name__)
@@ -64,7 +67,7 @@ async def index():
     online = len([_ for _ in glob.players if _.online])
     title = 'odrx server'
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"http://{glob.config.host}:{glob.config.port}/api/update.php") as resp:
+        async with session.get(f"https://{glob.config.ip}:{glob.config.port}/api/update.php") as resp:
             update = await resp.json()
             changelog = update['changelog']
             version = update['version_code']
@@ -79,13 +82,16 @@ async def index():
 if __name__ == '__main__':
     coloredlogs.install(level=logging.DEBUG)
 
-    # Wrap the Quart app with Socket.IO's ASGIApp
     app_asgi = ASGIApp(sio, app)
-
-    # Run the app using an ASGI server like hypercorn or uvicorn
-    import hypercorn.asyncio
-
     hypercorn_config = hypercorn.Config()
-    hypercorn_config.bind = [f"{glob.config.host}:{glob.config.port}"]
-    
+
+    if os.path.exists(f"./certs/live/{glob.config.host}"):
+        certfile = os.path.join(f'./certs/live/{glob.config.host}/fullchain.pem')
+        keyfile = os.path.join(f'./certs/live/{glob.config.host}/privkey.pem')
+        hypercorn_config.bind = [f"0.0.0.0:443"]
+        hypercorn_config.keyfile = keyfile
+        hypercorn_config.certfile = certfile
+    else:
+        hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
+
     asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))

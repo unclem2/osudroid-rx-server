@@ -5,7 +5,8 @@ load_dotenv(override=True)
 ## MAIN ##
 server_name = 'atmosphere'  # yes
 port = os.getenv('PORT')  # server port
-host = os.getenv('SERVER_HOST')
+ip = os.getenv('SERVER_IP')  # server ip
+host = os.getenv('SERVER_HOST') #server domain
 ## CRON ##
 # 1 = 1 Minute
 cron_delay = 10  # used for updating user stats, if your server is big, you might want to set it to 60 or higher to
