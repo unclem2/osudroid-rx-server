@@ -122,8 +122,6 @@ class PPCalculator:
         # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
-        acc_factor = (100-self.acc)/30
-        acc_factor = math.exp(-acc_factor)
         try:
             speed_reduction = attributes.pp_speed/attributes.pp
         except ZeroDivisionError:
@@ -140,21 +138,15 @@ class PPCalculator:
         force_ar_penalty = 1
         if force_ar is not None:
             force_ar_penalty = 0
-        try:
-            map_s_file = open(self.bm_path, 'r')
-            map_s = BeatmapS(map_s_file)
-            stream_percentage = stream.check(map_s)['stream_percentage'] / 100
-        except:
-            stream_percentage = 1
+
             
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
-        aim_pp = aim_pp - aim_pp * stream_percentage
         pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
-        pp_return = pp_return * acc_factor * speed_reduction_factor * force_ar_penalty
+        pp_return = pp_return * speed_reduction_factor * force_ar_penalty
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
-        logging.info(f"attributes.pp_aim: {attributes.pp_aim}, stream_percentage: {stream_percentage}, aim_pp: {aim_pp}, acc_factor: {acc_factor}, speed_reduction_factor: {speed_reduction_factor}, force_ar_penalty: {force_ar_penalty}, pp_return: {pp_return}")
+        logging.info(f"attributes.pp_aim: {attributes.pp_aim}, aim_pp: {aim_pp}, speed_reduction_factor: {speed_reduction_factor}, force_ar_penalty: {force_ar_penalty}, pp_return: {pp_return}")
         return pp_return 
 
 async def recalc_scores():
