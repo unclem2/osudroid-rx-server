@@ -16,7 +16,7 @@ from handlers import (cho, api, user, multi)
 from handlers.response import Failed
 import utils
 import html_templates
-
+from objects.beatmap import Beatmap, RankedStatus
 
 def make_app():
     app = Quart(__name__)
@@ -42,7 +42,7 @@ async def init_shit():
         player = await Player.from_sql(player_id['id'])
         glob.players.add(player)
 
-    async def background_tasks():
+    async def update_player_stats():
         while True:
             try:
                 for player in glob.players:
@@ -50,8 +50,21 @@ async def init_shit():
             except Exception as err:
                 logging.error(f'Failed to complete task: {repr(err)}')
             await asyncio.sleep(glob.config.cron_delay * 60)
+            
+    async def update_map_status():
+        while True:
+            qualified_maps = await glob.db.fetchall('SELECT * FROM maps WHERE status = 3')
+            for map in qualified_maps:
+                map = await Beatmap.from_bid_osuapi(int(map['id']))
+                logging.info(f"Updated map {map.id} to {map.status}")
+                utils.discord_notify(f"Updated map {map.id} to {map.status}")
+            await asyncio.sleep(glob.config.cron_delay * 3600)
+
+            
+            
                 
-    asyncio.create_task(background_tasks())
+    asyncio.create_task(update_player_stats())
+    asyncio.create_task(update_map_status())
 
 @app.after_serving
 async def close_shit():
@@ -80,7 +93,7 @@ async def index():
 
 
 if __name__ == '__main__':
-    coloredlogs.install(level=logging.WARNING)
+    coloredlogs.install(level=logging.INFO)
 
     app_asgi = ASGIApp(sio, app)
     hypercorn_config = hypercorn.Config()
