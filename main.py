@@ -57,7 +57,7 @@ async def init_shit():
             for map in qualified_maps:
                 map = await Beatmap.from_bid_osuapi(int(map['id']))
                 logging.info(f"Updated map {map.id} to {map.status}")
-                await utils.discord_notify(f"Updated map {map.id} to {map.status}")
+                await utils.discord_notify(f"Updated map {map.id} to {map.status}", glob.config.discord_hook)
             await asyncio.sleep(glob.config.cron_delay * 3600)
 
             
