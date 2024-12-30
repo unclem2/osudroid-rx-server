@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)
 ## MAIN ##
-server_name = 'atmosphere'  # yes
+server_name = 'o!d relax server'  # yes
 port = os.getenv('PORT')  # server port
 host = os.getenv('SERVER_HOST')
 ## CRON ##
