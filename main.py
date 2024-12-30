@@ -79,7 +79,7 @@ async def server_fucked(err):
 async def index():
     players = len(glob.players)
     online = len([_ for _ in glob.players if _.online])
-    title = 'odrx server'
+    title = glob.config.server_name
     async with aiohttp.ClientSession() as session:
         async with session.get(f"https://{glob.config.host}:{glob.config.port}/api/update.php") as resp:
             update = await resp.json()
