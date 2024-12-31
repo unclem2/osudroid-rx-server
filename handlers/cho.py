@@ -64,7 +64,7 @@ async def login():
         p.uuid = utils.make_uuid(p.name)
 
     if os.path.isfile(f'data/avatar/{p.id}.png'):
-        p.avatar = f'http://{glob.config.host}:{glob.config.port}/user/avatar/{p.id}.png'
+        p.avatar = f'{glob.config.host}/user/avatar/{p.id}.png'
     else:
         p.avatar = f'https://s.gravatar.com/avatar/{p.email_hash}'
     # returns long string of shit
@@ -153,7 +153,7 @@ async def leaderboard():
         player = glob.players.get(id=int(play['playerid']))
 
         if os.path.isfile(f'data/avatar/{player.id}.png'):
-            avatar = f'https://{glob.config.host}:{glob.config.port}/user/avatar/{player.id}.png'
+            avatar = f'{glob.config.host}user/avatar/{player.id}.png'
         else:
             avatar = f'https://s.gravatar.com/avatar/{player.email_hash}'
 
