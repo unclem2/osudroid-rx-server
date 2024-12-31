@@ -6,26 +6,46 @@ from quart import Quart, render_template_string
 import aiohttp
 from handlers.multi import sio  # Import the socketio server
 from socketio import ASGIApp
-import ssl
 import hypercorn.asyncio
 # Other imports
 from objects import glob
 from objects.player import Player
-from objects.db import PostgresDB
 from handlers import (cho, api, user, multi)
 from handlers.response import Failed
 import utils
 import html_templates
-from objects.beatmap import Beatmap, RankedStatus
+from objects.beatmap import Beatmap
+
+async def init_players():
+    player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
+    for player_id in player_ids:
+        player = await Player.from_sql(player_id['id'])
+        glob.players.add(player)
+
+async def update_player_stats():
+    while True:
+        try:
+            for player in glob.players:
+                await player.update_stats()
+        except Exception as err:
+            logging.error(f'Failed to complete task: {repr(err)}')
+        await asyncio.sleep(glob.config.cron_delay * 60)
+        
+async def update_map_status():
+    while True:
+        qualified_maps = await glob.db.fetchall('SELECT * FROM maps WHERE status = 3')
+        for map in qualified_maps:
+            map = await Beatmap.from_bid_osuapi(int(map['id'])) 
+            logging.info(f"Updated map {map.id} to {map.status}")
+            await utils.discord_notify(f"Updated map {map.id} to {map.status}", glob.config.discord_hook)
+            await asyncio.sleep(5)
+        await asyncio.sleep(glob.config.cron_delay * 3600)
 
 def make_app():
     app = Quart(__name__)
-
-    # Register existing routes
     routes = [cho, api, user, multi]
     for route in routes:
         app.register_blueprint(route, url_prefix=route.prefix)
-
     return app
 
 
@@ -35,35 +55,7 @@ app = make_app()
 async def init_shit():
     utils.check_folder()
     await glob.db.connect()
-
-    # Initialize players
-    player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
-    for player_id in player_ids:
-        player = await Player.from_sql(player_id['id'])
-        glob.players.add(player)
-
-    async def update_player_stats():
-        while True:
-            try:
-                for player in glob.players:
-                    await player.update_stats()
-            except Exception as err:
-                logging.error(f'Failed to complete task: {repr(err)}')
-            await asyncio.sleep(glob.config.cron_delay * 60)
-            
-    async def update_map_status():
-        while True:
-            qualified_maps = await glob.db.fetchall('SELECT * FROM maps WHERE status = 3')
-            for map in qualified_maps:
-                map = await Beatmap.from_bid_osuapi(int(map['id']))
-                logging.info(f"Updated map {map.id} to {map.status}")
-                await utils.discord_notify(f"Updated map {map.id} to {map.status}", glob.config.discord_hook)
-                await asyncio.sleep(5)
-            await asyncio.sleep(glob.config.cron_delay * 3600)
-
-            
-            
-                
+    await init_players()     
     asyncio.create_task(update_player_stats())
     asyncio.create_task(update_map_status())
 
@@ -80,8 +72,10 @@ async def index():
     players = len(glob.players)
     online = len([_ for _ in glob.players if _.online])
     title = glob.config.server_name
+    # if main page kills everything then theres huge chance that something is wrong with certificates(good way to check if certs valid and/or placed correctly)
+    # works fine without certificates
     async with aiohttp.ClientSession() as session:
-        async with session.get(f"https://{glob.config.host}:{glob.config.port}/api/update.php") as resp:
+        async with session.get(f"{glob.config.host}/api/update.php") as resp:
             update = await resp.json()
             changelog = update['changelog']
             version = update['version_code']
@@ -99,12 +93,13 @@ if __name__ == '__main__':
     app_asgi = ASGIApp(sio, app)
     hypercorn_config = hypercorn.Config()
 
-    if os.path.exists(f"./certs/live/{glob.config.host}"):
+    if os.path.exists(f"./certs/live/{glob.config.domain}"):
         hypercorn_config.bind = [f"0.0.0.0:443"]
-        hypercorn_config.keyfile = os.path.join(f'./certs/live/{glob.config.host}/privkey.pem')
-        hypercorn_config.certfile = os.path.join(f'./certs/live/{glob.config.host}/fullchain.pem')
+        hypercorn_config.keyfile = os.path.join(f'./certs/live/{glob.config.domain}/privkey.pem')
+        hypercorn_config.certfile = os.path.join(f'./certs/live/{glob.config.domain}/fullchain.pem')
+        glob.config.host = f'https://{glob.config.domain}:443'
     else:
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
-        glob.config.host = glob.config.ip
+        glob.config.host = f'http://{glob.config.ip}:{glob.config.port}'
 
     asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))

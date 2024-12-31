@@ -3,8 +3,6 @@ from objects import glob
 from objects.beatmap import Beatmap
 import rosu_pp_py as osu_pp
 import math
-from objects.beatmap_s import Beatmap as BeatmapS
-import utils.stream as stream
 import objects.mods as Mods
 
 class PPCalculator:
