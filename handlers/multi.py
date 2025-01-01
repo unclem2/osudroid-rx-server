@@ -1,11 +1,10 @@
 import socketio
 from quart import Blueprint, request, jsonify
-import json
-from objects import glob
-from objects.player import Player
-from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam, Match
-from objects.beatmap import Beatmap
 import utils
+from objects import glob
+from objects.beatmap import Beatmap
+from objects.room import Room, PlayerMulti, PlayerStatus, RoomStatus, WinCondition, PlayerTeam, Match
+
 bp = Blueprint('multi', __name__)
 bp.prefix = '/multi/'
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*', engineio_logger=True)

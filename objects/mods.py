@@ -1,5 +1,6 @@
 import re
 
+
 def get_used_mods(mods: str):
 
     mods = re.sub(r'\bx\d+\.\d+\b', '', mods, flags=re.IGNORECASE)
@@ -7,8 +8,9 @@ def get_used_mods(mods: str):
     mods = re.sub(r'[^a-zA-Z]', '', mods)
     return mods
 
+
 class Mods:
-    def __init__(self, mods: int):
+    def __init__(self, mods: str):
         self.mods = mods
         self.used_mods = get_used_mods(mods)
 
@@ -33,17 +35,16 @@ class Mods:
             'm': "SC",
             'f': "PF",
             'b': "SU",
-            's': "PR"
         }
-        
+
         mods = ''
-    
+
         for char in self.used_mods:
             if char in mod_mapping:
                 mods += mod_mapping[char]
-        
+
         return f"{mods}{self.speed_multiplier}" if self.speed_multiplier else mods
-    
+
     @property
     def convert_droid(self):
         mod_mapping = {
@@ -65,16 +66,13 @@ class Mods:
             'm': {"acronym": "SC"},
             'f': {"acronym": "PF"},
             'b': {"acronym": "SU"},
-            's': {"acronym": "PR"}
         }
-        
+
         used_mods = []
-    
-        
         for char in self.used_mods:
             if char in mod_mapping:
                 used_mods.append(mod_mapping[char])
-        
+
         return used_mods
 
     @property
@@ -89,18 +87,14 @@ class Mods:
     @property
     def forcear(self):
         match = re.search(r'\bAR(\d+\.\d+)\b', self.mods)
-        
         return match.group(1) if match else None
 
     @property
     def forcecs(self):
         match = re.search(r'\bCS(\d+\.\d+)\b', self.mods)
-        
-        return match.group(1) if match else None 
+        return match.group(1) if match else None
 
     @property
     def fldelay(self):
         match = re.search(r'\bFLD(\d+\.\d+)\b', self.mods)
-        
-        return match.group(1) if match else None  
-
+        return match.group(1) if match else None

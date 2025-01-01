@@ -20,7 +20,6 @@ async def get_online():
     return {'online': len(online_players)}
 
 
-
 @bp.route('/get_user')
 async def get_user():
     args = request.args
@@ -38,7 +37,6 @@ async def get_user():
             return 'Invalid name', 400
 
         player = glob.players.get(name=args['name'])
-
 
     if not player:
         return 'Player not found', 404
@@ -89,7 +87,7 @@ async def top_scores():
     return jsonify(top_scores) if top_scores else {'No score found.'}
 
 
-#bot endpoints
+# bot endpoints
 
 @bp.route('/recent')
 async def recent():
@@ -104,18 +102,19 @@ async def recent():
     )
     return jsonify(recent) if len(recent) > 0 else 'No score found.'
 
+
 @bp.route('/calculate', methods=['GET', 'POST'])
 async def calculate():
     data = request.args
     score = Score()
     if data.get('md5') is not None:
-        score.bmap = await Beatmap.from_md5(data.get('md5', '')) 
+        score.bmap = await Beatmap.from_md5(data.get('md5', ''))
         score.bmap.md5 = data.get('md5', '')
     elif data.get('bid') is not None:
         score.bmap = await Beatmap.from_bid_osuapi(data.get('bid', 0))
-        
+
     score.acc = float(data.get('acc', 100))
-    score.max_combo =  int(data.get('combo', score.bmap.max_combo))
+    score.max_combo = int(data.get('combo', score.bmap.max_combo))
     score.hmiss = int(data.get('miss', 0))
     score.mods = data.get('mods', '')
 
@@ -173,7 +172,6 @@ async def map_status(md5: str):
     return map_data
 
 
-
 @bp.route('/wl')
 async def whitelist():
     maps = await glob.db.fetchall('SELECT md5 FROM maps WHERE status = 5')
@@ -192,7 +190,7 @@ async def whitelist_add():
     if map is None:
         return {'status': 'error', 'message': 'Map not exist'}
     await map.download()
-    await map.update_stats()
+    await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
     map_data = {
         "title": f"{map.artist} - {map.title} ({map.creator}) [{map.version}]",
         "md5": map.md5,
