@@ -196,12 +196,6 @@ class Beatmap:
 
         return m
 
-    async def update_stats(self):
-        await self.download()
-        await glob.db.execute("""
-    UPDATE maps SET status = 5 WHERE id = $1
-    """, [self.id])
-
     async def save_to_sql(self):
         # Convert datetime objects to Unix timestamp integers
         last_update_int = int(self.last_update.timestamp()) if isinstance(self.last_update,
