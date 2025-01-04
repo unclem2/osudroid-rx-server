@@ -271,6 +271,7 @@ web_login_temp = """
             <input type="submit" value="Login">
         </form>
     </div>
+    <a href="/user/password_recovery">Forgot password?</a>
 {% endblock %}
 """
 
@@ -328,6 +329,45 @@ change_password_template = """
         <label for="confirm_password">Confirm Password:</label><br>
         <input type="password" id="confirm_password" name="confirm_password" required><br>
         <input type="submit" value="Change Password">
+    </form>
+{% endblock %}
+"""
+
+request_change = """
+{% extends "base.html" %}
+{% block title %}Password Recovery{% endblock %}
+{% block content %}
+    <h1>Request Password Recovery</h1>
+    <form method="post" action="/user/password_recovery?type=submit">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
+"""
+
+change_recover = """
+{% extends "base.html" %}
+{% block title %}Change Password{% endblock %}
+{% block content %}
+    <h1>Change Password</h1>
+    <form method="post" action="/user/password_recovery?type=change">
+        <input type="hidden" name="token" value="{{ token }}">
+        <div class="form-group">
+            <label for="password">New Password:</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Change Password</button>
     </form>
 {% endblock %}
 """

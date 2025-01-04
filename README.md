@@ -2,6 +2,8 @@
 	osu!droid Server
 </h2>
 
+<h>VERY OUTDATED README, NEEDS TO BE REWRITTEN</h>
+
 <h4 align="center">
         meme server <br/>
         <a href="https://www.codefactor.io/repository/github/fireredz/yuzumi"><img src="https://www.codefactor.io/repository/github/fireredz/yuzumi/badge" alt="CodeFactor" /></a>
