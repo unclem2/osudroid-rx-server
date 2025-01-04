@@ -71,12 +71,15 @@ async def profile():
             [p.id, 50]
         )
         for score in recent_scores:
-            bmap = await Beatmap.from_md5_sql(score['maphash'])
+            try:
+                bmap = await Beatmap.from_md5_sql(score['maphash'])
+                score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+            except:
+                score['map'] = score['maphash']  
             score['date'] = time.strftime(
                 '%Y-%m-%d %H:%M:%S',
                 time.gmtime(
                     score['date'] / 1000))
-            score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
             score['acc'] = f"{score['acc']:.2f}%"
             score['pp'] = f"{score['pp']:.2f}"
             score['mods'] = f"{Mods(score['mods']).convert_std}"
@@ -91,12 +94,15 @@ async def profile():
             [p.id, 50]
         )
         for score in top_scores:
-            bmap = await Beatmap.from_md5_sql(score['maphash'])
+            try:
+                bmap = await Beatmap.from_md5_sql(score['maphash'])
+                score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+            except:
+                score['map'] = score['maphash']
             score['date'] = time.strftime(
                 '%Y-%m-%d %H:%M:%S',
                 time.gmtime(
                     score['date'] / 1000))
-            score['map'] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
             score['acc'] = f"{score['acc']:.2f}%"
             score['pp'] = f"{score['pp']:.2f}"
             score['mods'] = f"{Mods(score['mods']).convert_std}"
