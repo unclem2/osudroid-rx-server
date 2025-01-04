@@ -229,7 +229,10 @@ async def change_password():
             return await render_template_string(html_templates.error_template, error_message='Invalid login state')
         old_password = req.get('old_password')
         new_password = req.get('new_password')
-
+        new_confirm_password = req.get('confirm_password')  
+        if new_password != new_confirm_password:
+            return await render_template_string(html_templates.error_template, error_message='Passwords do not match')
+        
         if not old_password or not new_password:
             return await render_template_string(html_templates.error_template,
                                                 error_message='Invalid old or new password')
