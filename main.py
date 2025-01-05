@@ -6,6 +6,7 @@ from quart import Quart, render_template_string
 import aiohttp
 from socketio import ASGIApp
 import hypercorn.asyncio
+from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
 # Other imports
 from handlers.multi import sio
 from objects import glob
@@ -106,7 +107,10 @@ if __name__ == '__main__':
     hypercorn_config = hypercorn.Config()
 
     if os.path.exists(f"./certs/live/{glob.config.domain}"):
+        redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
+        app_asgi = ASGIApp(sio, redirected_app)
         hypercorn_config.bind = ["0.0.0.0:443"]
+        hypercorn_config.insecure_bind = ["0.0.0.0:80"]
         hypercorn_config.keyfile = os.path.join(
             f'./certs/live/{glob.config.domain}/privkey.pem')
         hypercorn_config.certfile = os.path.join(
