@@ -2,7 +2,7 @@ import os
 import logging
 import asyncio
 import coloredlogs
-from quart import Quart, render_template_string
+from quart import Quart, render_template_string, jsonify
 import aiohttp
 from socketio import ASGIApp
 import hypercorn.asyncio
@@ -11,7 +11,7 @@ from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
 from handlers.multi import sio
 from objects import glob
 from objects.player import Player
-from handlers import (cho, api, user, multi)
+import handlers
 from handlers.response import Failed
 import utils
 import html_templates
@@ -48,7 +48,7 @@ async def update_map_status():
 
 def make_app():
     quart_app = Quart(__name__)
-    routes = [cho, api, user, multi]
+    routes = handlers.load_blueprints()
     for route in routes:
         quart_app.register_blueprint(route, url_prefix=route.prefix)
     return quart_app
@@ -99,6 +99,15 @@ async def index():
         download_link=download_link, version=version
     )
 
+@app.route('/endpoints')
+async def endpoints():
+    bps = []
+    blueprints = app.blueprints
+    for blueprint in blueprints:
+        bp = blueprints[blueprint]
+        bps.append(bp.prefix)
+    return jsonify(bps)
+        
 
 if __name__ == '__main__':
     coloredlogs.install(level=logging.INFO)
