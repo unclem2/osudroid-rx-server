@@ -303,7 +303,6 @@ error_template = """
 {% endblock %}
 """
 
-
 success_template = """
 {% extends "base.html" %}
 
