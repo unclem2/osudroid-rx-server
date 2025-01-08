@@ -1,6 +1,5 @@
-from quart import Blueprint, request, render_template_string
+from quart import Blueprint, request, render_template
 from objects import glob
-import html_templates
 import os
 import utils
 from werkzeug.utils import secure_filename
@@ -19,7 +18,7 @@ async def set_avatar():
     # Check if the authentication cookie is present
     auth_cookie = request.cookies.get('login_state')
     if not auth_cookie:
-        return await render_template_string(html_templates.error_template, 
+        return await render_template("error.jinja", 
                                             error_message='Not logged in')
 
     # Validate the cookie format and extract username and player ID
@@ -27,11 +26,11 @@ async def set_avatar():
         username, player_id, auth_hash = auth_cookie.split('-')
         if utils.check_md5(
                 f"{username}-{player_id}-{os.getenv("KEY")}", auth_hash) == False:
-            return await render_template_string(html_templates.error_template, 
+            return await render_template("error.jinja", 
                                                 error_message='Invalid login state')
         player_id = int(player_id)
     except ValueError:
-        return await render_template_string(html_templates.error_template, 
+        return await render_template("error.jinja", 
                                             error_message='Invalid login state')
 
     if request.method == 'POST':
@@ -39,18 +38,18 @@ async def set_avatar():
 
         # Check if the avatar file is part of the request
         if 'avatar' not in files:
-            return await render_template_string(html_templates.error_template, 
+            return await render_template("error.jinja", 
                                                 error_message='No avatar file provided')
 
         file = files.get('avatar')
         if file.filename == '':
-            return await render_template_string(html_templates.error_template, 
+            return await render_template("error.jinja", 
                                                 error_message='No selected file')
 
         # Retrieve player object
         p = glob.players.get(name=username)
         if not p or p.id != player_id:
-            return await render_template_string(html_templates.error_template, 
+            return await render_template("error.jinja", 
                                                 error_message='Player not found')
 
         # Validate and save the avatar file
@@ -60,10 +59,10 @@ async def set_avatar():
             file_path = os.path.join('data/avatar', filename)
             await file.save(file_path)
 
-            return await render_template_string(html_templates.success_template,
+            return await render_template("success.jinja",
                                                 success_message='Avatar uploaded successfully')
         else:
-            return await render_template_string(html_templates.error_template, 
+            return await render_template("error.jinja", 
                                                 error_message='Invalid file format')
 
-    return await render_template_string(html_templates.set_avatar_temp)
+    return await render_template("set_avatar.jinja")

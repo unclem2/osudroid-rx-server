@@ -1,6 +1,5 @@
-from quart import Blueprint, request, render_template_string
+from quart import Blueprint, request, render_template
 from objects import glob
-import html_templates
 import os
 import utils
 from argon2 import PasswordHasher
@@ -16,22 +15,22 @@ bp = Blueprint('user_password_recovery', __name__)
 async def password_recovery():
     data = request.args
     if data.get('type') is None and request.method == 'GET':
-        return await render_template_string(html_templates.request_change) 
+        return await render_template("request_change.jinja") 
     
     if data.get('type') == 'submit' and request.method == 'POST':
         data = await request.form
         if data.get('email') is None:
-            return await render_template_string(html_templates.error_template, error_message='Email not specified')
+            return await render_template("error.jinja", error_message='Email not specified')
         if data.get('username') is None:
-            return await render_template_string(html_templates.error_template, error_message='Username not specified')
+            return await render_template("error.jinja", error_message='Username not specified')
 
         lost_user = glob.players.get(name=data.get('username'))
         if lost_user is None:
-            return await render_template_string(html_templates.error_template, error_message='User not found')
+            return await render_template("error.jinja", error_message='User not found')
         
         receiver_email = data.get('email')
         if utils.make_md5(receiver_email) != lost_user.email_hash:
-            return await render_template_string(html_templates.error_template, error_message='Invalid email')
+            return await render_template("error.jinja", error_message='Invalid email')
 
         recovery_token = utils.make_md5(f"{secrets.token_urlsafe(16)}{lost_user.id}")
         glob.rec_tokens[recovery_token] = lost_user.id
@@ -52,23 +51,23 @@ async def password_recovery():
             server.login(email, password)
             server.sendmail(email, receiver_email, message.as_string())
             server.quit()
-        return await render_template_string(html_templates.success_template, success_message='Recovery email sent')
+        return await render_template("success.jinja", success_message='Recovery email sent')
     
     if data.get('type') == 'change' and request.method == 'GET':
-        return await render_template_string(html_templates.change_recover, token=data.get('token')) # change password page
+        return await render_template("change_recover.jinja", token=data.get('token')) # change password page
     
     if data.get('type') == 'change' and request.method == 'POST':
         data = await request.form
         if data.get('token') is None:
-            return await render_template_string(html_templates.error_template, error_message='Token not specified')
+            return await render_template("error.jinja", error_message='Token not specified')
         if data.get('password') is None:
-            return await render_template_string(html_templates.error_template, error_message='Password not specified')
+            return await render_template("error.jinja", error_message='Password not specified')
         if data.get('confirm_password') is None:
-            return await render_template_string(html_templates.error_template, error_message='Confirm password not specified')
+            return await render_template("error.jinja", error_message='Confirm password not specified')
         if data.get('password') != data.get('confirm_password'):
-            return await render_template_string(html_templates.error_template, error_message='Passwords do not match')
+            return await render_template("error.jinja", error_message='Passwords do not match')
         if data.get('token') not in glob.rec_tokens:
-            return await render_template_string(html_templates.error_template, error_message='Invalid token')
+            return await render_template("error.jinja", error_message='Invalid token')
         
         new_password = data.get('password')
         new_password_hash = utils.make_md5(f"{new_password}taikotaiko")
@@ -76,4 +75,4 @@ async def password_recovery():
         new_password_hash = ph.hash(new_password_hash)
         await glob.db.execute("UPDATE users SET password_hash = $1 WHERE id = $2", [new_password_hash, glob.rec_tokens[data.get('token')]])
         del glob.rec_tokens[data.get('token')]
-        return await render_template_string(html_templates.success_template, success_message='Password changed successfully, you can login now')
+        return await render_template("success.jinja", success_message='Password changed successfully, you can login now')

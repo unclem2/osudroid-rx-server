@@ -1,6 +1,5 @@
-from quart import Blueprint, render_template_string
+from quart import Blueprint, render_template
 from objects import glob
-import html_templates
 
 bp = Blueprint('user_leaderboard', __name__)
 
@@ -14,4 +13,4 @@ async def leaderboard():
         'INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC'
     )
 
-    return await render_template_string(html_templates.leaderboard_temp, leaderboard=players_stats)
+    return await render_template("leaderboard.jinja", leaderboard=players_stats)
