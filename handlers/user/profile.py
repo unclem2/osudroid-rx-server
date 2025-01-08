@@ -1,9 +1,9 @@
-from quart import Blueprint, render_template_string, request
+from quart import Blueprint, render_template, request
 from objects import glob
-import html_templates
 from objects.beatmap import Beatmap
 from objects.mods import Mods
 import time
+import os
 
 bp = Blueprint('user_profile', __name__)
 
@@ -21,11 +21,13 @@ async def profile():
         player_id = int(params['id'])
 
     if player_id is None:
-        return await render_template_string(html_templates.error_template, error_message='No player ID provided')
+        return await render_template("error.jinja", error_message='No player ID provided')
     p = glob.players.get(id=player_id)
     if not p:
-        return await render_template_string(html_templates.error_template, error_message='Player not found')
+        return await render_template("error.jinja", error_message='Player not found')
 
+    player_stats = p.stats.as_json
+    
     try:
         recent_scores = await glob.db.fetchall(
             'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
@@ -49,6 +51,7 @@ async def profile():
 
     except BaseException:
         recent_scores = []
+        
     try:
         top_scores = await glob.db.fetchall(
             'SELECT id, status, maphash, score, combo, rank, acc, "hit300", "hitgeki", '
@@ -71,5 +74,5 @@ async def profile():
             score['mods'] = f"{Mods(score['mods']).convert_std}"
     except BaseException:
         top_scores = []
-    return await render_template_string(html_templates.profile_temp, player=p, recent_scores=recent_scores,
-                                        top_scores=top_scores)
+    return await render_template("profile.jinja", player=p, recent_scores=recent_scores,
+                                        top_scores=top_scores, player_stats=player_stats)

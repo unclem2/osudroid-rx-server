@@ -1,0 +1,124 @@
+
+{% extends "base.html" %}
+
+{% block title %}Player Profile{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f9;
+        color: #333;
+    }
+
+    h1, h2 {
+        text-align: center;
+        color: #444;
+    }
+
+    table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: #007BFF;
+        color: white;
+        text-transform: uppercase;
+        font-size: 14px;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    td {
+        font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+        table {
+            width: 100%;
+        }
+
+        th, td {
+            padding: 8px;
+        }
+
+        h1, h2 {
+            font-size: 18px;
+        }
+    }
+</style>
+
+
+<h2>Recent Scores</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Map title</th>
+            <th>Mods</th>
+            <th>PP</th>
+            <th>Accuracy</th>
+            <th>Combo</th>
+            <th>Misses</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in recent_scores %}
+            <tr>
+                <td>{{ score.map }}</td>
+                <td>{{ score.mods }}</td>
+                <td>{{ score.pp }}</td>
+                <td>{{ score.acc }}</td>
+                <td>{{ score.combo }}</td>
+                <td>{{ score.hitmiss }}</td>
+                <td>{{ score.date }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<h2>Top Scores</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Map title</th>
+            <th>Mods</th>
+            <th>PP</th>
+            <th>Accuracy</th>
+            <th>Combo</th>
+            <th>Misses</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for score in top_scores %}
+            <tr>
+                <td>{{ score.map }}</td>
+                <td>{{ score.mods }}</td>
+                <td>{{ score.pp }}</td>
+                <td>{{ score.acc }}</td>
+                <td>{{ score.combo }}</td>
+                <td>{{ score.hitmiss }}</td>
+                <td>{{ score.date }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

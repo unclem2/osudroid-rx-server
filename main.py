@@ -2,7 +2,10 @@ import os
 import logging
 import asyncio
 import coloredlogs
-from quart import Quart, render_template_string, jsonify
+import hypercorn
+import hypercorn.logging
+import hypercorn.run
+from quart import Quart, jsonify, render_template
 import aiohttp
 from socketio import ASGIApp
 import hypercorn.asyncio
@@ -14,7 +17,6 @@ from objects.player import Player
 import handlers
 from handlers.response import Failed
 import utils
-import html_templates
 from objects.beatmap import Beatmap
 
 
@@ -32,8 +34,10 @@ async def update_player_stats():
                 await player.update_stats()
         except Exception as err:
             logging.error('Failed to complete task: %r', err)
-        await asyncio.sleep(glob.config.cron_delay * 60)
-
+        try:
+            await asyncio.sleep(glob.config.cron_delay * 60)
+        except Exception as err:
+            logging.error('Failed to complete task: %r', err)
 
 async def update_map_status():
     while True:
@@ -43,7 +47,10 @@ async def update_map_status():
             logging.info("Updated map %d to %s", map.id, map.status)
             await utils.discord_notify(f"Updated map {map.id} to {map.status}", glob.config.discord_hook)
             await asyncio.sleep(5)
-        await asyncio.sleep(glob.config.cron_delay * 3600)
+        try:    
+            await asyncio.sleep(glob.config.cron_delay * 3600)
+        except Exception as err:
+            logging.error('Failed to complete task: %r', err)
 
 
 def make_app():
@@ -94,8 +101,8 @@ async def index():
             version = update['version_code']
             download_link = update['link']
 
-    return await render_template_string(
-        html_templates.main_page, players=players, online=online, title=title, changelog=changelog,
+    return await render_template(
+        "main_page.jinja", players=players, online=online, title=title, changelog=changelog,
         download_link=download_link, version=version
     )
 
@@ -109,13 +116,12 @@ async def endpoints():
     return jsonify(bps)
         
 
-if __name__ == '__main__':
-    coloredlogs.install(level=logging.INFO)
+def main():
 
-    app_asgi = ASGIApp(sio, app)
     hypercorn_config = hypercorn.Config()
 
     if os.path.exists(f"./certs/live/{glob.config.domain}"):
+        coloredlogs.install(level=logging.INFO)
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
         app_asgi = ASGIApp(sio, redirected_app)
         hypercorn_config.bind = ["0.0.0.0:443"]
@@ -126,6 +132,15 @@ if __name__ == '__main__':
             f'./certs/live/{glob.config.domain}/fullchain.pem')
         glob.config.host = f'https://{glob.config.domain}:443'
     else:
+        app_asgi = ASGIApp(sio, app)
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
         glob.config.host = f'http://{glob.config.ip}:{glob.config.port}'
+        hypercorn_config.debug = True
+        hypercorn_config.loglevel = 'DEBUG'
+        hypercorn_config.accesslog = '-' 
+        hypercorn_config.errorlog = '-' 
     asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
+    
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Leaderboard</h1>
+</header>
+<main>
+    <section id="leaderboard">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Player</th>
+                    <th>PP</th>
+                    <th>Plays</th>
+                    <th>ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for player in leaderboard %}
+                    <tr>
+                        <td>{{ player.rank }}</td>
+                        <td><a href="/user/profile.php?id={{player.id}}">{{ player.username }}</a></td>
+                        <td>{{ player.pp }}</td>
+                        <td>{{ player.plays }}</td>
+                        <td>{{ player.id }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+</main>
+{% endblock %}
+

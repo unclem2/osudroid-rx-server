@@ -1,7 +1,6 @@
-from quart import Blueprint, request, render_template_string
+from quart import Blueprint, request, render_template
 from objects import glob
 from handlers.response import Failed, Success
-import html_templates
 import hashlib
 import utils
 from objects.player import Player
@@ -64,4 +63,4 @@ async def register():
         glob.players.add(p)
 
         return Success('Account Created.')
-    return await render_template_string(html_templates.registration_form)
+    return await render_template("register.jinja")

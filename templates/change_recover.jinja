@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Change Password{% endblock %}
+{% block content %}
+    <h1>Change Password</h1>
+    <form method="post" action="/user/password_recovery?type=change">
+        <input type="hidden" name="token" value="{{ token }}">
+        <div class="form-group">
+            <label for="password">New Password:</label>
+            <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="confirm_password">Confirm Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Change Password</button>
+    </form>
+{% endblock %}

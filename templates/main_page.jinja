@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+{% block content %}
+    <h1>{{ title }}</h1>
+    <p>Number of players: {{ players }}</p>
+    <p>Number of online players: {{ online }}</p>
+    <p>Client version: {{ version }}</p>
+    <p>Link to client <a href="{{ download_link }}">here</a></p>
+    <p>Changelog: {{ changelog }}</p>
+{% endblock %}

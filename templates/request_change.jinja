@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Password Recovery{% endblock %}
+{% block content %}
+    <h1>Request Password Recovery</h1>
+    <form method="post" action="/user/password_recovery?type=submit">
+        <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock %}
