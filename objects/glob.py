@@ -4,12 +4,8 @@ from objects.db import PostgresDB
 
 players: PlayerList = PlayerList()
 rooms = {}
-rec_tokens = {}  #temporary solution
+rec_tokens = {}  # temporary solution
 
-cache: dict = {
-  'hashes': {},
-  'beatmaps': {},
-  'unsubmitted': {}
-}
+cache: dict = {"hashes": {}, "beatmaps": {}, "unsubmitted": {}}
 
 db = PostgresDB()
