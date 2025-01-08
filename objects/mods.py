@@ -2,10 +2,9 @@ import re
 
 
 def get_used_mods(mods: str):
+    mods = re.sub(r"\bx\d+\.\d+\b", "", mods, flags=re.IGNORECASE)
 
-    mods = re.sub(r'\bx\d+\.\d+\b', '', mods, flags=re.IGNORECASE)
-
-    mods = re.sub(r'[^a-zA-Z]', '', mods)
+    mods = re.sub(r"[^a-zA-Z]", "", mods)
     return mods
 
 
@@ -17,27 +16,27 @@ class Mods:
     @property
     def convert_std(self):
         mod_mapping = {
-            'n': "NF",
-            'e': "EZ",
-            'h': "HD",
-            'r': "HR",
-            'u': "SD",
-            'd': "DT",
-            'x': "",
-            't': "HT",
-            'c': "NC",
-            'i': "FL",
-            'v': "V2",
-            'p': "AP",
-            'a': "AT",
-            's': "PR",
-            'l': "REZ",
-            'm': "SC",
-            'f': "PF",
-            'b': "SU",
+            "n": "NF",
+            "e": "EZ",
+            "h": "HD",
+            "r": "HR",
+            "u": "SD",
+            "d": "DT",
+            "x": "",
+            "t": "HT",
+            "c": "NC",
+            "i": "FL",
+            "v": "V2",
+            "p": "AP",
+            "a": "AT",
+            "s": "PR",
+            "l": "REZ",
+            "m": "SC",
+            "f": "PF",
+            "b": "SU",
         }
 
-        mods = ''
+        mods = ""
 
         for char in self.used_mods:
             if char in mod_mapping:
@@ -48,24 +47,24 @@ class Mods:
     @property
     def convert_droid(self):
         mod_mapping = {
-            'n': {"acronym": "NF"},
-            'e': {"acronym": "EZ"},
-            'h': {"acronym": "HD"},
-            'r': {"acronym": "HR"},
-            'u': {"acronym": "SD"},
-            'd': {"acronym": "DT"},
-            'x': {"acronym": ""},
-            't': {"acronym": "HT"},
-            'c': {"acronym": "NC"},
-            'i': {"acronym": "FL"},
-            'v': {"acronym": "V2"},
-            'p': {"acronym": "AP"},
-            'a': {"acronym": "AT"},
-            's': {"acronym": "PR"},
-            'l': {"acronym": "REZ"},
-            'm': {"acronym": "SC"},
-            'f': {"acronym": "PF"},
-            'b': {"acronym": "SU"},
+            "n": {"acronym": "NF"},
+            "e": {"acronym": "EZ"},
+            "h": {"acronym": "HD"},
+            "r": {"acronym": "HR"},
+            "u": {"acronym": "SD"},
+            "d": {"acronym": "DT"},
+            "x": {"acronym": ""},
+            "t": {"acronym": "HT"},
+            "c": {"acronym": "NC"},
+            "i": {"acronym": "FL"},
+            "v": {"acronym": "V2"},
+            "p": {"acronym": "AP"},
+            "a": {"acronym": "AT"},
+            "s": {"acronym": "PR"},
+            "l": {"acronym": "REZ"},
+            "m": {"acronym": "SC"},
+            "f": {"acronym": "PF"},
+            "b": {"acronym": "SU"},
         }
 
         used_mods = []
@@ -81,20 +80,20 @@ class Mods:
         Extracts the multiplier value from the mods string.
         For example, 'xs|x2.00' will return 'x2.00'.
         """
-        match = re.search(r'\bx(\d+\.\d+)\b', self.mods, re.IGNORECASE)
+        match = re.search(r"\bx(\d+\.\d+)\b", self.mods, re.IGNORECASE)
         return match.group(1) if match else None
 
     @property
     def forcear(self):
-        match = re.search(r'\bAR(\d+\.\d+)\b', self.mods)
+        match = re.search(r"\bAR(\d+\.\d+)\b", self.mods)
         return match.group(1) if match else None
 
     @property
     def forcecs(self):
-        match = re.search(r'\bCS(\d+\.\d+)\b', self.mods)
+        match = re.search(r"\bCS(\d+\.\d+)\b", self.mods)
         return match.group(1) if match else None
 
     @property
     def fldelay(self):
-        match = re.search(r'\bFLD(\d+\.\d+)\b', self.mods)
+        match = re.search(r"\bFLD(\d+\.\d+)\b", self.mods)
         return match.group(1) if match else None
