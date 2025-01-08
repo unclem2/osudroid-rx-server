@@ -18,8 +18,7 @@ async def change_password():
     if request.method == 'POST':
         req = await request.form
         username, player_id, auth_hash = login_state.split('-')
-        if utils.check_md5(
-                f"{username}-{player_id}-{os.getenv("KEY")}", auth_hash) == False:
+        if utils.check_md5(f"{username}-{player_id}-{os.getenv('KEY')}", auth_hash) == False:
             return await render_template("error.jinja", error_message='Invalid login state')
         old_password = req.get('old_password')
         new_password = req.get('new_password')
