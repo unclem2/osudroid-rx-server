@@ -24,7 +24,7 @@ async def set_avatar():
     # Validate the cookie format and extract username and player ID
     try:
         username, player_id, auth_hash = auth_cookie.split('-')
-        if utils.check_md5(f"{username}-{player_id}-{os.getenv("KEY")}", auth_hash) == False:
+        if utils.check_md5(f"{username}-{player_id}-{os.getenv('KEY')}", auth_hash) == False:
             return await render_template("error.jinja", 
                                                 error_message='Invalid login state')
         player_id = int(player_id)
