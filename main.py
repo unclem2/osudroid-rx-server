@@ -10,6 +10,7 @@ import aiohttp
 from socketio import ASGIApp
 import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
+
 # Other imports
 from handlers.multi import sio
 from objects import glob
@@ -23,7 +24,7 @@ from objects.beatmap import Beatmap
 async def init_players():
     player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
     for player_id in player_ids:
-        player = await Player.from_sql(player_id['id'])
+        player = await Player.from_sql(player_id["id"])
         glob.players.add(player)
 
 
@@ -33,24 +34,27 @@ async def update_player_stats():
             for player in glob.players:
                 await player.update_stats()
         except Exception as err:
-            logging.error('Failed to complete task: %r', err)
+            logging.error("Failed to complete task: %r", err)
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
-            logging.error('Failed to complete task: %r', err)
+            logging.error("Failed to complete task: %r", err)
+
 
 async def update_map_status():
     while True:
-        qualified_maps = await glob.db.fetchall('SELECT * FROM maps WHERE status = 3')
+        qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
         for qualified_map in qualified_maps:
-            map = await Beatmap.from_bid_osuapi(int(qualified_map['id']))
+            map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
             logging.info("Updated map %d to %s", map.id, map.status)
-            await utils.discord_notify(f"Updated map {map.id} to {map.status}", glob.config.discord_hook)
+            await utils.discord_notify(
+                f"Updated map {map.id} to {map.status}", glob.config.discord_hook
+            )
             await asyncio.sleep(5)
-        try:    
+        try:
             await asyncio.sleep(glob.config.cron_delay * 3600)
         except Exception as err:
-            logging.error('Failed to complete task: %r', err)
+            logging.error("Failed to complete task: %r", err)
 
 
 def make_app():
@@ -83,10 +87,10 @@ async def close():
 
 @app.errorhandler(500)
 async def server_fucked(err):
-    return Failed(f'Server Error: {repr(err)}')
+    return Failed(f"Server Error: {repr(err)}")
 
 
-@app.route('/')
+@app.route("/")
 async def index():
     players = len(glob.players)
     online = len([_ for _ in glob.players if _.online])
@@ -97,16 +101,22 @@ async def index():
     async with aiohttp.ClientSession() as session:
         async with session.get(f"{glob.config.host}/api/update.php") as resp:
             update = await resp.json()
-            changelog = update['changelog']
-            version = update['version_code']
-            download_link = update['link']
+            changelog = update["changelog"]
+            version = update["version_code"]
+            download_link = update["link"]
 
     return await render_template(
-        "main_page.jinja", players=players, online=online, title=title, changelog=changelog,
-        download_link=download_link, version=version
+        "main_page.jinja",
+        players=players,
+        online=online,
+        title=title,
+        changelog=changelog,
+        download_link=download_link,
+        version=version,
     )
 
-@app.route('/endpoints')
+
+@app.route("/endpoints")
 async def endpoints():
     bps = []
     blueprints = app.blueprints
@@ -114,10 +124,9 @@ async def endpoints():
         bp = blueprints[blueprint]
         bps.append(bp.prefix)
     return jsonify(bps)
-        
+
 
 def main():
-
     hypercorn_config = hypercorn.Config()
 
     if os.path.exists(f"./certs/live/{glob.config.domain}"):
@@ -127,20 +136,22 @@ def main():
         hypercorn_config.bind = ["0.0.0.0:443"]
         hypercorn_config.insecure_bind = ["0.0.0.0:80"]
         hypercorn_config.keyfile = os.path.join(
-            f'./certs/live/{glob.config.domain}/privkey.pem')
+            f"./certs/live/{glob.config.domain}/privkey.pem"
+        )
         hypercorn_config.certfile = os.path.join(
-            f'./certs/live/{glob.config.domain}/fullchain.pem')
-        glob.config.host = f'https://{glob.config.domain}:443'
+            f"./certs/live/{glob.config.domain}/fullchain.pem"
+        )
+        glob.config.host = f"https://{glob.config.domain}:443"
     else:
         app_asgi = ASGIApp(sio, app)
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
-        glob.config.host = f'http://{glob.config.ip}:{glob.config.port}'
+        glob.config.host = f"http://{glob.config.ip}:{glob.config.port}"
         hypercorn_config.debug = True
-        hypercorn_config.loglevel = 'DEBUG'
-        hypercorn_config.accesslog = '-' 
-        hypercorn_config.errorlog = '-' 
+        hypercorn_config.loglevel = "DEBUG"
+        hypercorn_config.accesslog = "-"
+        hypercorn_config.errorlog = "-"
     asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
-    
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
