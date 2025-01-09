@@ -47,8 +47,9 @@ async def update_map_status():
         for qualified_map in qualified_maps:
             map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
             logging.info("Updated map %d to %s", map.id, map.status)
-            await utils.discord_notify(
-                f"Updated map {map.id} to {map.status}", glob.config.discord_hook
+            await utils.send_webhook(
+                content=f"Updated map {map.id} to {map.status}", 
+                url=glob.config.discord_hook,
             )
             await asyncio.sleep(5)
         try:
