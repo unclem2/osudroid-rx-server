@@ -121,9 +121,9 @@ async def submit_play():
         )
 
         await score.player.update_stats()
-        await utils.discord_notify(
-            f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp, 2)}",
-            glob.config.discord_hook,
+        await utils.send_webhook(
+            content=f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp, 2)}",
+            url=glob.config.discord_hook,
         )
 
         return Success(
