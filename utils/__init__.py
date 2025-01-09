@@ -31,7 +31,7 @@ def check_md5(n: str, md5: str):
     return hashlib.md5(n.encode()).hexdigest() == md5
 
 
-async def send_webhook(isEmbed=False, url, content):
+async def send_webhook(url, content, isEmbed=False):
   webhook = AsyncDiscordWebhook(url=url)
   if isEmbed is not False:
     webhook.add_embed(content)
