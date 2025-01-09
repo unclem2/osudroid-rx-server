@@ -20,7 +20,9 @@ async def whitelist_add():
         return {"status": "error", "message": "Map not exist"}
     await map.download()
     await map.update_stats()
-    await utils.discord_notify(msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted")
+    await utils.discord_notify(
+        msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted"
+    )
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
     map_data = {
         "title": f"{map.artist} - {map.title} ({map.creator}) [{map.version}]",
