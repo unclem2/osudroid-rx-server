@@ -32,17 +32,17 @@ def check_md5(n: str, md5: str):
 
 
 async def send_webhook(url, content, isEmbed=False):
-  webhook = AsyncDiscordWebhook(url=url)
-  if isEmbed is not False:
-    webhook.add_embed(content)
+    webhook = AsyncDiscordWebhook(url=url)
+    if isEmbed is not False:
+        webhook.add_embed(content)
+        try:
+            await webhook.execute()
+        except Exception:
+            return print("Error while sending webhook")
+        return print("Embed Webhook sent successfully")
+    webhook.set_content(content)
     try:
-      await webhook.execute()
+        await webhook.execute()
+        print("Webhook sent successfully ")
     except Exception:
-      return print("Error while sending webhook")
-    return print("Embed Webhook sent successfully")
-  webhook.set_content(content)
-  try:
-    await webhook.execute()
-    print("Webhook sent successfully ")
-  except Exception:
-    return print("Error while sending webhook")
+        return print("Error while sending webhook")
