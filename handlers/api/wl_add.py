@@ -19,6 +19,7 @@ async def whitelist_add():
     if map is None:
         return {"status": "error", "message": "Map not exist"}
     await map.download()
+    # made by operagx
     await utils.discord_notify(f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted", glob.config.discord_hook)
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
     map_data = {
