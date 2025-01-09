@@ -19,7 +19,6 @@ async def whitelist_add():
     if map is None:
         return {"status": "error", "message": "Map not exist"}
     await map.download()
-    await map.update_stats()
     await utils.discord_notify(
         msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted"
     )
