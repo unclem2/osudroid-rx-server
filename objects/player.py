@@ -58,7 +58,7 @@ class Player:
 
         self.last_online: float = 0
         self.stats: Stats = None
-        self.country: str = None
+        self.country: str = kwargs.get("country", None)
 
     def __repr__(self):
         return f"<{self.id} - {self.name}>"

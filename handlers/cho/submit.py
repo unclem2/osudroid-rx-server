@@ -32,6 +32,15 @@ async def submit_play():
     if glob.config.disable_submit:
         return Failed("Score submission is disable right now.")
 
+
+    if player.country == None:
+        if os.path.exists("GeoLite2-Country.mmdb"):
+            with geoip2.database.Reader('GeoLite2-Country.mmdb') as reader:
+                ip = request.remote_addr
+                response = reader.country(ip)
+                country = response.country.iso_code
+                await glob.db.execute("UPDATE users SET country = $1 WHERE id = $2", [country, player.id])    
+                
     if map_hash := params.get("hash", None):
         logging.info(f"Changed {player} playing to {map_hash}")
         player.stats.playing = map_hash
@@ -111,13 +120,7 @@ async def submit_play():
             f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp, 2)}",
             glob.config.discord_hook,
         )
-        if score.player.country == None:
-            if os.path.exists("GeoLite2-Country.mmdb"):
-                with geoip2.database.Reader('GeoLite2-Country.mmdb') as reader:
-                    response = reader.country(response.remote_addr)
-                    country = response.country.iso_code
-                    await glob.db.execute("UPDATE users SET country = $1 WHERE id = $2", [country, score.player.id])    
-                
+
         
         return Success(
             "{rank} {rank_by} {acc} {map_rank} {score_id}".format(
