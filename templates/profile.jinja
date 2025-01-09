@@ -5,6 +5,15 @@
 
 {% block content %}
 <style>
+
+    .profile-table {
+        width: 90%;
+        margin: 20px auto;
+        border-collapse: collapse;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+    
     body {
         font-family: Arial, sans-serif;
         margin: 0;
@@ -18,7 +27,7 @@
         color: #444;
     }
 
-    table {
+    .scores {
         width: 90%;
         margin: 20px auto;
         border-collapse: collapse;
@@ -26,49 +35,72 @@
         background-color: #fff;
     }
 
-    th, td {
+    .scores th, .scores td {
         padding: 12px;
         text-align: left;
         border-bottom: 1px solid #ddd;
     }
 
-    th {
+    .scores th {
         background-color: #007BFF;
         color: white;
         text-transform: uppercase;
         font-size: 14px;
     }
 
-    tr:nth-child(even) {
+    .scores tr:nth-child(even) {
         background-color: #f9f9f9;
     }
 
-    tr:hover {
+    .scores tr:hover {
         background-color: #f1f1f1;
     }
 
-    td {
+    .scores td {
         font-size: 14px;
     }
 
-    @media (max-width: 768px) {
-        table {
-            width: 100%;
-        }
 
-        th, td {
-            padding: 8px;
-        }
 
-        h1, h2 {
-            font-size: 18px;
-        }
-    }
 </style>
 
+<h2>Player profile</h2>
+<table class="profile">
+    <tbody>
+        <tr>
+            <th>Username</th>
+            <td>{{ player.name }}</td>
+        </tr>
+        <tr>
+            <th>Country</th>
+            <td>{{ player.country }}</td>
+        </tr>
+        <tr>
+            <th>Rank</th>
+            <td>{{ player_stats.rank }}</td>
+        </tr>
+        <tr>
+            <th>PP</th>
+            <td>{{ player_stats.pp }}</td>
+        </tr>
+        <tr>
+            <th>Accuracy</th>
+            <td>{{ player_stats.accuracy }}</td>
+        </tr>
+        <tr>
+            <th>Playcount</th>
+            <td>{{ player_stats.plays }}</td>
+        </tr>
+        <tr>
+            <th>Level</th>
+            <td>{{ level }}</td>
+        </tr>
+            
+    </tbody>    
+</table>
 
 <h2>Recent Scores</h2>
-<table>
+<table class="scores">
     <thead>
         <tr>
             <th>Map title</th>
@@ -95,7 +127,7 @@
     </tbody>
 </table>
 <h2>Top Scores</h2>
-<table>
+<table class="scores">
     <thead>
         <tr>
             <th>Map title</th>

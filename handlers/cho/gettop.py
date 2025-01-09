@@ -3,31 +3,34 @@ from objects import glob
 from handlers.response import Failed, Success
 import os
 
-bp = Blueprint('gettop', __name__)
+bp = Blueprint("gettop", __name__)
 
 php_file = True
 
-@bp.route('/', methods=['POST'])
+
+@bp.route("/", methods=["POST"])
 async def view_score():
     params = await request.form
 
-    play = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [int(params['playID'])])
+    play = await glob.db.fetch(
+        "SELECT * FROM scores WHERE id = $1", [int(params["playID"])]
+    )
     if play:
         return Success(
-            '{mods} {score} {combo} {rank} {hitgeki} {hit300} {hitkatsu} {hit100} {hit50} {hitmiss} {acc} {date}'.format(
-                mods=play['mods'],
-                score=int(play['pp']) if glob.config.pp_leaderboard else play['score'],
-                combo=play['combo'],
-                rank=play['rank'],
-                hitgeki=play['hitgeki'],
-                hit300=play['hit300'],
-                hitkatsu=play['hitkatsu'],
-                hit100=play['hit100'],
-                hit50=play['hit50'],
-                hitmiss=play['hitmiss'],
+            "{mods} {score} {combo} {rank} {hitgeki} {hit300} {hitkatsu} {hit100} {hit50} {hitmiss} {acc} {date}".format(
+                mods=play["mods"],
+                score=int(play["pp"]) if glob.config.pp_leaderboard else play["score"],
+                combo=play["combo"],
+                rank=play["rank"],
+                hitgeki=play["hitgeki"],
+                hit300=play["hit300"],
+                hitkatsu=play["hitkatsu"],
+                hit100=play["hit100"],
+                hit50=play["hit50"],
+                hitmiss=play["hitmiss"],
+                acc=int(play["acc"] * 1000),
+                date=play["date"],
+            )
+        )
 
-                acc=int(play['acc'] * 1000),
-                date=play['date']
-            ))
-
-    return Failed('Score not found.')
+    return Failed("Score not found.")

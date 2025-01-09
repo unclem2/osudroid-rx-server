@@ -24,7 +24,7 @@ class PlayerTeam(IntEnum):
 
 class Mods:
     def __init__(self):
-        self.mods: str = ''
+        self.mods: str = ""
         self.speedMultiplier: float = 1.0
         self.flFollowDelay: float = 0.12
         self.customAR: int = 0
@@ -34,13 +34,13 @@ class Mods:
 
     def as_json(self) -> Dict[str, Union[str, float, int]]:
         attributes = {
-            'mods': self.mods,
-            'speedMultiplier': self.speedMultiplier,
-            'flFollowDelay': self.flFollowDelay,
-            'customAR': self.customAR,
-            'customOD': self.customOD,
-            'customCS': self.customCS,
-            'customHP': self.customHP
+            "mods": self.mods,
+            "speedMultiplier": self.speedMultiplier,
+            "flFollowDelay": self.flFollowDelay,
+            "customAR": self.customAR,
+            "customOD": self.customOD,
+            "customCS": self.customCS,
+            "customHP": self.customHP,
         }
         filtered_attributes = {k: v for k, v in attributes.items() if v}
         return filtered_attributes
@@ -49,19 +49,19 @@ class Mods:
 class PlayerMulti:
     def __init__(self):
         self.uid: int = 0
-        self.username: str = ''
+        self.username: str = ""
         self.status: PlayerStatus = PlayerStatus.IDLE
         self.team: int = 0
         self.mods: Mods = Mods()
-        self.sid: str = ''
+        self.sid: str = ""
 
     def as_json(self) -> Dict[str, str]:
         return {
-            'uid': self.uid,
-            'username': self.username,
-            'status': self.status,
-            'team': self.team,
-            'mods': self.mods.as_json()
+            "uid": self.uid,
+            "username": self.username,
+            "status": self.status,
+            "team": self.team,
+            "mods": self.mods.as_json(),
         }
 
     def player(self, id, sid):
@@ -84,9 +84,9 @@ class RoomSettings:
 
     def as_json(self) -> dict[str, bool]:
         return {
-            'isRemoveSliderLock': self.isRemoveSliderLock,
-            'isFreeMod': self.isFreeMod,
-            'allowForceDifficultyStatistics': self.allowForceDifficultyStatistics
+            "isRemoveSliderLock": self.isRemoveSliderLock,
+            "isFreeMod": self.isFreeMod,
+            "allowForceDifficultyStatistics": self.allowForceDifficultyStatistics,
         }
 
 
@@ -109,7 +109,7 @@ class Match:
 class Room:
     def __init__(self):
         self.id: int = 0
-        self.name: str = ''
+        self.name: str = ""
         self.map: Beatmap = None
         self.host: PlayerMulti = PlayerMulti()
         self.isLocked: bool = False
@@ -120,5 +120,5 @@ class Room:
         self.status: RoomStatus = RoomStatus.IDLE
         self.teamMode: int = 0
         self.winCondition: WinCondition = WinCondition.SCOREV1
-        self.password: str = ''
+        self.password: str = ""
         self.match = Match()
