@@ -2,6 +2,7 @@ from quart import Blueprint, request
 from objects import glob
 from objects.beatmap import Beatmap
 import os
+import utils
 
 bp = Blueprint("wl_add", __name__)
 
@@ -18,6 +19,8 @@ async def whitelist_add():
     if map is None:
         return {"status": "error", "message": "Map not exist"}
     await map.download()
+    await map.update_stats()
+    await utils.discord_notify(msg=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted")
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
     map_data = {
         "title": f"{map.artist} - {map.title} ({map.creator}) [{map.version}]",
