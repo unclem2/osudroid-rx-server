@@ -39,6 +39,8 @@ async def submit_play():
                 ip = request.remote_addr
                 response = reader.country(ip)
                 country = response.country.iso_code
+                glob.players.remove(player)
+                glob.players.add(player)
                 await glob.db.execute("UPDATE users SET country = $1 WHERE id = $2", [country, player.id])    
                 
     if map_hash := params.get("hash", None):
