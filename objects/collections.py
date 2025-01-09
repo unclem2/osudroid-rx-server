@@ -46,6 +46,7 @@ class BaseCollection:
     def remove(self, o: object):
         self.storage.remove(o)
         logging.info(f"Removed {o} from {self.name}")
+    
 
 
 class PlayerList(BaseCollection):
