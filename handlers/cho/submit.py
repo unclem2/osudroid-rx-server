@@ -8,6 +8,7 @@ from objects.beatmap import RankedStatus
 import utils
 import geoip2.database
 import os
+from objects.player import Player
 
 bp = Blueprint("submit", __name__)
 
@@ -40,6 +41,7 @@ async def submit_play():
                 response = reader.country(ip)
                 country = response.country.iso_code
                 glob.players.remove(player)
+                player = await Player.from_sql(int(params["userID"]))
                 glob.players.add(player)
                 await glob.db.execute("UPDATE users SET country = $1 WHERE id = $2", [country, player.id])    
                 
