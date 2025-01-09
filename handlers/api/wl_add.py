@@ -21,9 +21,9 @@ async def whitelist_add():
     await map.download()
 
     # made by operagx
-    await utils.discord_notify(
-        f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted",
-        glob.config.discord_hook,
+    await utils.send_webhook(
+        content=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted",
+        url=glob.config.discord_hook,
     )
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
     map_data = {
