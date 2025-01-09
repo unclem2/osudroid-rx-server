@@ -75,22 +75,29 @@ async def profile():
             score["mods"] = f"{Mods(score['mods']).convert_std}"
     except BaseException:
         top_scores = []
-        
+
     level = 0
+
     def level_formula(i):
         try:
             return int((5000 / 3 * (4 * i**3 - 3 * i**2 - i)) + 1.25 ** (i - 60))
         except ZeroDivisionError:
             return 0
-    
+
     for i in range(1, 101):
         cur = level_formula(i)
         nxt = level_formula(i + 1)
-        if cur < int(player_stats['ranked_score']) and nxt > int(player_stats['ranked_score']):
+        if cur < int(player_stats["ranked_score"]) and nxt > int(
+            player_stats["ranked_score"]
+        ):
             level = i
             break
-    player_stats['accuracy'] = f"{player_stats['accuracy']:.2f}%"
-    return await render_template("profile.jinja", player_stats=player_stats, recent_scores=recent_scores,
-                                        top_scores=top_scores, player=p, level=level)
-        
-
+    player_stats["accuracy"] = f"{player_stats['accuracy']:.2f}%"
+    return await render_template(
+        "profile.jinja",
+        player_stats=player_stats,
+        recent_scores=recent_scores,
+        top_scores=top_scores,
+        player=p,
+        level=level,
+    )
