@@ -38,18 +38,18 @@ async def calculate():
     
 
     if acc := data.get("acc"):
-        if utils.is_convertable(acc, float):
-            score.pp.acc = float(acc)
-            score.acc = score.pp.acc
+        if acc.isdecimal():
+            score.acc = float(acc)
+            score.pp.acc = score.acc
 
     if miss := data.get("miss"):
-        if utils.is_convertable(miss, int):
+        if miss.isdecimal():
             score.pp.hmiss = int(miss)
             score.hmiss = score.pp.hmiss
 
     score.pp.max_combo = score.bmap.max_combo
     if combo := data.get("combo"):
-        if utils.is_convertable(combo, int):
+        if combo.isdecimal():
             score.pp.max_combo = int(combo)
 
     pp = await score.pp.calc()
