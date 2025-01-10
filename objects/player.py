@@ -66,7 +66,7 @@ class Player:
     @property
     def online(self):
         # 30 seconds timeout, not really accurate cuz we update the last_online time on login and submit
-        return time.time() - 30 < self.last_online
+        return time.time() - 150 < self.last_online
 
     @property
     def as_json(self):
