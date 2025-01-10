@@ -2,15 +2,11 @@ from quart import Blueprint, request, jsonify
 from objects.beatmap import Beatmap
 from objects.score import Score
 import utils.pp
+import utils
 
 bp = Blueprint("calculate", __name__)
 
-def is_convertable(value, type):
-    try:
-        type(value)
-        return True
-    except ValueError:
-        return False
+
 
 
 @bp.route("/", methods=["GET", "POST"])
@@ -25,7 +21,7 @@ async def calculate():
         except AttributeError:
             return {"error": "Specify beatmap id or md5 hash"}, 400
     elif bid := data.get("bid"):
-        if is_convertable(bid, int):
+        if utils.is_convertable(bid, int):
             score.bmap = await Beatmap.from_bid_osuapi(int(bid))
         else:
             return {"error": "Invalid beatmap id. It must be an integer."}, 400
@@ -42,18 +38,18 @@ async def calculate():
     
 
     if acc := data.get("acc"):
-        if is_convertable(acc, float):
+        if utils.is_convertable(acc, float):
             score.pp.acc = float(acc)
             score.acc = score.pp.acc
 
     if miss := data.get("miss"):
-        if is_convertable(miss, int):
+        if utils.is_convertable(miss, int):
             score.pp.hmiss = int(miss)
             score.hmiss = score.pp.hmiss
 
     score.pp.max_combo = score.bmap.max_combo
     if combo := data.get("combo"):
-        if is_convertable(combo, int):
+        if utils.is_convertable(combo, int):
             score.pp.max_combo = int(combo)
 
     pp = await score.pp.calc()
