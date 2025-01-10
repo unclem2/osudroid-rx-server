@@ -214,6 +214,30 @@ class Beatmap:
         await m.save_to_sql()
 
         return m
+    
+    @property
+    def as_json(self):
+        return {
+                "id": self.id,
+                "set_id": self.set_id,
+                "md5": self.md5,
+                "artist": self.artist,
+                "title": self.title,
+                "version": self.version,
+                "creator": self.creator,
+                "last_update": self.last_update,
+                "total_length": self.total_length,
+                "max_combo": self.max_combo,
+                "status": self.status,
+                "mode": self.mode,
+                "bpm": self.bpm,
+                "cs": self.cs,
+                "od": self.od,
+                "ar": self.ar,
+                "hp": self.hp,
+                "star": self.star,
+            }
+        
 
     async def save_to_sql(self):
         # Convert datetime objects to Unix timestamp integers
