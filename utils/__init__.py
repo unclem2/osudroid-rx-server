@@ -1,7 +1,7 @@
 import os
 import hashlib
 import uuid
-import aiohttp
+from discord_webhook import AsyncDiscordWebhook
 
 
 def make_safe(n: str):
@@ -31,11 +31,18 @@ def check_md5(n: str, md5: str):
     return hashlib.md5(n.encode()).hexdigest() == md5
 
 
-async def discord_notify(message: str, webhook: str):
-    async with aiohttp.ClientSession() as session:
-        webhook_data = {"content": message}
-        async with session.post(webhook, json=webhook_data) as response:
-            if response.status != 204:
-                print(f"Failed to send webhook: {response.status}")
-            else:
-                print("Webhook sent successfully")
+async def send_webhook(url, content, isEmbed=False):
+    webhook = AsyncDiscordWebhook(url=url)
+    if isEmbed is not False:
+        webhook.add_embed(content)
+        try:
+            await webhook.execute()
+        except Exception:
+            return print("Error while sending webhook")
+        return print("Embed Webhook sent successfully")
+    webhook.set_content(content)
+    try:
+        await webhook.execute()
+        print("Webhook sent successfully ")
+    except Exception:
+        return print("Error while sending webhook")
