@@ -7,8 +7,6 @@ import utils
 bp = Blueprint("calculate", __name__)
 
 
-
-
 @bp.route("/", methods=["GET", "POST"])
 async def calculate():
     data = request.args
@@ -21,7 +19,7 @@ async def calculate():
         except AttributeError:
             return {"error": "Specify beatmap id or md5 hash"}, 400
     elif bid := data.get("bid"):
-        if utils.is_convertable(bid, int):
+        if bid.isdecimal():
             score.bmap = await Beatmap.from_bid_osuapi(int(bid))
         else:
             return {"error": "Invalid beatmap id. It must be an integer."}, 400
