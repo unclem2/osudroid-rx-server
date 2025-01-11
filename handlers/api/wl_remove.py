@@ -20,5 +20,4 @@ async def whitelist_remove():
         await glob.db.execute(
             "UPDATE maps SET status = -2 WHERE id = $1", [int(data.get("bid"))]
         )
-        
     return {"status": "successfully removed from whitelist"}
