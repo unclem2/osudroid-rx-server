@@ -3,6 +3,7 @@ import hashlib
 import discord_webhook
 import uuid
 
+
 def make_safe(n: str):
     return n.lower().replace(" ", "_")
 
