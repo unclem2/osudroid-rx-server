@@ -16,5 +16,4 @@ async def map_status(md5: str):
     if map.status == RankedStatus.Whitelisted:
         map.status = 1
 
-    map_data = {"md5": md5, "ranked": map.status}
-    return map_data
+    return map.as_json

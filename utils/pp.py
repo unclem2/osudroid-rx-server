@@ -9,7 +9,7 @@ import objects.mods as Mods
 class PPCalculator:
     def __init__(self, path):
         self.bm_path = path
-        self.acc = 0
+        self.acc = 100
         self.hmiss = 0
         self.max_combo = 0
         self.mods = ""

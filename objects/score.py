@@ -134,6 +134,31 @@ class Score:
 
         return s
 
+    @property
+    def as_json(self):
+        return {
+            "id": self.id,
+            "bmap": self.bmap.as_json,
+            "map_hash": self.map_hash,
+            "player": self.player.name,
+            "pp": self.pp,
+            "score": self.score,
+            "max_combo": self.max_combo,
+            "mods": self.mods,
+            "acc": self.acc,
+            "h300": self.h300,
+            "h100": self.h100,
+            "h50": self.h50,
+            "hmiss": self.hmiss,
+            "hgeki": self.hgeki,
+            "hkatsu": self.hkatsu,
+            "grade": self.grade,
+            "rank": self.rank,
+            "fc": self.fc,
+            "status": self.status,
+            "date": self.date,
+        }
+
     async def calc_lb_placement(self):
         res = await glob.db.fetch(
             "SELECT count(*) as c FROM scores WHERE mapHash = $1 AND pp > $2 AND status = 2",

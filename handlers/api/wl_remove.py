@@ -14,8 +14,10 @@ async def whitelist_remove():
         await glob.db.execute(
             "UPDATE maps SET status = -2 WHERE md5 = $1", [data.get("md5")]
         )
-    if data.get("bid") is not None:
+    elif data.get("bid") is not None:
+        if not data.get("bid").isdecimal():
+            return {"status": "error", "message": "Invalid beatmap id."}
         await glob.db.execute(
             "UPDATE maps SET status = -2 WHERE id = $1", [int(data.get("bid"))]
         )
-    return {"status": "success"}
+    return {"status": "successfully removed from whitelist"}
