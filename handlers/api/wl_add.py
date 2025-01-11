@@ -26,7 +26,7 @@ async def whitelist_add():
     await utils.send_webhook(
         content=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted",
         url=glob.config.discord_hook,
-        isEmbed=True
+        isEmbed=True,
     )
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
 
