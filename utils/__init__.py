@@ -48,6 +48,7 @@ async def send_webhook(url, content, isEmbed):
     except Exception:
         return print("Error while sending webhook")
 
+
 def is_convertable(value, type):
     try:
         type(value)
