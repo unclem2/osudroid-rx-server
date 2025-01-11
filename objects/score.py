@@ -133,6 +133,7 @@ class Score:
             s.status = SubmissionStatus.SUBMITTED
 
         return s
+
     @property
     def as_json(self):
         return {
