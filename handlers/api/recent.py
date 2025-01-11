@@ -16,7 +16,7 @@ async def recent():
 
     if offset := params.get("offset", 0):
         if not offset.isdecimal():
-            return {"error": "Invalid offset."}, 400 
+            return {"error": "Invalid offset."}, 400
         offset = int(offset)
 
     recent = await glob.db.fetch(
