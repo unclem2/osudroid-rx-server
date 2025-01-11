@@ -1,8 +1,7 @@
 import os
 import hashlib
+import discord_webhook
 import uuid
-from discord_webhook import AsyncDiscordWebhook
-
 
 def make_safe(n: str):
     return n.lower().replace(" ", "_")
@@ -31,10 +30,11 @@ def check_md5(n: str, md5: str):
     return hashlib.md5(n.encode()).hexdigest() == md5
 
 
-async def send_webhook(url, content, isEmbed=False):
-    webhook = AsyncDiscordWebhook(url=url)
+async def send_webhook(url, content, isEmbed):
+    webhook = discord_webhook.AsyncDiscordWebhook(url=url)
+    embed = discord_webhook.DiscordEmbed("a", description=content)
     if isEmbed is not False:
-        webhook.add_embed(content)
+        webhook.add_embed(embed)
         try:
             await webhook.execute()
         except Exception:
