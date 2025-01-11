@@ -36,5 +36,5 @@ async def get_scores():
             score["beatmap"] = score["beatmap"].as_json
         except:
             score["beatmap"] = ""
-        
+
     return jsonify(scores)
