@@ -12,8 +12,8 @@ async def recent():
             return {"error": "Invalid id."}, 400
         id = int(id)
     else:
-        return {"error": "Specify id."}, 400    
-    
+        return {"error": "Specify id."}, 400
+
     if offset := params.get("offset", 0):
         if not offset.isdecimal():
             return {"error": "Invalid offset."}, 400 
