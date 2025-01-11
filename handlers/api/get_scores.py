@@ -21,9 +21,11 @@ async def get_scores():
     else:
         return {"error": "Invalid id."}, 400
 
-    query = 'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", ' \
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 ' \
-            "ORDER BY id DESC"
+    query = (
+        'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
+        "ORDER BY id DESC"
+    )
     if limit != -1:
         query += f" LIMIT {limit}"      
     scores = await glob.db.fetchall(query, [id])
