@@ -214,6 +214,7 @@ class Beatmap:
         await m.save_to_sql()
 
         return m
+
     @property
     def as_json(self):
         return {
