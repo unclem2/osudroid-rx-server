@@ -10,8 +10,12 @@ bp = Blueprint("get_scores", __name__)
 async def get_scores():
     params = request.args
 
-    limit = int(params.get("limit", 50)) if utils.is_convertable(params.get("limit", 50), int) else 50
-    
+    limit = (
+        int(params.get("limit", 50))
+        if utils.is_convertable(params.get("limit", 50), int)
+        else 50
+    )
+
     if utils.is_convertable(params.get("id", 0), int):
         id = int(params.get("id", 0))
     else:
