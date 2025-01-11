@@ -32,20 +32,22 @@ async def submit_play():
 
     if glob.config.disable_submit:
         return Failed("Score submission is disable right now.")
-
-    if player.country == None:
-        if os.path.exists("GeoLite2-Country.mmdb"):
-            with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
-                ip = request.remote_addr
-                response = reader.country(ip)
-                country = response.country.iso_code
-                await glob.db.execute(
-                    "UPDATE users SET country = $1 WHERE id = $2", [country, player.id]
-                )
-                player_new = await Player.from_sql(int(params["userID"]))
-                glob.players.add(player_new)
-                glob.players.remove(player)
-
+    try:
+        if player.country == None:
+            if os.path.exists("GeoLite2-Country.mmdb"):
+                with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
+                    ip = request.remote_addr
+                    response = reader.country(ip)
+                    country = response.country.iso_code
+                    await glob.db.execute(
+                        "UPDATE users SET country = $1 WHERE id = $2",
+                        [country, player.id],
+                    )
+                    player_new = await Player.from_sql(int(params["userID"]))
+                    glob.players.add(player_new)
+                    glob.players.remove(player)
+    except Exception as e:
+        logging.error(f"Failed to get country from ip: {e}")
     if map_hash := params.get("hash", None):
         logging.info(f"Changed {player} playing to {map_hash}")
         player.stats.playing = map_hash
@@ -89,7 +91,7 @@ async def submit_play():
             score.h50,
             score.hmiss,
             score.mods,
-            score.pp,
+            score.pp.calc_pp,
             score.bmap.id,
             score.date,
         ]
@@ -122,7 +124,7 @@ async def submit_play():
 
         await score.player.update_stats()
         await utils.send_webhook(
-            content=f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp, 2)}",
+            content=f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp.calc_pp, 2)}",
             url=glob.config.discord_hook,
         )
 

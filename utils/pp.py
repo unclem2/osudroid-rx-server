@@ -13,6 +13,7 @@ class PPCalculator:
         self.hmiss = 0
         self.max_combo = 0
         self.mods = ""
+        self.calc_pp = 0.0
 
     @classmethod
     async def from_md5(cls, md5: str, **kwargs):
@@ -133,6 +134,7 @@ class PPCalculator:
         logging.info(
             f"attributes.pp_aim: {attributes.pp_aim}, aim_pp: {aim_pp}, speed_reduction_factor: {speed_reduction_factor}, force_ar_penalty: {force_ar_penalty}, pp_return: {pp_return}"
         )
+        self.calc_pp = pp_return
         return pp_return
 
 
@@ -149,12 +151,12 @@ async def recalc_scores():
             m.max_combo = score["combo"]
             m.mods = score["mods"]
 
-            pp = await m.calc()
+            await m.calc()
 
-            print(score["id"], score["maphash"], pp)
+            print(score["id"], score["maphash"], m.calc_pp)
 
             await glob.db.execute(
-                "UPDATE scores SET pp = $1 WHERE id = $2", [pp, score["id"]]
+                "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
             )
 
 
@@ -169,10 +171,10 @@ async def recalc_single_score(score_id: int):
         m.max_combo = score["combo"]
         m.mods = score["mods"]
 
-        pp = await m.calc()
+        await m.calc()
 
-        print(score["id"], score["maphash"], pp)
+        print(score["id"], score["maphash"], m.calc_pp)
 
         await glob.db.execute(
-            "UPDATE scores SET pp = $1 WHERE id = $2", [pp, score["id"]]
+            "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
         )

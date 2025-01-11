@@ -31,7 +31,7 @@ class Score:
         self.map_hash: str = ""
         self.player: Player = None
 
-        self.pp: int = 0
+        self.pp: PPCalculator = None
         self.score: float = 0
         self.max_combo: int = 0
         self.mods: int = 0
@@ -80,7 +80,8 @@ class Score:
         s.hgeki = res["hitgeki"]
         s.hkatsu = res["hitkatsu"]
         s.date = res["date"]
-        s.pp = int(round(res["pp"]))
+        s.pp = await PPCalculator.from_md5(s.map_hash)
+        s.pp.calc_pp = int(round(res["pp"]))
 
         if s.map_hash:
             s.rank = await s.calc_lb_placement()
@@ -124,11 +125,11 @@ class Score:
             s.pp.hmiss = s.hmiss
             s.pp.max_combo = s.max_combo
             s.pp.mods = s.mods
-            s.pp = await s.pp.calc()
+            await s.pp.calc()
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
         else:
-            s.pp = 0.0
+            s.pp.calc_pp = 0.0
             s.status = SubmissionStatus.SUBMITTED
 
         return s
@@ -161,7 +162,7 @@ class Score:
     async def calc_lb_placement(self):
         res = await glob.db.fetch(
             "SELECT count(*) as c FROM scores WHERE mapHash = $1 AND pp > $2 AND status = 2",
-            [self.map_hash, self.pp],
+            [self.map_hash, self.pp.calc_pp],
         )
         return int(res["c"]) + 1 if res else 1
 
@@ -177,7 +178,7 @@ class Score:
         if res:
             self.prev_best = await Score.from_sql(res["id"])
 
-            if self.pp > res["pp"]:
+            if self.pp.calc_pp > res["pp"]:
                 self.status = SubmissionStatus.BEST
                 self.prev_best.status = SubmissionStatus.SUBMITTED
                 await glob.db.execute(
