@@ -33,7 +33,6 @@ async def calculate():
     score.pp = await utils.pp.PPCalculator.from_md5(score.bmap.md5)
     score.pp.mods = data.get("mods", "")
     score.mods = score.pp.mods
-    
 
     if acc := data.get("acc"):
         if acc.isdecimal():
