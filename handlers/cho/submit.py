@@ -40,7 +40,8 @@ async def submit_play():
                     response = reader.country(ip)
                     country = response.country.iso_code
                     await glob.db.execute(
-                        "UPDATE users SET country = $1 WHERE id = $2", [country, player.id]
+                        "UPDATE users SET country = $1 WHERE id = $2",
+                        [country, player.id],
                     )
                     player_new = await Player.from_sql(int(params["userID"]))
                     glob.players.add(player_new)
