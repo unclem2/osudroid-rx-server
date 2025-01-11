@@ -27,7 +27,7 @@ async def get_scores():
         "ORDER BY id DESC"
     )
     if limit != -1:
-        query += f" LIMIT {limit}"      
+        query += f" LIMIT {limit}"
     scores = await glob.db.fetchall(query, [id])
 
     for score in scores:
