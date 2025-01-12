@@ -24,8 +24,9 @@ async def whitelist_add():
 
     # made by operagx
     await utils.send_webhook(
-        title="Whitelisted new map",
-        content=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted",
+        title=f"☆ {round(map.star, 2)} {map.artist} - {map.title} ({map.creator}) [{map.version}]",
+        content=f"WIP",
+        footer="Map added to whitelist...",
         url=glob.config.discord_hook,
         isEmbed=True,
     )
