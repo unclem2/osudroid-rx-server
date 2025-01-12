@@ -148,3 +148,4 @@ utils/tets.c
 utils/setup.py
 GeoLite2-Country.mmdb
 tests
+.vscode/settings.json
