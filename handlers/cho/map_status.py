@@ -1,5 +1,6 @@
 from quart import Blueprint
 from objects.beatmap import Beatmap, RankedStatus
+from quart import jsonify
 
 bp = Blueprint("map_status", __name__)
 
@@ -16,4 +17,4 @@ async def map_status(md5: str):
     if map.status == RankedStatus.Whitelisted:
         map.status = 1
 
-    return map.as_json
+    return {"md5": md5, "ranked": map.status}
