@@ -25,7 +25,8 @@ async def whitelist_add():
     # made by operagx
     await utils.send_webhook(
         title=f"☆ {round(map.star, 2)} {map.artist} - {map.title} ({map.creator}) [{map.version}]",
-        content=f"WIP",
+        title_url=f"https://osu.ppy.sh/b/{map.set_id}#{map.id}",
+        content=f"**Map Stats: **\n**CS:** {map.cs} | **AR:** {map.ar} | **OD:** {map.od} | **HP:** {map.hp}",
         footer="Map added to whitelist...",
         url=glob.config.discord_hook,
         isEmbed=True,
