@@ -24,8 +24,11 @@ async def whitelist_add():
 
     # made by operagx
     await utils.send_webhook(
-        title="Whitelisted new map",
-        content=f"{map.artist} - {map.title} ({map.creator}) [{map.version}] was whitelisted",
+        title=f"☆ {round(map.star, 2)} {map.artist} - {map.title} ({map.creator}) [{map.version}]",
+        title_url=f"https://osu.ppy.sh/beatmapsets/{map.set_id}#osu/{map.id}",
+        thumbnail=f"https://b.ppy.sh/thumb/{map.set_id}l.jpg",
+        content=f"**Map Stats: **\n**CS:** {map.cs} | **AR:** {map.ar} | **OD:** {map.od} | **HP:** {map.hp}",
+        footer="Map added to whitelist...",
         url=glob.config.discord_hook,
         isEmbed=True,
     )

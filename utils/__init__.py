@@ -31,10 +31,15 @@ def check_md5(n: str, md5: str):
     return hashlib.md5(n.encode()).hexdigest() == md5
 
 
-async def send_webhook(url, title, content, isEmbed):
+async def send_webhook(
+    url, content, isEmbed=False, title=None, title_url=None, thumbnail=None, footer=None
+):
     webhook = discord_webhook.AsyncDiscordWebhook(url=url)
-    embed = discord_webhook.DiscordEmbed(title=title, description=content)
     if isEmbed is not False:
+        embed = discord_webhook.DiscordEmbed(title=title, description=content)
+        embed.set_url(title_url) if title_url != None else ""
+        embed.set_thumbnail(thumbnail) if thumbnail != None else ""
+        embed.set_footer(footer) if footer != None else ""
         webhook.add_embed(embed)
         try:
             await webhook.execute()
