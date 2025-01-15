@@ -3,31 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}My Website{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
+            background-color: #e0e0e0;
         }
         .menu {
-            background-color: #333;
+            background-color: #3d3d3d;
             overflow: hidden;
         }
         .menu a, .dropbtn {
-            float: left;
             display: block;
             color: #f2f2f2;
             text-align: center;
             padding: 14px 16px;
             text-decoration: none;
+            font-size: 16px;
         }
         .menu a:hover, .dropdown:hover .dropbtn {
             background-color: #ddd;
             color: black;
         }
         .dropdown {
-            float: left;
             overflow: hidden;
         }
         .dropdown .dropbtn {
@@ -57,18 +58,54 @@
         .dropdown-content a:hover {
             background-color: #ddd;
         }
-        .dropdown:hover .dropdown-content {
-            display: block;
+
+        .hamburger {
+            display: none;
+            font-size: 30px;
+            padding: 14px 16px;
+            cursor: pointer;
+            color: #f2f2f2;
+        }
+
+        .dropbtn:after {
+            content: ' ▼';
+            font-size: 0.8em;
+        }
+
+        @media (max-width: 600px) {
+            .menu a, .dropbtn, .dropdown-content {
+                display: none;
+                float: none;
+                width: 100%;
+                text-align: left;
+            }
+            .hamburger {
+                display: block;
+                float: right;
+            }
+            .menu .spacer {
+                display: none;
+            }
+        }
+
+        @media (min-width: 601px) {
+            .dropdown:hover .dropdown-content {
+                display: block;
+            }
+            .menu a {
+                float: left;
+            }
+            .dropdown-content {
+                position: absolute;
+            }
         }
     </style>
 </head>
 <body>
     <div class="menu">
-        <a href="/">Home</a>
+        <a href="/"><i class="fas fa-home"></i> Home</a>
         <div class="dropdown">
-            <button class="dropbtn">Profile
-                <i class="fa fa-caret-down"></i>
-            </button>
+            <button class="dropbtn">Profile</button>
             <div class="dropdown-content">
                 <a href="/user/profile.php">Profile</a>
                 <a href="/user/set_avatar.php">Set Avatar</a>
@@ -77,12 +114,51 @@
             </div>
         </div>
         <a href="/user/leaderboard.php">Leaderboard</a>
-        <a href="/user/web_login.php">Login</a> 
+        <a href="/user/web_login.php">Login</a>
         <a href="/api/register.php">Register</a>
         <!-- Add more menu items as needed -->
+        <span class="hamburger">&#9776;</span>
     </div>
     <div class="content">
         {% block content %}{% endblock %}
     </div>
+    <script>
+        const hamburger = document.querySelector('.hamburger');
+        const menuItems = document.querySelectorAll('.menu a, .dropdown .dropbtn');
+        const dropdownContents = document.querySelectorAll('.dropdown-content');
+
+        hamburger.addEventListener('click', () => {
+            menuItems.forEach(item => {
+                item.style.display = item.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+
+        const dropdownButtons = document.querySelectorAll('.dropdown .dropbtn');
+        dropdownButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (window.innerWidth <= 600) {
+                    e.preventDefault();
+                    const dropdownContent = e.target.nextElementSibling;
+                    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
+                }
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 600) {
+                menuItems.forEach(item => item.style.display = 'block');
+                dropdownContents.forEach(content => content.style.display = 'none');
+            } else {
+                menuItems.forEach(item => item.style.display = 'none');
+            }
+        });
+
+        document.addEventListener('click', (event) => {
+            if (window.innerWidth <= 600 && !event.target.closest('.menu')) {
+                menuItems.forEach(item => item.style.display = 'none');
+                dropdownContents.forEach(content => content.style.display = 'none');
+            }
+        });
+    </script>
 </body>
 </html>
