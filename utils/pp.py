@@ -4,7 +4,6 @@ from objects.beatmap import Beatmap
 import rosu_pp_py as osu_pp
 import math
 import objects.mods as Mods
-import oppadc
 
 
 class PPCalculator:
@@ -150,7 +149,7 @@ async def recalc_scores():
     """never use this unless something fucked up/testing"""
     print("recalculatin sk0r3")
 
-    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC LIMIT 100")
+    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC")
     for score in scores:
         m = await PPCalculator.from_md5(score["maphash"])
         if m:
