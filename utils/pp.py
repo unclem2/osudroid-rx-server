@@ -4,7 +4,6 @@ from objects.beatmap import Beatmap
 import rosu_pp_py as osu_pp
 import math
 import objects.mods as Mods
-import oppadc
 
 class PPCalculator:
     def __init__(self, path):
