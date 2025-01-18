@@ -126,36 +126,26 @@ class PPCalculator:
 
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
-        amount_hitobjects = attributes.difficulty.n_circles + attributes.difficulty.n_sliders + attributes.difficulty.n_spinners
-        miss_penality_aim = 0.97 * pow(1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss)
+        amount_hitobjects = (
+            attributes.difficulty.n_circles
+            + attributes.difficulty.n_sliders
+            + attributes.difficulty.n_spinners
+        )
+        miss_penality_aim = 0.97 * pow(
+            1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss
+        )
         
-        pp_return = aim_pp * speed_reduction_factor * force_ar_penalty * miss_penality_aim
+
+        pp_return = (
+            aim_pp * speed_reduction_factor * force_ar_penalty * miss_penality_aim
+        )
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
         self.calc_pp = pp_return
         return pp_return
 
 
-async def recalc_scores():
-    """never use this unless something fucked up/testing"""
-    print("recalculatin sk0r3")
 
-    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC")
-    for score in scores:
-        m = await PPCalculator.from_md5(score["maphash"])
-        if m:
-            m.acc = score["acc"]
-            m.hmiss = score["hitmiss"]
-            m.max_combo = score["combo"]
-            m.mods = score["mods"]
-
-            await m.calc()
-
-            print(score["id"], score["maphash"], m.calc_pp)
-
-            await glob.db.execute(
-                "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
-            )
 
 
 async def recalc_single_score(score_id: int):
