@@ -145,26 +145,7 @@ class PPCalculator:
         return pp_return
 
 
-async def recalc_scores():
-    """never use this unless something fucked up/testing"""
-    print("recalculatin sk0r3")
 
-    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC")
-    for score in scores:
-        m = await PPCalculator.from_md5(score["maphash"])
-        if m:
-            m.acc = score["acc"]
-            m.hmiss = score["hitmiss"]
-            m.max_combo = score["combo"]
-            m.mods = score["mods"]
-
-            await m.calc()
-
-            print(score["id"], score["maphash"], m.calc_pp)
-
-            await glob.db.execute(
-                "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
-            )
 
 
 async def recalc_single_score(score_id: int):

@@ -184,5 +184,42 @@ class Score:
                 await glob.db.execute(
                     "UPDATE scores SET status = $1 WHERE id = $2", [1, res["id"]]
                 )
+                print(f"score {self.id} status changed from 2 to 1, prev best on map {res["pp"]} new best on map {self.pp.calc_pp}")
         else:
             self.status = SubmissionStatus.BEST
+
+
+async def recalc_scores():
+    """never use this unless something fucked up/testing"""
+    print("recalculatin sk0r3")
+
+    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC")
+    for score in scores:
+        s = Score()
+        s.id = score["id"]
+        # s.bmap = await Beatmap.from_md5(score["maphash"])
+        s.player = glob.players.get(id=score["playerid"])
+        s.map_hash = score["maphash"]
+        s.max_combo = score["combo"]
+        s.mods = score["mods"]
+        s.acc = score["acc"]
+        s.hmiss = score["hitmiss"]
+        s.status = SubmissionStatus.SUBMITTED
+        try:
+            s.pp = await PPCalculator.from_md5(s.map_hash)
+            s.pp.acc = s.acc
+            s.pp.hmiss = s.hmiss
+            s.pp.max_combo = s.max_combo
+            s.pp.mods = s.mods
+            prev_status = score["status"]
+            await s.pp.calc()
+            await s.calc_status()
+        except:
+            print(f"failed to calculate score {s.id}")
+            continue
+        # if prev_status != s.status:
+            # print(f"score {s.id} status changed from {prev_status} to {s.status}, prev pp: {score['pp']} new pp: {s.pp.calc_pp}")
+        s.rank = await s.calc_lb_placement()
+        print(f"score {s.id} {s.map_hash} {s.pp.calc_pp}")
+        await glob.db.execute("UPDATE scores SET(pp, status) = ($1, $2) WHERE id = $3", [s.pp.calc_pp, s.status, s.id])
+        
