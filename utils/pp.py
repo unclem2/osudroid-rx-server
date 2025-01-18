@@ -4,7 +4,7 @@ from objects.beatmap import Beatmap
 import rosu_pp_py as osu_pp
 import math
 import objects.mods as Mods
-
+import oppadc
 
 class PPCalculator:
     def __init__(self, path):
@@ -127,12 +127,12 @@ class PPCalculator:
 
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
-        pp_return = aim_pp * speed_reduction_factor * force_ar_penalty
+        amount_hitobjects = attributes.difficulty.n_circles + attributes.difficulty.n_sliders + attributes.difficulty.n_spinners
+        miss_penality_aim = 0.97 * pow(1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss)
+        
+        pp_return = aim_pp * speed_reduction_factor * force_ar_penalty * miss_penality_aim
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
-        logging.info(
-            f"attributes.pp_aim: {attributes.pp_aim}, aim_pp: {aim_pp}, speed_reduction_factor: {speed_reduction_factor}, force_ar_penalty: {force_ar_penalty}, pp_return: {pp_return}"
-        )
         self.calc_pp = pp_return
         return pp_return
 
@@ -141,7 +141,7 @@ async def recalc_scores():
     """never use this unless something fucked up/testing"""
     print("recalculatin sk0r3")
 
-    scores = await glob.db.fetchall("SELECT * FROM scores")
+    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC LIMIT 100")
     for score in scores:
         m = await PPCalculator.from_md5(score["maphash"])
         if m:
@@ -161,7 +161,7 @@ async def recalc_scores():
 
 async def recalc_single_score(score_id: int):
     """recalculate a single score"""
-    score = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [score_id])
+    score = await glob.db.fetch("SELECT * FROM scores WHERE id = $1 ORDER BY id ASC LIMIT 100", [score_id])
 
     m = await PPCalculator.from_md5(score["maphash"])
     if m:
