@@ -127,7 +127,7 @@ class PPCalculator:
 
         # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * ar_bonus
-        pp_return = attributes.pp - attributes.pp_speed - attributes.pp_aim + aim_pp
+        pp_return = aim_pp
         pp_return = pp_return * speed_reduction_factor * force_ar_penalty
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
