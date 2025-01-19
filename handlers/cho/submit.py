@@ -107,7 +107,6 @@ async def submit_play():
         upload_replay = False
         if score.status == SubmissionStatus.BEST:
             upload_replay = True
-            
 
         stats = score.player.stats
         stats.plays += 1
