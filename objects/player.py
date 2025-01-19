@@ -18,7 +18,7 @@ class Stats:
 
     @property
     def droid_acc(self):
-        return int(self.acc * 1000)
+        return int(self.acc * 1000) if glob.config.legacy == True else float(self.acc / 100)
 
     @property
     def droid_submit_stats(self):
@@ -27,7 +27,9 @@ class Stats:
 
     @property
     def rank_by(self):
-        return self.pp if glob.config.pp else self.rscore
+        if glob.config.legacy == True:
+            return self.pp if glob.config.pp else self.rscore
+
 
     @property
     def as_json(self):

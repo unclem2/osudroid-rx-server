@@ -51,9 +51,10 @@ async def submit_play():
     if map_hash := params.get("hash", None):
         logging.info(f"Changed {player} playing to {map_hash}")
         player.stats.playing = map_hash
-        return Success(1, player.id)
+        if glob.config.legacy == True:
+            return Success(1, player.id)
 
-    elif play_data := params.get("data"):
+    if play_data := params.get("data"):
         score = await Score.from_submission(play_data)
         if not score:
             return Failed("Failed to read score data.")
@@ -106,6 +107,7 @@ async def submit_play():
         upload_replay = False
         if score.status == SubmissionStatus.BEST:
             upload_replay = True
+            
 
         stats = score.player.stats
         stats.plays += 1
@@ -129,15 +131,42 @@ async def submit_play():
             url=glob.config.discord_hook,
             isEmbed=True,
         )
-
-        return Success(
-            "{rank} {rank_by} {acc} {map_rank} {score_id}".format(
-                rank=int(stats.rank),
-                rank_by=int(stats.rank_by),
-                acc=stats.droid_acc,
-                map_rank=score.rank,
-                score_id=score.id if upload_replay else "",
+        if glob.config.legacy == True:
+            return Success(
+                "{rank} {rank_by} {acc} {map_rank} {score_id}".format(
+                    rank=int(stats.rank),
+                    rank_by=int(stats.rank_by),
+                    acc=stats.droid_acc,
+                    map_rank=score.rank,
+                    score_id=score.id if upload_replay else "",
+                )
             )
-        )
+        else:
+            files = await request.files
+
+            # Correctly access the file and replayID
+            file = files.get("replayFile")
+            replay_id = score.id
+
+            path = f"data/replays/{replay_id}.odr"  # doesnt have .odr
+            raw_replay = file.read()
+
+            if raw_replay[:2] != b"PK":
+                return Failed("Fuck off lol.")
+
+            if os.path.isfile(path):
+                return Failed("File already exists.")
+
+            with open(path, "wb") as file:
+                file.write(raw_replay)
+            return Success(
+                "{rank} {score} {acc} {map_rank} {pp}".format(
+                    rank=int(stats.rank),
+                    score=stats.rscore,
+                    acc=stats.droid_acc,
+                    map_rank=score.rank,
+                    pp=stats.pp,
+                )
+            )
 
     return Failed("Huh?")
