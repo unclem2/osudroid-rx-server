@@ -30,6 +30,8 @@ max_pp_value = (
 osu_key = os.getenv("OSU_KEY", "")
 db_url = os.getenv("DATABASE_URL", "")
 discord_hook = os.getenv("DISCORD", "")
+legacy = True  # Enable to use legacy ranking system
 
 # - MAINTENACE -#
+
 disable_submit = False  # Does what it says and shows a message to user when trying to play submit a play.

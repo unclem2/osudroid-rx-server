@@ -116,7 +116,7 @@ class Score:
 
         s.mods = data[0]
         s.grade = data[3]
-        s.acc = float(data[10]) / 1000
+        s.acc = float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
         s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
         s.date = int(data[11])  # 1.6.8: Int?
 

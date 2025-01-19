@@ -23,7 +23,7 @@ async def login():
 
     if not p:
         return Failed("User not found.")
-    if params["version"] != "3":
+    if params["version"] != "44":
         return Failed("This client is outdated")
 
     res = await glob.db.fetch(
@@ -60,11 +60,13 @@ async def login():
         p.avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
     # returns long string of shit
     return Success(
-        "{id} {uuid} {rank} {rank_by} {acc} {name} {avatar}".format(
+        "{id} {uuid} {rank} {rank_by} {score} {pp} {acc} {name} {avatar}".format(
             id=p.id,
             uuid=p.uuid,
             rank=p.stats.rank,
-            rank_by=int(p.stats.rank_by),
+            rank_by=int(p.stats.rank_by) if glob.config.legacy == True else "",
+            score = p.stats.rscore if glob.config.legacy == False else "",
+            pp = p.stats.pp if glob.config.legacy == False else "",
             acc=p.stats.droid_acc,
             name=p.name,
             avatar=p.avatar,
