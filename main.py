@@ -92,6 +92,10 @@ async def close():
 async def server_fucked(err):
     return Failed(f"Server Error: {repr(err)}")
 
+# Serving static folder first
+@app.route("/static/<path:filename>")
+def serve_static(filename):
+    return send_from_directory("static", filename)
 
 @app.route("/")
 async def index():
