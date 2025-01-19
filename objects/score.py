@@ -184,7 +184,7 @@ class Score:
                 await glob.db.execute(
                     "UPDATE scores SET status = $1 WHERE id = $2", [1, res["id"]]
                 )
-                print(f"score {self.id} status changed from 2 to 1, prev best on map {res["pp"]} new best on map {self.pp.calc_pp}")
+                print(f"score {self.id} status changed from 2 to 1, prev best on map {res['pp']} new best on map {self.pp.calc_pp}")
         else:
             self.status = SubmissionStatus.BEST
 
