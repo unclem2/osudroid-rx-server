@@ -145,9 +145,6 @@ class PPCalculator:
         return pp_return
 
 
-
-
-
 async def recalc_single_score(score_id: int):
     """recalculate a single score"""
     score = await glob.db.fetch(
