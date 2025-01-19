@@ -190,36 +190,66 @@ class Score:
 
 
 async def recalc_scores():
-    """never use this unless something fucked up/testing"""
-    print("recalculatin sk0r3")
+    """never use this unless something is messed up/testing"""
+    print("Recalculating scores...")
 
-    scores = await glob.db.fetchall("SELECT * FROM scores ORDER BY id ASC")
-    for score in scores:
-        s = Score()
-        s.id = score["id"]
-        # s.bmap = await Beatmap.from_md5(score["maphash"])
-        s.player = glob.players.get(id=score["playerid"])
-        s.map_hash = score["maphash"]
-        s.max_combo = score["combo"]
-        s.mods = score["mods"]
-        s.acc = score["acc"]
-        s.hmiss = score["hitmiss"]
-        s.status = SubmissionStatus.SUBMITTED
-        try:
-            s.pp = await PPCalculator.from_md5(s.map_hash)
-            s.pp.acc = s.acc
-            s.pp.hmiss = s.hmiss
-            s.pp.max_combo = s.max_combo
-            s.pp.mods = s.mods
-            prev_status = score["status"]
-            await s.pp.calc()
-            await s.calc_status()
-        except:
-            print(f"failed to calculate score {s.id}")
-            continue
-        # if prev_status != s.status:
-            # print(f"score {s.id} status changed from {prev_status} to {s.status}, prev pp: {score['pp']} new pp: {s.pp.calc_pp}")
-        s.rank = await s.calc_lb_placement()
-        print(f"score {s.id} {s.map_hash} {s.pp.calc_pp}")
-        await glob.db.execute("UPDATE scores SET(pp, status) = ($1, $2) WHERE id = $3", [s.pp.calc_pp, s.status, s.id])
+    for player in glob.players:
+        print(f"{player.id} - processing")
         
+        scores = await glob.db.fetchall("SELECT * FROM scores WHERE playerid = $1", [player.id])
+        print(f"{player.id} - {len(scores)} scores found")
+        
+        grouped_scores = {}
+        for score in scores:
+            grouped_scores.setdefault(score["maphash"], []).append(score)
+
+        for maphash, user_map_scores in grouped_scores.items():
+            print(f"{player.id} - processing map {maphash}")
+                
+            for user_map_score in user_map_scores:
+
+                try:
+                    s = await Score.from_sql(user_map_score["id"])
+                    print(f"{player.id} - loaded score {user_map_score['id']}")
+                except Exception as e:
+                    print(f"{player.id} - failed to load score {user_map_score['id']}")
+                    if user_map_score["status"] is None:
+                        user_map_score["status"] = 1
+                        s = Score()
+                        s.id = user_map_score["id"]
+                        s.pp = await PPCalculator.from_md5(maphash)
+                        s.acc = user_map_score["acc"]
+                        s.hmiss = user_map_score["hitmiss"]
+                        s.max_combo = user_map_score["combo"]
+                        s.mods = user_map_score["mods"]
+                        s.player = player
+                        
+
+                if s.pp == False:
+                    print(f"{player.id} - failed to load map {maphash}")
+                    continue
+                s.pp.acc = s.acc
+                s.pp.hmiss = s.hmiss
+                s.pp.max_combo = s.max_combo
+                s.pp.mods = s.mods
+                await s.pp.calc()
+                user_map_score["pp"] = s.pp.calc_pp
+                print(f"{player.id} - calculated pp for score {user_map_score['id']} - {s.pp.calc_pp}")
+
+                await glob.db.execute(
+                    "UPDATE scores SET pp = $1 WHERE id = $2", [s.pp.calc_pp, s.id]
+                )
+                print(f"{player.id} - updated pp for score {user_map_score['id']}")
+
+            user_map_scores.sort(key=lambda x: x["pp"], reverse=True)
+
+            for i, user_map_score in enumerate(user_map_scores):
+                new_status = 2 if i == 0 else 1
+                await glob.db.execute(
+                    "UPDATE scores SET status = $1 WHERE id = $2",
+                    [new_status, user_map_score["id"]],
+                )
+                print(f"{player.id} - updated status for score {user_map_score['id']} to {new_status}")
+                
+        await player.update_stats()
+        print(f"{player.id} - updated stats")
