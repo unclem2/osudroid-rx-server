@@ -115,26 +115,20 @@ class PPCalculator:
 
         speed_reduction_factor = math.exp(-speed_reduction)
 
-        ar_bonus = 1
-        if attributes.difficulty.ar > 10.33:
-            ar_bonus = 1 + (attributes.difficulty.ar - 10.33) * 0.4
-        if attributes.difficulty.ar < 8:
-            ar_bonus = 1 + (8 - attributes.difficulty.ar) * 0.4
-
         force_ar_penalty = 1
         if force_ar is not None:
             force_ar_penalty = 0
 
         # Calculate and return the final pp value
-        aim_pp = attributes.pp_aim * ar_bonus
+        aim_pp = attributes.pp_aim * 1.1
         amount_hitobjects = (
             attributes.difficulty.n_circles
             + attributes.difficulty.n_sliders
             + attributes.difficulty.n_spinners
         )
-        miss_penality_aim = 0.97 * pow(
-            1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss
-        )
+        miss_penality_aim = 0.99 * pow(1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss - 10) 
+        if miss_penality_aim > 0.99:
+            miss_penality_aim = 0.99
 
         pp_return = (
             aim_pp * speed_reduction_factor * force_ar_penalty * miss_penality_aim
