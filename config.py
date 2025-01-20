@@ -14,7 +14,7 @@ smtp_port = 587  # smtp port, 587 for tls, 25 no tls, also 465 can be used
 host = ""  # for internal use, dont change this
 
 ## CLIENT STUFF ##
-online_version = 44
+online_version = 3
 client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.13.1/osu.droid-1.13.241228.-debug-2024-12-28.apk"
 client_version = "1.13.1"
 client_version_code = 1735348672
