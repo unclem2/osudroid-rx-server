@@ -48,7 +48,7 @@ async def profile():
                 "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
             )
             score["acc"] = f"{score['acc']:.2f}%"
-            score["pp"] = f"{score['pp']:.2f}"
+            score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
 
     except BaseException:
@@ -71,7 +71,7 @@ async def profile():
                 "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
             )
             score["acc"] = f"{score['acc']:.2f}%"
-            score["pp"] = f"{score['pp']:.2f}"
+            score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
     except BaseException:
         top_scores = []
