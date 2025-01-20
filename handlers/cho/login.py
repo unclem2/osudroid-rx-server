@@ -23,7 +23,7 @@ async def login():
 
     if not p:
         return Failed("User not found.")
-    if params["version"] != "44":
+    if params["version"] != glob.config.online_version:
         return Failed("This client is outdated")
 
     res = await glob.db.fetch(
