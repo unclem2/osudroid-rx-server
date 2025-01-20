@@ -184,7 +184,9 @@ class Score:
                 await glob.db.execute(
                     "UPDATE scores SET status = $1 WHERE id = $2", [1, res["id"]]
                 )
-                print(f"score {self.id} status changed from 2 to 1, prev best on map {res["pp"]} new best on map {self.pp.calc_pp}")
+                print(
+                    f"score {self.id} status changed from 2 to 1, prev best on map {res['pp']} new best on map {self.pp.calc_pp}"
+                )
         else:
             self.status = SubmissionStatus.BEST
 
@@ -195,19 +197,20 @@ async def recalc_scores():
 
     for player in glob.players:
         print(f"{player.id} - processing")
-        
-        scores = await glob.db.fetchall("SELECT * FROM scores WHERE playerid = $1", [player.id])
+
+        scores = await glob.db.fetchall(
+            "SELECT * FROM scores WHERE playerid = $1", [player.id]
+        )
         print(f"{player.id} - {len(scores)} scores found")
-        
+
         grouped_scores = {}
         for score in scores:
             grouped_scores.setdefault(score["maphash"], []).append(score)
 
         for maphash, user_map_scores in grouped_scores.items():
             print(f"{player.id} - processing map {maphash}")
-                
-            for user_map_score in user_map_scores:
 
+            for user_map_score in user_map_scores:
                 try:
                     s = await Score.from_sql(user_map_score["id"])
                     print(f"{player.id} - loaded score {user_map_score['id']}")
@@ -223,7 +226,6 @@ async def recalc_scores():
                         s.max_combo = user_map_score["combo"]
                         s.mods = user_map_score["mods"]
                         s.player = player
-                        
 
                 if s.pp == False:
                     print(f"{player.id} - failed to load map {maphash}")
@@ -234,7 +236,9 @@ async def recalc_scores():
                 s.pp.mods = s.mods
                 await s.pp.calc()
                 user_map_score["pp"] = s.pp.calc_pp
-                print(f"{player.id} - calculated pp for score {user_map_score['id']} - {s.pp.calc_pp}")
+                print(
+                    f"{player.id} - calculated pp for score {user_map_score['id']} - {s.pp.calc_pp}"
+                )
 
                 await glob.db.execute(
                     "UPDATE scores SET pp = $1 WHERE id = $2", [s.pp.calc_pp, s.id]
@@ -249,7 +253,9 @@ async def recalc_scores():
                     "UPDATE scores SET status = $1 WHERE id = $2",
                     [new_status, user_map_score["id"]],
                 )
-                print(f"{player.id} - updated status for score {user_map_score['id']} to {new_status}")
-                
+                print(
+                    f"{player.id} - updated status for score {user_map_score['id']} to {new_status}"
+                )
+
         await player.update_stats()
         print(f"{player.id} - updated stats")

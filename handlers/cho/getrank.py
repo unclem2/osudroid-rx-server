@@ -43,12 +43,18 @@ async def leaderboard():
             "{play_id} {name} {score} {pp} {combo} {rank} {mods} {acc} {avatar}".format(
                 play_id=play["id"],
                 name=player.name,
-                score=(int(play["pp"]) if glob.config.pp_leaderboard else play["score"]) if glob.config.legacy == True else play["score"],
-                pp=int(play["pp"]) if glob.config.legacy == False else "",
+                score=(
+                    round(play["pp"]) if glob.config.pp_leaderboard else play["score"]
+                )
+                if glob.config.legacy == True
+                else play["score"],
+                pp=round(play["pp"]) if glob.config.legacy == False else "",
                 combo=play["combo"],
                 rank=play["rank"],
                 mods=play["mods"],
-                acc=int(play["acc"] * 1000) if glob.config.legacy == True else round(float(play["acc"] / 100), 4),
+                acc=int(play["acc"] * 1000)
+                if glob.config.legacy == True
+                else round(float(play["acc"] / 100), 4),
                 avatar=avatar,
             )
         ]

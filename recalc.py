@@ -15,6 +15,7 @@ async def init_players():
         player = await Player.from_sql(player_id["id"])
         glob.players.add(player)
 
+
 async def recalc():
     await glob.db.connect()
     await init_players()

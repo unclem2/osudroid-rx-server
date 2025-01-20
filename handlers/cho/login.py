@@ -23,7 +23,7 @@ async def login():
 
     if not p:
         return Failed("User not found.")
-    if params["version"] != "44":
+    if params["version"] != glob.config.online_version:
         return Failed("This client is outdated")
 
     res = await glob.db.fetch(
@@ -65,8 +65,8 @@ async def login():
             uuid=p.uuid,
             rank=p.stats.rank,
             rank_by=int(p.stats.rank_by) if glob.config.legacy == True else "",
-            score = p.stats.rscore if glob.config.legacy == False else "",
-            pp = p.stats.pp if glob.config.legacy == False else "",
+            score=p.stats.rscore if glob.config.legacy == False else "",
+            pp=p.stats.pp if glob.config.legacy == False else "",
             acc=p.stats.droid_acc,
             name=p.name,
             avatar=p.avatar,
