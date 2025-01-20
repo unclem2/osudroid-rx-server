@@ -22,7 +22,7 @@ class Mods:
             "r": "HR",
             "u": "SD",
             "d": "DT",
-            "x": "",
+            "x": "RX",
             "t": "HT",
             "c": "NC",
             "i": "FL",
