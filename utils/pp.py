@@ -126,7 +126,9 @@ class PPCalculator:
             + attributes.difficulty.n_sliders
             + attributes.difficulty.n_spinners
         )
-        miss_penality_aim = 0.99 * pow(1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss - 10) 
+        miss_penality_aim = 0.99 * pow(
+            1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss - 10
+        )
         if miss_penality_aim > 0.99:
             miss_penality_aim = 0.99
 
