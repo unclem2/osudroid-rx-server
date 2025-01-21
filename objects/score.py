@@ -129,7 +129,7 @@ class Score:
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
         else:
-            s.pp = PPCalculator()
+            s.pp = PPCalculator("")
             s.pp.calc_pp = 0.0
             s.status = SubmissionStatus.SUBMITTED
 
