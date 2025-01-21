@@ -5,11 +5,12 @@ import coloredlogs
 import hypercorn
 import hypercorn.logging
 import hypercorn.run
-from quart import Quart, jsonify, render_template
+from quart import Quart, jsonify, render_template, send_from_directory
 import aiohttp
 from socketio import ASGIApp
 import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
+import ssl
 
 # Other imports
 from handlers.multi import sio
@@ -151,6 +152,8 @@ def main():
             f"./certs/live/{glob.config.domain}/fullchain.pem"
         )
         glob.config.host = f"https://{glob.config.domain}:443"
+        hypercorn_config.keep_alive_timeout = 5
+        hypercorn_config.ssl_handshake_timeout = 5
     else:
         app_asgi = ASGIApp(sio, app)
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
@@ -159,7 +162,13 @@ def main():
         hypercorn_config.loglevel = "DEBUG"
         hypercorn_config.accesslog = "-"
         hypercorn_config.errorlog = "-"
-    asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
+    try:
+        asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
+    except ssl.SSLError as e:
+        if "APPLICATION_DATA_AFTER_CLOSE_NOTIFY" in str(e):
+            logging.warning("SSL error ignored: %s", e)
+        else:
+            raise
 
 
 if __name__ == "__main__":
