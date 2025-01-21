@@ -120,7 +120,7 @@ class Score:
         s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
         s.date = int(data[11])  # 1.6.8: Int?
 
-        if s.bmap:
+        if s.bmap and s.pp is not False:
             s.pp.acc = s.acc
             s.pp.hmiss = s.hmiss
             s.pp.max_combo = s.max_combo
@@ -129,6 +129,7 @@ class Score:
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
         else:
+            s.pp = PPCalculator("")
             s.pp.calc_pp = 0.0
             s.status = SubmissionStatus.SUBMITTED
 
