@@ -152,8 +152,8 @@ def main():
             f"/etc/letsencrypt/live/{glob.config.domain}/fullchain.pem"
         )
         glob.config.host = f"https://{glob.config.domain}:443"
-        hypercorn_config.keep_alive_timeout = 30
-        hypercorn_config.ssl_handshake_timeout = 30
+        hypercorn_config.keep_alive_timeout = 5
+        hypercorn_config.ssl_handshake_timeout = 5
         hypercorn_config.alpn_protocols = "http/1.1"
         
     else:
@@ -166,11 +166,12 @@ def main():
         hypercorn_config.errorlog = "-"
     try:
         asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
-    except ssl.SSLError as e:
-        if "APPLICATION_DATA_AFTER_CLOSE_NOTIFY" in str(e):
-            logging.warning("SSL error ignored: %s", e)
-        else:
-            raise
+    except Exception as e:
+        logging.warning("SSL error ignored: %s", e)
+    except TimeoutError as e:
+        logging.warning("SSL error ignored: %s", e)
+
+
 
 
 if __name__ == "__main__":

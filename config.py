@@ -14,11 +14,11 @@ smtp_port = 587  # smtp port, 587 for tls, 25 no tls, also 465 can be used
 host = ""  # for internal use, dont change this
 
 ## CLIENT STUFF ##
-online_version = 3
-client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.13.1/osu.droid-1.13.241228.-debug-2024-12-28.apk"
-client_version = "1.13.1"
-client_version_code = 1735348672
-client_changelog = "new domain"
+online_version = 4
+client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.14/osu.droid-1.14.250123.-debug-2025-01-23.apk"
+client_version = "1.4"
+client_version_code = 1737660511
+client_changelog = "1.8 migration + new domain"
 
 ## CRON ##
 # 1 = 1 Minute
@@ -38,7 +38,7 @@ max_pp_value = (
 osu_key = os.getenv("OSU_KEY", "")
 db_url = os.getenv("DATABASE_URL", "")
 discord_hook = os.getenv("DISCORD", "")
-legacy = True  # Enable to use legacy ranking system
+legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#
 
