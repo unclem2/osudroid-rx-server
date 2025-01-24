@@ -15,10 +15,10 @@ host = ""  # for internal use, dont change this
 
 ## CLIENT STUFF ##
 online_version = 4
-client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.14/osu.droid-1.14.250123.-debug-2025-01-23.apk"
-client_version = "1.4"
-client_version_code = 1737660511
-client_changelog = "1.8 migration + new domain"
+client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v1.14.1/osu.droid-1.14.250125.-debug-2025-01-24.apk"
+client_version = "1.14(250125)"
+client_version_code = 1737754535
+client_changelog = "1.8 migration + new domain 2"
 
 ## CRON ##
 # 1 = 1 Minute
