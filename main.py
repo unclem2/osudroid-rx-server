@@ -138,13 +138,12 @@ async def endpoints():
 
 def main():
     hypercorn_config = hypercorn.Config()
+    coloredlogs.install(level=logging.INFO)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
-        coloredlogs.install(level=logging.INFO)
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
         app_asgi = ASGIApp(sio, redirected_app)
-        hypercorn_config.bind = ["0.0.0.0:443"]
-        hypercorn_config.insecure_bind = ["0.0.0.0:80"]
+        hypercorn_config.bind = ["127.0.0.1:8001"]
         hypercorn_config.keyfile = os.path.join(
             f"/etc/letsencrypt//live/{glob.config.domain}/privkey.pem"
         )
@@ -153,9 +152,7 @@ def main():
         )
         glob.config.host = f"https://{glob.config.domain}:443"
         hypercorn_config.keep_alive_timeout = 5
-        hypercorn_config.ssl_handshake_timeout = 5
-        hypercorn_config.alpn_protocols = "http/1.1"
-        
+        hypercorn_config.ssl_handshake_timeout = 5        
     else:
         app_asgi = ASGIApp(sio, app)
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
