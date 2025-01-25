@@ -27,7 +27,11 @@ class Stats:
     @property
     def droid_submit_stats(self):
         # returns current stats
-        return f"{self.rank} {self.rank_by} {self.droid_acc} 0"
+        if glob.config.legacy == True:
+            return f"{self.rank} {self.rank_by} {self.droid_acc} 0"
+        else:
+            return f"{self.rank} {self.rscore} {self.droid_acc} 0 {self.pp}"
+        
 
     @property
     def rank_by(self):
