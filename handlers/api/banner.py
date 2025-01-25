@@ -8,7 +8,7 @@ force_route = "/api/game/banner.php"
 @bp.route("/")
 async def send_banner():
     data = {
-        "Url" = glob.config.banner_url
-        "ImageLink" = f"{glob.config.host}/static/banner.png"
+        "Url" = glob.config.banner_url,
+        "ImageLink" = f"{glob.config.host}/static/banner.png",
     }
     return data
