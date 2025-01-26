@@ -6,10 +6,9 @@ from argon2 import PasswordHasher
 
 bp = Blueprint("user_change_password", __name__)
 
-php_file = True
 
 
-@bp.route("/", methods=["GET", "POST"])
+@bp.route("/", methods=["POST"])
 async def change_password():
     login_state = request.cookies.get("login_state")
     if login_state is None:
@@ -71,4 +70,3 @@ async def change_password():
         return await render_template(
             "success.jinja", success_message="Password changed successfully"
         )
-    return await render_template("change_password.jinja")
