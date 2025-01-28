@@ -11,4 +11,4 @@ async def send_banner():
         "Url": glob.config.banner_url,
         "ImageLink": f"{glob.config.host}/static/banner.png",
     }
-    return data
+    return f"{data}"
