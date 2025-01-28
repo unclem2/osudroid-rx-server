@@ -5,6 +5,7 @@ bp = Blueprint("banner", __name__)
 
 force_route = "/api/game/banner.php"
 
+
 @bp.route("/")
 async def send_banner():
     data = {

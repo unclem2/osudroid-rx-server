@@ -16,5 +16,4 @@ class CursorOccurrence:
 
     @property
     def __dict__(self):
-        return {"position": self.position.__dict__, "time": self.time,
-                "id": self.id}
+        return {"position": self.position.__dict__, "time": self.time, "id": self.id}

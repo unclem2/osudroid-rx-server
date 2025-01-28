@@ -27,7 +27,9 @@ def load_blueprints():
 
                 blueprint = module.bp
                 # Формируем префикс, включая полный путь до файла
-                path = os.path.relpath(root, start=os.path.dirname(__file__)).replace(os.sep, '/')
+                path = os.path.relpath(root, start=os.path.dirname(__file__)).replace(
+                    os.sep, "/"
+                )
                 path = path.replace("cho", "api").replace(".", "")
                 blueprint.prefix = f"/{path}/{filename}"
 

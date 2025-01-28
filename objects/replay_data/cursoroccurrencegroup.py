@@ -4,12 +4,16 @@ from objects.replay_data.movementtype import MovementType
 
 
 class CursorOccurrenceGroup:
-    def __init__(self, down: CursorOccurrence,
-                 moves: List[CursorOccurrence], up: Optional[CursorOccurrence] = None):
+    def __init__(
+        self,
+        down: CursorOccurrence,
+        moves: List[CursorOccurrence],
+        up: Optional[CursorOccurrence] = None,
+    ):
         self._down = down
         self._moves = moves
-        self.down = down  
-        self.up = up  
+        self.down = down
+        self.up = up
 
     @property
     def down(self) -> CursorOccurrence:
@@ -19,7 +23,8 @@ class CursorOccurrenceGroup:
     def down(self, value: CursorOccurrence):
         if value.id != MovementType.DOWN:
             raise TypeError(
-                "Attempting to set the down cursor occurrence to one with a different movement type.")
+                "Attempting to set the down cursor occurrence to one with a different movement type."
+            )
         self._down = value
 
     @property
@@ -34,7 +39,8 @@ class CursorOccurrenceGroup:
     def up(self, value: Optional[CursorOccurrence]):
         if value and value.id != MovementType.UP:
             raise TypeError(
-                "Attempting to set the up cursor occurrence to one with a different movement type.")
+                "Attempting to set the up cursor occurrence to one with a different movement type."
+            )
         self._up = value
 
     @property
@@ -43,8 +49,11 @@ class CursorOccurrenceGroup:
 
     @property
     def end_time(self) -> int:
-        return self._up.time if self._up else (
-            self._moves[-1].time if self._moves else self._down.time)
+        return (
+            self._up.time
+            if self._up
+            else (self._moves[-1].time if self._moves else self._down.time)
+        )
 
     @property
     def duration(self) -> int:
@@ -90,5 +99,5 @@ class CursorOccurrenceGroup:
         return {
             "down": self._down.__dict__,
             "moves": [move.__dict__ for move in self._moves],
-            "up": self._up.__dict__ if self._up else None
+            "up": self._up.__dict__ if self._up else None,
         }

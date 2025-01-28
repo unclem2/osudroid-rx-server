@@ -13,5 +13,5 @@ async def send_update():
         "link": glob.config.client_link,
         "changelog": glob.config.client_changelog,
     }
-    
+
     return f"{data}"
