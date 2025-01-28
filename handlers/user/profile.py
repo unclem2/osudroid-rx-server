@@ -87,10 +87,11 @@ async def profile():
     def level_formula(i):
         try:
             if i >= 100:
-                return 26931190827 + 99999999999 * (i - 100) 
+                return 26931190827 + 99999999999 * (i - 100)
             return int((5000 / 3 * (4 * i**3 - 3 * i**2 - i)) + 1.25 ** (i - 60))
         except ZeroDivisionError:
             return 0
+
     i = 0
     while True:
         cur = level_formula(i)

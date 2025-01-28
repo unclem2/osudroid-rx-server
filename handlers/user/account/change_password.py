@@ -7,7 +7,6 @@ from argon2 import PasswordHasher
 bp = Blueprint("user_change_password", __name__)
 
 
-
 @bp.route("/", methods=["POST"])
 async def change_password():
     login_state = request.cookies.get("login_state")

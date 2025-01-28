@@ -6,6 +6,7 @@ import os
 
 bp = Blueprint("user_change_email", __name__)
 
+
 @bp.route("/", methods=["POST"])
 async def change_email():
     login_state = request.cookies.get("login_state")
@@ -48,7 +49,7 @@ async def change_email():
             return await render_template(
                 "error.jinja", error_message="New email is the same as the old email"
             )
-            
+
         email_hash = utils.make_md5(f"{new_email}")
 
         await glob.db.execute(

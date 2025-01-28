@@ -1,5 +1,6 @@
 import enum
 
+
 class HitResult(enum.Enum):
     MISS = 1
     MEH = 2

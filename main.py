@@ -150,7 +150,7 @@ def main():
         )
         glob.config.host = f"https://{glob.config.domain}:443"
         hypercorn_config.keep_alive_timeout = 5
-        hypercorn_config.ssl_handshake_timeout = 5        
+        hypercorn_config.ssl_handshake_timeout = 5
     else:
         app_asgi = ASGIApp(sio, app)
         hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
@@ -165,8 +165,6 @@ def main():
         logging.warning("SSL error ignored: %s", e)
     except TimeoutError as e:
         logging.warning("SSL error ignored: %s", e)
-
-
 
 
 if __name__ == "__main__":
