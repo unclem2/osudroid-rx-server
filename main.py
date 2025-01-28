@@ -108,12 +108,10 @@ async def index():
     # if main page kills everything then theres huge chance that something is
     # wrong with certificates(good way to check if certs valid and/or placed correctly)
     # works fine without certificates
-    async with aiohttp.ClientSession() as session:
-        async with session.get(f"{glob.config.host}/api/update.php") as resp:
-            update = await resp.json()
-            changelog = update["changelog"]
-            version = update["version_code"]
-            download_link = update["link"]
+
+    changelog = glob.config.client_changelog
+    version = glob.config.client_version
+    download_link = glob.config.client_link
 
     return await render_template(
         "main_page.jinja",

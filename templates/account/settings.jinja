@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<hr>
+    <section>
+        {% include "account/set_avatar.jinja" %}
+    </section>
+<hr>
+    <section>
+        {% include "account/change_password.jinja" %}
+    </section>
+<hr>
+    <section>
+        {% include "account/change_username.jinja" %}
+    </section>
+<hr>
+    <section>
+        {% include "account/change_email.jinja" %}
+    </section>
+<hr>
+{% endblock content %}

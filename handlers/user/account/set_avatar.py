@@ -4,8 +4,7 @@ import os
 import utils
 from werkzeug.utils import secure_filename
 
-bp = Blueprint("user_set_avatar", __name__)
-php_file = True
+bp = Blueprint("user_set_avatar", __name__) 
 
 
 def allowed_file(filename):
@@ -13,7 +12,7 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
 
 
-@bp.route("/", methods=["GET", "POST"])
+@bp.route("/", methods=["POST"])
 async def set_avatar():
     # Check if the authentication cookie is present
     auth_cookie = request.cookies.get("login_state")
@@ -71,4 +70,3 @@ async def set_avatar():
                 "error.jinja", error_message="Invalid file format"
             )
 
-    return await render_template("set_avatar.jinja")

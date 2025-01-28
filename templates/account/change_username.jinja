@@ -1,0 +1,9 @@
+{% block title %}<h1>Change Username</h1>{% endblock %}
+{% block content %}
+<form method="post", action="{{ url_for('user_change_username.change_username') }}">
+    <label for="new_username">New Username:</label><br>
+    <input type="text" id="new_username" name="new_username" required><br>
+    <input type="submit" value="Change Username">
+</form>
+
+{% endblock %}

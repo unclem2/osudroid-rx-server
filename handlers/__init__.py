@@ -3,7 +3,6 @@ import importlib
 import logging
 import coloredlogs
 
-
 coloredlogs.install(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
@@ -17,15 +16,9 @@ def load_blueprints():
 
             path = f"{os.path.relpath(root)}.{file[:-3]}"
             import_path = path.replace("/", ".")
-            current_dir = os.path.basename(root)
             filename = file[:-3]
 
-            if filename == "cho":
-                filename = "api"
-            if current_dir == "cho":
-                current_dir = "api"
-            if current_dir == filename:
-                current_dir = ""
+            # Преобразуем имя, если это нужно
 
             try:
                 module = importlib.import_module(import_path)
@@ -33,12 +26,12 @@ def load_blueprints():
                     continue
 
                 blueprint = module.bp
-                blueprint.prefix = (
-                    f"/{current_dir}/{filename}"
-                    if current_dir != base_dir
-                    else f"/{filename}/"
-                )
+                # Формируем префикс, включая полный путь до файла
+                path = os.path.relpath(root, start=os.path.dirname(__file__)).replace(os.sep, '/')
+                path = path.replace("cho", "api").replace(".", "")
+                blueprint.prefix = f"/{path}/{filename}"
 
+                # Если модуль имеет атрибуты для настройки пути
                 if hasattr(module, "php_file"):
                     blueprint.prefix += ".php"
                 if hasattr(module, "forced_route"):
