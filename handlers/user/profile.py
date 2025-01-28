@@ -20,6 +20,8 @@ async def profile():
         player_id = int(request.cookies["login_state"].split("-")[1])
     if "id" in params:
         player_id = int(params["id"])
+    if "uid" in params:
+        player_id = int(params["uid"])
 
     if player_id is None:
         return await render_template(
@@ -84,11 +86,13 @@ async def profile():
 
     def level_formula(i):
         try:
+            if i >= 100:
+                return 26931190827 + 99999999999 * (i - 100) 
             return int((5000 / 3 * (4 * i**3 - 3 * i**2 - i)) + 1.25 ** (i - 60))
         except ZeroDivisionError:
             return 0
-
-    for i in range(1, 101):
+    i = 0
+    while True:
         cur = level_formula(i)
         nxt = level_formula(i + 1)
         if cur < int(player_stats["ranked_score"]) and nxt > int(
@@ -96,7 +100,10 @@ async def profile():
         ):
             level = i
             break
+        i += 1
+
     player_stats["accuracy"] = f"{player_stats['accuracy']:.2f}%"
+    player_stats["ranked_score"] = f"{int(player_stats['ranked_score']):,}"
     return await render_template(
         "profile.jinja",
         player_stats=player_stats,

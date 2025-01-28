@@ -1,0 +1,9 @@
+{% block title %}<h1>Change Email</h1>{% endblock %}
+{% block content %}
+<form method="post", action="{{ url_for('user_change_email.change_email') }}">
+    <label for="new_email">New Email:</label><br>
+    <input type="email" id="new_email" name="new_email" required><br>
+    <input type="submit" value="Change Email">
+</form>
+
+{% endblock %}

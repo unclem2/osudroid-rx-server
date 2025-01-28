@@ -8,12 +8,17 @@
 </header>
 <main>
     <section id="leaderboard">
-        <table>
+        <div class="sort-buttons">
+            <button id="sort-pp">Sort by PP</button>
+            <button id="sort-rscore">Sort by Ranked Score</button>
+        </div>
+        <table id="leaderboard-table">
             <thead>
                 <tr>
                     <th>Rank</th>
                     <th>Player</th>
                     <th>PP</th>
+                    <th>Ranked score</th>
                     <th>Plays</th>
                     <th>ID</th>
                 </tr>
@@ -24,6 +29,7 @@
                         <td>{{ player.rank }}</td>
                         <td><a href="/user/profile.php?id={{player.id}}">{{ player.username }}</a></td>
                         <td>{{ player.pp }}</td>
+                        <td>{{ player.rscore }}</td>
                         <td>{{ player.plays }}</td>
                         <td>{{ player.id }}</td>
                     </tr>
@@ -32,5 +38,27 @@
         </table>
     </section>
 </main>
-{% endblock %}
 
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const table = document.querySelector('#leaderboard-table tbody');
+        const rows = Array.from(table.rows);
+
+        function sortTable(key, isNumeric = true) {
+            rows.sort((a, b) => {
+                const cellA = a.cells[key].textContent.trim();
+                const cellB = b.cells[key].textContent.trim();
+
+                return isNumeric
+                    ? parseFloat(cellB) - parseFloat(cellA)
+                    : cellA.localeCompare(cellB);
+            });
+
+            rows.forEach(row => table.appendChild(row));
+        }
+
+        document.querySelector('#sort-pp').addEventListener('click', () => sortTable(2));
+        document.querySelector('#sort-rscore').addEventListener('click', () => sortTable(3));
+    });
+</script>
+{% endblock %}
