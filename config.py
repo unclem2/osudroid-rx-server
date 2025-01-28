@@ -19,6 +19,7 @@ client_link = "https://github.com/unclem2/osudroid-rx-server/releases/download/v
 client_version = "1.14(250125)"
 client_version_code = 1737754535
 client_changelog = "1.8 migration + new domain 2"
+banner_url = "https://github.com/unclem2/osudroid-rx-server"
 
 ## CRON ##
 # 1 = 1 Minute
