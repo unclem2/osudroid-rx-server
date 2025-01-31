@@ -130,14 +130,13 @@ async def index():
 
 
 def main():
-
     logging.basicConfig(
         level=logging.DEBUG,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
     app_asgi = ASGIApp(sio, app)
-    
+
     ssl_keyfile = None
     ssl_certfile = None
 
