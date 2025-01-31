@@ -4,7 +4,7 @@ import os
 import utils
 from werkzeug.utils import secure_filename
 
-bp = Blueprint("user_set_avatar", __name__) 
+bp = Blueprint("user_set_avatar", __name__)
 
 
 def allowed_file(filename):
@@ -69,4 +69,3 @@ async def set_avatar():
             return await render_template(
                 "error.jinja", error_message="Invalid file format"
             )
-

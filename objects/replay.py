@@ -38,8 +38,6 @@ class Replay:
             while chunk := f.read(65536):
                 yield chunk
 
-
-
     def __read_byte(self, replay_data):
         replay_data.seek(self.__buffer_offset)
         self.__buffer_offset += 1
@@ -49,7 +47,7 @@ class Replay:
         replay_data.seek(self.__buffer_offset)
         self.__buffer_offset += 2
         return struct.unpack(">h", replay_data.read(2))[0]
-    
+
     def __read_int(self, replay_data):
         replay_data.seek(self.__buffer_offset)
         self.__buffer_offset += 4
@@ -113,48 +111,42 @@ class Replay:
                     x.append(-1)
                     y.append(-1)
 
-            cursor_data = CursorData({
-                "size": move_size,
-                "time": time,
-                "x": x,
-                "y": y,
-                "id": id
-            }).__dict__
+            cursor_data = CursorData(
+                {"size": move_size, "time": time, "x": x, "y": y, "id": id}
+            ).__dict__
 
-            self.cursor_data.append(cursor_data['occurrence_groups'])
-            
+            self.cursor_data.append(cursor_data["occurrence_groups"])
+
     def __parse_hitresult_data(self, replay_data):
         replay_data = io.BytesIO(replay_data)
 
         hitobject_data_lenght = self.__read_int(replay_data)
-        
+
         for i in range(hitobject_data_lenght):
             replay_object_data = ReplayObjectData(
-                accuracy=0.0,
-                tickset=[],
-                result=HitResult.MISS
+                accuracy=0.0, tickset=[], result=HitResult.MISS
             )
             replay_object_data.accuracy = self.__read_short(replay_data)
             len = self.__read_byte(replay_data)
-            
+
             if len > 0:
                 bytes = []
                 for j in range(len):
                     bytes.append(self.__read_byte(replay_data))
                 for j in range(len * 8):
-                    replay_object_data.tickset.append((bytes[len - round(j/8) - 1] & (1 << round(j % 8))) != 0)
-                
+                    replay_object_data.tickset.append(
+                        (bytes[len - round(j / 8) - 1] & (1 << round(j % 8))) != 0
+                    )
+
             replay_object_data.result = HitResult(self.__read_byte(replay_data))
             self.hit_result_data.append(replay_object_data.__dict__)
-                    
-            
 
     def load(self, filename):
         self.replay_file = filename
 
         for file_name, file_size, unzipped_chunks in stream_unzip(
-                self.__zipped_chunks(filename)):
-
+            self.__zipped_chunks(filename)
+        ):
             data_buffer = io.BytesIO()
 
             try:
@@ -165,9 +157,9 @@ class Replay:
 
         self.replay_obj = javaobj.v2.loads(data_buffer.getvalue())
 
-        for fields in self.replay_obj[0].__dict__['field_data'].values():
+        for fields in self.replay_obj[0].__dict__["field_data"].values():
             for field, value in fields.items():
-                if field.name == 'version':
+                if field.name == "version":
                     self.version = value
 
         self.map = self.replay_obj[1].value
@@ -175,12 +167,22 @@ class Replay:
         self.md5 = self.replay_obj[3].value
 
         if self.version >= 3:
-            (self.unix_date, self.hit300k, self.hit300,
-             self.hit100k, self.hit100, self.hit50,
-             self.hit0, self.score, self.combo) = struct.unpack(">Qiiiiiiii", io.BytesIO(self.replay_obj[4].data).read(40))
+            (
+                self.unix_date,
+                self.hit300k,
+                self.hit300,
+                self.hit100k,
+                self.hit100,
+                self.hit50,
+                self.hit0,
+                self.score,
+                self.combo,
+            ) = struct.unpack(
+                ">Qiiiiiiii", io.BytesIO(self.replay_obj[4].data).read(40)
+            )
             self.username = self.replay_obj[5].value
 
-            for field in self.replay_obj[6].__dict__['field_data'].values():
+            for field in self.replay_obj[6].__dict__["field_data"].values():
                 for field, value in field.items():
                     if field.name == "elements":
                         for element in value:
@@ -201,8 +203,7 @@ class Replay:
                 if modifier.startswith("HP"):
                     self.force_hp = float(modifier.replace("HP", ""))
                 if modifier.startswith("x"):
-                    self.speed_multiplier = float(
-                        modifier.replace("x", "") or 1)
+                    self.speed_multiplier = float(modifier.replace("x", "") or 1)
                 if modifier.startswith("FLD"):
                     self.fl_delay = float(modifier.replace("FLD", "") or 0.12)
 

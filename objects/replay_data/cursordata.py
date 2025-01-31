@@ -39,10 +39,7 @@ class CursorData:
         # Handle any remaining occurrences
         if down_occurrence and move_occurrences:
             self.occurrence_groups.append(
-                CursorOccurrenceGroup(
-                    down=down_occurrence,
-                    moves=move_occurrences
-                )
+                CursorOccurrenceGroup(down=down_occurrence, moves=move_occurrences)
             )
 
     @property
