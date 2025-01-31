@@ -399,15 +399,15 @@ class MultiNamespace(socketio.AsyncNamespace):
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )
-            if room_info.winCondition == WinCondition.ACC:
+            elif room_info.winCondition == WinCondition.ACC:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["accuracy"], reverse=True
                 )
-            if room_info.winCondition == WinCondition.COMBO:
+            elif room_info.winCondition == WinCondition.COMBO:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["combo"], reverse=True
                 )
-            if room_info.winCondition == WinCondition.SCOREV2:
+            elif room_info.winCondition == WinCondition.SCOREV2:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )
@@ -427,6 +427,15 @@ class MultiNamespace(socketio.AsyncNamespace):
                     data.append(room_info.match.submitted_scores[player.uid])
                 except:
                     pass
+                
+            if room_info.winCondition == WinCondition.SCOREV1:
+                data = sorted(data, key=lambda x: x["score"], reverse=True)
+            elif room_info.winCondition == WinCondition.ACC:
+                data = sorted(data, key=lambda x: x["accuracy"], reverse=True)
+            elif room_info.winCondition == WinCondition.COMBO:
+                data = sorted(data, key=lambda x: x["combo"], reverse=True)
+            elif room_info.winCondition == WinCondition.SCOREV2:
+                data = sorted(data, key=lambda x: x["score"], reverse=True)
 
             await sio.emit(
                 "allPlayersScoreSubmitted", data=data, namespace=self.namespace
@@ -488,8 +497,8 @@ async def get_rooms():
     room = []
     for room_id, room_info in glob.rooms.items():
         players = ""
-        for p in room_info.players:
-            players += p.as_json()["username"]
+        for player in room_info.players:
+            players = ','.join(player.username)
         room.append(
             {
                 "id": room_info.id,

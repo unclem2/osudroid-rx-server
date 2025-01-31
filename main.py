@@ -2,15 +2,10 @@ import os
 import logging
 import asyncio
 import coloredlogs
-import hypercorn
-import hypercorn.logging
-import hypercorn.run
+
 from quart import Quart, jsonify, render_template, send_from_directory
-import aiohttp
 from socketio import ASGIApp
-import hypercorn.asyncio
-from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
-import ssl
+import uvicorn
 
 # Other imports
 from handlers.multi import sio
@@ -124,47 +119,47 @@ async def index():
     )
 
 
-@app.route("/endpoints")
-async def endpoints():
-    bps = []
-    blueprints = app.blueprints
-    for blueprint in blueprints:
-        bp = blueprints[blueprint]
-        bps.append(bp.prefix)
-    return jsonify(bps)
+# @app.route("/endpoints")
+# async def endpoints():
+#     bps = []
+#     blueprints = app.blueprints
+#     for blueprint in blueprints:
+#         bp = blueprints[blueprint]
+#         bps.append(bp.prefix)
+#     return jsonify(bps)
 
 
 def main():
-    hypercorn_config = hypercorn.Config()
-    coloredlogs.install(level=logging.INFO)
+
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+    app_asgi = ASGIApp(sio, app)
+    
+    ssl_keyfile = None
+    ssl_certfile = None
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
-        redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
-        app_asgi = ASGIApp(sio, redirected_app)
-        hypercorn_config.bind = ["127.0.0.1:8001"]
-        hypercorn_config.keyfile = os.path.join(
-            f"/etc/letsencrypt//live/{glob.config.domain}/privkey.pem"
-        )
-        hypercorn_config.certfile = os.path.join(
-            f"/etc/letsencrypt/live/{glob.config.domain}/fullchain.pem"
-        )
+        ssl_keyfile = f"/etc/letsencrypt/live/{glob.config.domain}/privkey.pem"
+        ssl_certfile = f"/etc/letsencrypt/live/{glob.config.domain}/fullchain.pem"
+        host = "0.0.0.0"
+        port = 443
         glob.config.host = f"https://{glob.config.domain}:443"
-        hypercorn_config.keep_alive_timeout = 5
-        hypercorn_config.ssl_handshake_timeout = 5
     else:
-        app_asgi = ASGIApp(sio, app)
-        hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
+        host = glob.config.ip
+        port = glob.config.port
         glob.config.host = f"http://{glob.config.ip}:{glob.config.port}"
-        hypercorn_config.debug = True
-        hypercorn_config.loglevel = "DEBUG"
-        hypercorn_config.accesslog = "-"
-        hypercorn_config.errorlog = "-"
-    try:
-        asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
-    except Exception as e:
-        logging.warning("SSL error ignored: %s", e)
-    except TimeoutError as e:
-        logging.warning("SSL error ignored: %s", e)
+
+    uvicorn.run(
+        app_asgi,
+        host=host,
+        port=port,
+        log_level="debug",
+        ssl_keyfile=ssl_keyfile,
+        ssl_certfile=ssl_certfile,
+    )
 
 
 if __name__ == "__main__":

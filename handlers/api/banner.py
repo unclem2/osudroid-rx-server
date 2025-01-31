@@ -3,7 +3,7 @@ from objects import glob
 
 bp = Blueprint("banner", __name__)
 
-force_route = "/api/game/banner.php"
+forced_route = "/api/game/banner.php"
 
 
 @bp.route("/")
