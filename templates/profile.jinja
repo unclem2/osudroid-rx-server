@@ -1,10 +1,19 @@
-
 {% extends "base.html" %}
 
 {% block title %}Player Profile{% endblock %}
 
 {% block content %}
 <style>
+
+
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-color);
+            color: var(--text-color)
+        }
 
     .profile-table {
         width: 90%;
@@ -13,23 +22,67 @@
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         background-color: #fff;
     }
-    
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #f4f4f9;
-        color: #333;
-    }
-
+   
     h1, h2 {
         text-align: center;
-        color: #444;
+        color: var(--text-color)
+    }
+
+    .profile-photo {
+        display: block;
+        margin: 0 auto;
+        border-radius: 50%;
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+
+    
+    .profile {
+        width: 85%;
+        max-width: 600px;
+        margin: 12px auto;
+        border-collapse: collapse;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        background-color: #fff;
+    }
+
+    .profile th, .profile td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        color var(--text-color);
+    }
+
+    .profile th {
+        background-color: #007BFF;
+        color: var(--text-color);
+        text-transform: uppercase;
+        font-size: 14px;
+        width: 25%
+    }
+
+    .profile tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    .profile tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    .profile td {
+        font-size: 14px;
+        background-color: var(--background-color);
+    }
+
+    .scores-wrapper {
+        overflow-x: auto;
+        margin: 20px auto;
+        width: 90%;
     }
 
     .scores {
-        width: 90%;
-        margin: 20px auto;
+        width: 100%;
         border-collapse: collapse;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         background-color: #fff;
@@ -37,15 +90,16 @@
 
     .scores th, .scores td {
         padding: 12px;
-        text-align: left;
+        text-align: center;
         border-bottom: 1px solid #ddd;
     }
 
     .scores th {
         background-color: #007BFF;
-        color: white;
+        color: var(--text-color);
         text-transform: uppercase;
         font-size: 14px;
+        text-align: center;
     }
 
     .scores tr:nth-child(even) {
@@ -58,25 +112,32 @@
 
     .scores td {
         font-size: 14px;
+        background-color: var(--background-color);
     }
 
 
-
+    .country-flag {
+        width: 30px;
+        height: 20px;
+        object-fit: cover;
+    }
 </style>
 
-<h2>Player profile</h2>
+<h1>Player Profile</h1>
+<img src="{{ avatar_url }}" alt="Profile Photo" class="profile-photo">
+
 <table class="profile">
     <tbody>
         <tr>
-            <th>Username</th>
+            <th>Username:</th>
             <td>{{ player.name }}</td>
         </tr>
         <tr>
-            <th>Country</th>
-            <td>{{ player.country }}</td>
+            <th>Country:</th>
+            <td><img src="https://flagsapi.com/{{ player.country }}/flat/64.png" class="country-flag"></td>
         </tr>
         <tr>
-            <th>Rank</th>
+            <th>Rank:</th>
             <td>{{ player_stats.rank }}</td>
         </tr>
         <tr>
@@ -84,78 +145,77 @@
             <td>{{ player_stats.pp }}</td>
         </tr>
         <tr>
-            <th>Ranked Score</th>
-            <td>{{ player_stats.ranked_score }}</td>
-        </tr>
-        <tr>
-            <th>Accuracy</th>
+            <th>Accuracy:</th>
             <td>{{ player_stats.accuracy }}</td>
         </tr>
         <tr>
-            <th>Playcount</th>
+            <th>Playcount:</th>
             <td>{{ player_stats.plays }}</td>
         </tr>
         <tr>
-            <th>Level</th>
+            <th>Level:</th>
             <td>{{ level }}</td>
         </tr>
-
-            
     </tbody>    
 </table>
 
 <h2>Recent Scores</h2>
-<table class="scores">
-    <thead>
-        <tr>
-            <th>Map title</th>
-            <th>Mods</th>
-            <th>PP</th>
-            <th>Accuracy</th>
-            <th>Combo</th>
-            <th>Misses</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for score in recent_scores %}
+<div class="scores-wrapper">
+    <table class="scores">
+        <thead>
             <tr>
-                <td>{{ score.map }}</td>
-                <td>{{ score.mods }}</td>
-                <td>{{ score.pp }}</td>
-                <td>{{ score.acc }}</td>
-                <td>{{ score.combo }}</td>
-                <td>{{ score.hitmiss }}</td>
-                <td>{{ score.date }}</td>
+                <th>Map title</th>
+                <th>Mods</th>
+                <th>PP</th>
+                <th>Accuracy</th>
+                <th>Combo</th>
+                <th>Misses</th>
+                <th>Date</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for score in recent_scores %}
+                <tr>
+                    <td>{{ score.map }}</td>
+                    <td>{{ score.mods }}</td>
+                    <td>{{ score.pp }}</td>
+                    <td>{{ score.acc }}</td>
+                    <td>{{ score.combo }}</td>
+                    <td>{{ score.hitmiss }}</td>
+                    <td>{{ score.date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 <h2>Top Scores</h2>
-<table class="scores">
-    <thead>
-        <tr>
-            <th>Map title</th>
-            <th>Mods</th>
-            <th>PP</th>
-            <th>Accuracy</th>
-            <th>Combo</th>
-            <th>Misses</th>
-            <th>Date</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for score in top_scores %}
+<div class="scores-wrapper">
+    <table class="scores">
+        <thead>
             <tr>
-                <td>{{ score.map }}</td>
-                <td>{{ score.mods }}</td>
-                <td>{{ score.pp }}</td>
-                <td>{{ score.acc }}</td>
-                <td>{{ score.combo }}</td>
-                <td>{{ score.hitmiss }}</td>
-                <td>{{ score.date }}</td>
+                <th>Map title</th>
+                <th>Mods</th>
+                <th>PP</th>
+                <th>Accuracy</th>
+                <th>Combo</th>
+                <th>Misses</th>
+                <th>Date</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for score in top_scores %}
+                <tr>
+                    <td>{{ score.map }}</td>
+                    <td>{{ score.mods }}</td>
+                    <td>{{ score.pp }}</td>
+                    <td>{{ score.acc }}</td>
+                    <td>{{ score.combo }}</td>
+                    <td>{{ score.hitmiss }}</td>
+                    <td>{{ score.date }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

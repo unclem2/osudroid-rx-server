@@ -6,11 +6,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --color-primary: #000;
+            --color-background: #fffb
+        }
+        
+        @media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #111;
+    --text-color: #DDD;
+  }
+}
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #e0e0e0;
+            background-color: var(--background-color);
+            color: var(--text-color)
         }
         .menu {
             background-color: #3d3d3d;
@@ -108,7 +121,8 @@
             <button class="dropbtn">Profile</button>
             <div class="dropdown-content">
                 <a href="/user/profile.php">Profile</a>
-                <a href="/user/account/settings">Settings</a>
+                <a href="/user/set_avatar.php">Set Avatar</a>
+                <a href="/user/change_password.php">Change Password</a>
                 <a href="/user/logout.php">Logout</a>
             </div>
         </div>

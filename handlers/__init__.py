@@ -17,7 +17,6 @@ def load_blueprints():
             path = os.path.join(root, file)[:-3]
             import_path = path.replace("/", ".")
 
-        
             try:
                 module = importlib.import_module(import_path)
                 if not hasattr(module, "bp"):
