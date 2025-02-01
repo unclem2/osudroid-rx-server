@@ -121,5 +121,5 @@ async def profile():
         top_scores=top_scores,
         player=p,
         level=level,
-        avatar_url=avatar
+        avatar_url=avatar,
     )
