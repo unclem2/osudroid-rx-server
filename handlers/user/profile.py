@@ -110,6 +110,10 @@ async def profile():
 
     player_stats["accuracy"] = f"{player_stats['accuracy']:.2f}%"
     player_stats["ranked_score"] = f"{int(player_stats['ranked_score']):,}"
+    if os.path.isfile(f"data/avatar/{player_id}.png"):
+        avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
+    else:
+        avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
     return await render_template(
         "profile.jinja",
         player_stats=player_stats,
@@ -117,4 +121,5 @@ async def profile():
         top_scores=top_scores,
         player=p,
         level=level,
+        avatar_url=avatar
     )
