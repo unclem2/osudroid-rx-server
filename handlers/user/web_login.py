@@ -63,7 +63,9 @@ async def web_login():
                     "error.jinja", error_message="Wrong password"
                 )
 
-        response = await render_template("success.jinja", success_message=Success("Login successful"))
+        response = await render_template(
+            "success.jinja", success_message=Success("Login successful")
+        )
         response = await make_response(response)
         response.set_cookie(
             "login_state",
