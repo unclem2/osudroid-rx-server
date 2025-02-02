@@ -47,7 +47,7 @@ async def change_username():
             [new_username, safe_username, player.id],
         )
 
-        player_new = await Player.from_sql(int(params["userID"]))
+        player_new = await Player.from_sql(int(player_id))
         glob.players.add(player_new)
         glob.players.remove(player)
 
