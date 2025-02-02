@@ -50,7 +50,7 @@ async def change_username():
         player_new = await Player.from_sql(int(params["userID"]))
         glob.players.add(player_new)
         glob.players.remove(player)
-        
+
         return await render_template(
             "success.jinja", success_message="Username changed successfully"
         )
