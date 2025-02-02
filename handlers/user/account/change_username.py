@@ -1,5 +1,6 @@
 from quart import Blueprint, request, render_template
 from objects import glob
+from objects.player import Player
 import os
 import utils
 
@@ -45,6 +46,11 @@ async def change_username():
             "UPDATE users SET username = $1, username_safe = $2 WHERE id = $3",
             [new_username, safe_username, player.id],
         )
+
+        player_new = await Player.from_sql(int(player_id))
+        glob.players.add(player_new)
+        glob.players.remove(player)
+
         return await render_template(
             "success.jinja", success_message="Username changed successfully"
         )
