@@ -5,10 +5,89 @@
 {% endblock %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
-    <p>Number of players: {{ players }}</p>
-    <p>Number of online players: {{ online }}</p>
-    <p>Client version: {{ version }}</p>
-    <p>Link to client <a href="{{ download_link }}">here</a></p>
-    <p>Changelog: {{ changelog }}</p>
+    <div class="background">
+        <div class="content-wrapper">
+            <div class="logo">
+                <img src="static/logo.png" alt="Logo" class="logo-image">
+            </div>
+            <h1 class="fade-in">{{ title }}</h1>
+            <p><i class="fas fa-users"></i> Number of players: {{ players }}</p>
+            <p><i class="fas fa-user-check"></i> Number of online players: {{ online }}</p>
+            <p><i class="fas fa-code-branch"></i> Client version: {{ version }}</p>
+            <p><a href="{{ download_link }}" class="button"><i class="fas fa-download"></i> Download</a></p>
+            <p><i class="fas fa-list"></i> Changelog: {{ changelog }}</p>
+        </div>
+    </div>
+
+    <style>
+        .button {
+            background-color: #1E3A8A;
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            transition-duration: 0.4s;
+            cursor: pointer;
+            border-radius: 25px; /* Bordes redondeados */
+        }
+
+        .button i {
+            margin-right: 8px;
+        }
+
+        .button:hover {
+            background-color: #374151;
+            color: white;
+        }
+
+        .background {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background-color: var(--background-color, #f0f0f0);
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 20px;
+        }
+
+        .content-wrapper {
+            text-align: center;
+        }
+
+        .logo {
+            margin-bottom: 20px;
+        }
+
+        .logo-image {
+            max-width: 100px;
+            max-height: 100px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 2s ease-in-out;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .background {
+                background-color: var(--background-color, #111);
+            }
+        }
+    </style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 {% endblock %}
