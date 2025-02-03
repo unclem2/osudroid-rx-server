@@ -10,20 +10,21 @@
             --color-primary: #000;
             --color-background: #fffb
         }
-        
+
         @media (prefers-color-scheme: dark) {
-  :root {
-    --background-color: #111;
-    --text-color: #DDD;
-  }
-}
+            :root {
+                --background-color: #111;
+                --text-color: #DDD;
+            }
+        }
 
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: var(--background-color);
-            color: var(--text-color)
+            color: var(--text-color);
+            transition: opacity 0.5s ease-in-out;
         }
         .menu {
             background-color: #3d3d3d;
@@ -171,6 +172,15 @@
                 dropdownContents.forEach(content => content.style.display = 'none');
             }
         });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.style.opacity = '1';
+        });
+
+        window.addEventListener('beforeunload', () => {
+            document.body.style.opacity = '0';
+        });
+
     </script>
 </body>
 </html>
