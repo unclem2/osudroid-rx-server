@@ -39,6 +39,7 @@ max_pp_value = (
 osu_key = os.getenv("OSU_KEY", "")
 db_url = os.getenv("DATABASE_URL", "")
 discord_hook = os.getenv("DISCORD", "")
+wl_hook = os.getenv("WL_DISCORD", "")
 legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#

@@ -29,7 +29,7 @@ async def whitelist_add():
         thumbnail=f"https://b.ppy.sh/thumb/{map.set_id}l.jpg",
         content=f"**Map Stats: **\n**CS:** {map.cs} | **AR:** {map.ar} | **OD:** {map.od} | **HP:** {map.hp}",
         footer="Map added to whitelist...",
-        url=glob.config.discord_hook,
+        url=glob.config.wl_hook,
         isEmbed=True,
     )
     await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
