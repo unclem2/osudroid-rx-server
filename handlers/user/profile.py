@@ -18,10 +18,13 @@ async def profile():
         pass
     if "login_state" in request.cookies:
         player_id = int(request.cookies["login_state"].split("-")[1])
-    if "id" in params:
-        player_id = int(params["id"])
-    if "uid" in params:
-        player_id = int(params["uid"])
+    try:
+        if "id" in params:
+            player_id = int(params["id"])
+        if "uid" in params:
+            player_id = int(params["uid"])
+    except ValueError:
+        return await render_template("error.jinja", error_message="No player ID provided")
 
     if player_id is None:
         return await render_template(

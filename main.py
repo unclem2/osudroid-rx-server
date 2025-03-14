@@ -30,11 +30,14 @@ async def update_player_stats():
             for player in glob.players:
                 await player.update_stats()
         except Exception as err:
-            logging.error("Failed to complete task: %r", err)
+            logging.error("Failed to complete task", exc_info=True)
+
+        await asyncio.sleep(0) 
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
-            logging.error("Failed to complete task: %r", err)
+            logging.error("Failed to complete task", exc_info=True)
+
 
 
 async def update_map_status():
@@ -72,8 +75,8 @@ async def init():
     utils.check_folder()
     await glob.db.connect()
     await init_players()
-    asyncio.create_task(update_player_stats())
-    asyncio.create_task(update_map_status())
+    # asyncio.create_task(update_player_stats())
+    # asyncio.create_task(update_map_status())
 
 
 @app.after_serving
