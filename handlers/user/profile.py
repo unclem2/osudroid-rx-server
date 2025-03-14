@@ -24,7 +24,9 @@ async def profile():
         if "uid" in params:
             player_id = int(params["uid"])
     except ValueError:
-        return await render_template("error.jinja", error_message="No player ID provided")
+        return await render_template(
+            "error.jinja", error_message="No player ID provided"
+        )
 
     if player_id is None:
         return await render_template(

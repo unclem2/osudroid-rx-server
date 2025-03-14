@@ -32,12 +32,11 @@ async def update_player_stats():
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
 
-        await asyncio.sleep(0) 
+        await asyncio.sleep(0)
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-
 
 
 async def update_map_status():
