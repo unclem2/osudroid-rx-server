@@ -80,6 +80,7 @@ class Player:
     def as_json(self):
         return {
             "id": self.id,
+            "country": self.country,
             "prefix": self.prefix,
             "name": self.name,
             "online": self.online,
