@@ -33,7 +33,7 @@ class Mods:
             "l": "REZ",
             "m": "SC",
             "f": "PF",
-            "b": "SU",
+            "b": "TC",
         }
 
         mods = ""
@@ -64,7 +64,7 @@ class Mods:
             "l": {"acronym": "REZ"},
             "m": {"acronym": "SC"},
             "f": {"acronym": "PF"},
-            "b": {"acronym": "SU"},
+            "b": {"acronym": "TC"},
         }
 
         used_mods = []
