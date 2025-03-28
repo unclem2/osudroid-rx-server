@@ -28,7 +28,7 @@ class MultiNamespace(socketio.AsyncNamespace):
     def room_id(self):
         return self.namespace.split("/")[-1]
 
-    async def on_disconnect(self, sid):
+    async def on_disconnect(self, sid, environ, *args):
         print(f"Client disconnected: {sid}")
         room_info = glob.rooms.get(self.room_id)
 
