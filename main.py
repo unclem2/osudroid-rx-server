@@ -24,6 +24,13 @@ async def init_players():
         glob.players.add(player)
 
 
+async def shutdown_players():
+    player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
+    for player_id in player_ids:
+        player = await Player.from_sql(player_id["id"])
+        glob.players.remove(player)
+
+
 async def update_player_stats():
     while True:
         try:
@@ -84,6 +91,7 @@ async def close():
     """
     Close the database connection after the server is closed.
     """
+    await shutdown_players()
     await glob.db.close()
 
 

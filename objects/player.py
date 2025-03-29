@@ -50,6 +50,19 @@ class Stats:
             "is_playing": self.playing,
         }
 
+    @classmethod
+    def from_dict(cls, data):
+        return cls(
+            id=data.get("id", 0),
+            rank=data.get("rank", 0),
+            tscore=data.get("total_score", 0),
+            rscore=data.get("ranked_score", 0),
+            acc=data.get("accuracy", 0.0),
+            plays=data.get("plays", 0),
+            pp=data.get("pp", 0.0),
+            playing=data.get("is_playing", None)
+        )
+
 
 class Player:
     def __init__(self, **kwargs):
@@ -65,8 +78,24 @@ class Player:
         self.uuid: str = kwargs.get("uuid", None)  # ...yea
 
         self.last_online: float = 0
-        self.stats: Stats = None
+        stats_data = kwargs.get("stats", {})
+        if not isinstance(stats_data, dict):
+            stats_data = {}
+        self.stats: Stats.from_dict(kwargs.get("stats", {})) = Stats.from_dict(stats_data)
         self.country: str = kwargs.get("country", None)
+        
+    def to_dict(self):
+      return {
+            "id": self.id,
+            "prefix": self.prefix,
+            "username": self.name,
+            "name_safe": self.name_safe,
+            "email_hash": self.email_hash,
+            "uuid": self.uuid,
+            "last_online": self.last_online,
+            "stats": self.stats.as_json,
+            "country": self.country
+        }
 
     def __repr__(self):
         return f"<{self.id} - {self.name}>"
