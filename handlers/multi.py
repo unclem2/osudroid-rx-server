@@ -15,7 +15,7 @@ from objects.room import (
 
 bp = Blueprint("multi", __name__)
 bp.prefix = "/multi/"
-mgr = socketio.AsyncRedisManager("redis://localhost:6379/0")
+mgr = socketio.AsyncRedisManager("redis://localhost:6379/1")
 sio = socketio.AsyncServer(
     async_mode="asgi", cors_allowed_origins="*", engineio_logger=True, client_manager=mgr
 )
