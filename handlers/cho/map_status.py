@@ -11,9 +11,10 @@ forced_route = "/api/v2/md5/<string:md5>"
 async def map_status(md5: str):
     try:
         map = await Beatmap.from_md5(md5)
+        await map.download()
+
     except:
         return {"md5": "", "ranked": -1}
-    await map.download()
 
     if map.status == RankedStatus.Whitelisted:
         map.status = 1

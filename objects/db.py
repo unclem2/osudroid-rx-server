@@ -82,7 +82,8 @@ class PostgresDB:
                     custom_avatar TEXT,
                     email TEXT,
                     email_hash TEXT,
-                    status BIGINT DEFAULT 0
+                    status BIGINT DEFAULT 0,
+                    country TEXT
                 );
 
                 INSERT INTO users (

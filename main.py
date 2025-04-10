@@ -52,13 +52,13 @@ async def update_map_status():
         for qualified_map in qualified_maps:
             map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
             logging.info("Updated map %d to %s", map.id, map.status)
-            await utils.send_webhook(
-                title="Updated map",
-                content=f"Updated map {map.id} to {map.status}",
-                url=glob.config.discord_hook,
-                isEmbed=True,
-            )
-            await asyncio.sleep(5)
+            # await utils.send_webhook(
+            #     title="Updated map",
+            #     content=f"Updated map {map.id} to {map.status}",
+            #     url=glob.config.discord_hook,
+            #     isEmbed=True,
+            # )
+            # await asyncio.sleep(5)
         try:
             await asyncio.sleep(glob.config.cron_delay * 3600)
         except Exception as err:
@@ -156,12 +156,7 @@ def main():
         hypercorn_config.loglevel = "DEBUG"
         hypercorn_config.accesslog = "-"
         hypercorn_config.errorlog = "-"
-    try:
         asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
-    except Exception as e:
-        logging.warning("SSL error ignored: %s", e)
-    except TimeoutError as e:
-        logging.warning("SSL error ignored: %s", e)
 
 
 if __name__ == "__main__":
