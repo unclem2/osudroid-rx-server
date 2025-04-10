@@ -60,5 +60,7 @@ async def register():
         p = await Player.from_sql(player_id)
         glob.players.add(p)
 
-        return Success("Account Created.")
+        return await render_template(
+            "success.jinja", success_message=Success("Account Created.")
+        )
     return await render_template("register.jinja")

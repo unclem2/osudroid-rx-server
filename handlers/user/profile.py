@@ -90,7 +90,7 @@ async def profile():
     def level_formula(i):
         try:
             if i >= 100:
-                return 26931190827 + 99999999999 * (i - 100) 
+                return 26931190827 + 99999999999 * (i - 100)
             return int((5000 / 3 * (4 * i**3 - 3 * i**2 - i)) + 1.25 ** (i - 60))
         except ZeroDivisionError:
             return 0
@@ -99,16 +99,24 @@ async def profile():
     while True:
         cur = level_formula(i)
         nxt = level_formula(i + 1)
-        if cur <= int(player_stats["ranked_score"]) and nxt >= int(player_stats["ranked_score"]):
+        if cur <= int(player_stats["ranked_score"]) and nxt >= int(
+            player_stats["ranked_score"]
+        ):
             level = i
             break
         i += 1
-        if cur > int(player_stats["ranked_score"]) and nxt > int(player_stats["ranked_score"]):
+        if cur > int(player_stats["ranked_score"]) and nxt > int(
+            player_stats["ranked_score"]
+        ):
             level = i
             break
 
     player_stats["accuracy"] = f"{player_stats['accuracy']:.2f}%"
     player_stats["ranked_score"] = f"{int(player_stats['ranked_score']):,}"
+    if os.path.isfile(f"data/avatar/{player_id}.png"):
+        avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
+    else:
+        avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
     return await render_template(
         "profile.jinja",
         player_stats=player_stats,
@@ -116,4 +124,5 @@ async def profile():
         top_scores=top_scores,
         player=p,
         level=level,
+        avatar_url=avatar,
     )

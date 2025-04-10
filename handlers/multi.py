@@ -427,7 +427,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     data.append(room_info.match.submitted_scores[player.uid])
                 except:
                     pass
-                
+
             if room_info.winCondition == WinCondition.SCOREV1:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
             elif room_info.winCondition == WinCondition.ACC:
@@ -498,7 +498,7 @@ async def get_rooms():
     for room_id, room_info in glob.rooms.items():
         players = ""
         for player in room_info.players:
-            players = ','.join(player.username)
+            players = ",".join(player.username)
         room.append(
             {
                 "id": room_info.id,
