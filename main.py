@@ -156,7 +156,7 @@ def main():
         hypercorn_config.loglevel = "DEBUG"
         hypercorn_config.accesslog = "-"
         hypercorn_config.errorlog = "-"
-        asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
+    asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
 
 
 if __name__ == "__main__":
