@@ -14,6 +14,7 @@ class PPCalculator:
         self.max_combo = 0
         self.mods = ""
         self.calc_pp = 0.0
+        
 
     @classmethod
     async def from_md5(cls, md5: str, **kwargs):

@@ -5,7 +5,6 @@ import coloredlogs
 
 from quart import Quart, jsonify, render_template, send_from_directory
 from socketio import ASGIApp
-import uvicorn
 
 # Other imports
 from handlers.multi import sio
@@ -15,6 +14,14 @@ import handlers
 from handlers.response import Failed
 import utils
 from objects.beatmap import Beatmap
+
+import hypercorn
+import hypercorn.logging
+import hypercorn.run
+
+import hypercorn.asyncio
+from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
+
 
 
 async def init_players():
@@ -31,8 +38,7 @@ async def update_player_stats():
                 await player.update_stats()
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-
-        await asyncio.sleep(0) 
+ 
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
@@ -46,13 +52,13 @@ async def update_map_status():
         for qualified_map in qualified_maps:
             map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
             logging.info("Updated map %d to %s", map.id, map.status)
-            await utils.send_webhook(
-                title="Updated map",
-                content=f"Updated map {map.id} to {map.status}",
-                url=glob.config.discord_hook,
-                isEmbed=True,
-            )
-            await asyncio.sleep(5)
+            # await utils.send_webhook(
+            #     title="Updated map",
+            #     content=f"Updated map {map.id} to {map.status}",
+            #     url=glob.config.discord_hook,
+            #     isEmbed=True,
+            # )
+            # await asyncio.sleep(5)
         try:
             await asyncio.sleep(glob.config.cron_delay * 3600)
         except Exception as err:
@@ -69,14 +75,19 @@ def make_app():
 
 app = make_app()
 
+def handle_ex(loop, context):
+    logging.warning("SSL error ignored: " )
+
 
 @app.before_serving
 async def init():
     utils.check_folder()
     await glob.db.connect()
     await init_players()
-    # asyncio.create_task(update_player_stats())
-    # asyncio.create_task(update_map_status())
+    asyncio.create_task(update_player_stats())
+    asyncio.create_task(update_map_status())
+    loop = asyncio.get_running_loop()
+    loop.set_exception_handler(handle_ex)
 
 
 @app.after_serving
@@ -122,46 +133,30 @@ async def index():
     )
 
 
-# @app.route("/endpoints")
-# async def endpoints():
-#     bps = []
-#     blueprints = app.blueprints
-#     for blueprint in blueprints:
-#         bp = blueprints[blueprint]
-#         bps.append(bp.prefix)
-#     return jsonify(bps)
-
-
 def main():
-    logging.basicConfig(
-        level=logging.DEBUG,
-        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
-    )
-
-    app_asgi = ASGIApp(sio, app)
-
-    ssl_keyfile = None
-    ssl_certfile = None
+    hypercorn_config = hypercorn.Config()
+    coloredlogs.install(level=logging.INFO)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
-        ssl_keyfile = f"/etc/letsencrypt/live/{glob.config.domain}/privkey.pem"
-        ssl_certfile = f"/etc/letsencrypt/live/{glob.config.domain}/fullchain.pem"
-        host = "0.0.0.0"
-        port = 443
+        redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
+        app_asgi = ASGIApp(sio, redirected_app)
+        hypercorn_config.bind = ["0.0.0.0:443"]
+        hypercorn_config.keyfile = os.path.join(
+            f"/etc/letsencrypt//live/{glob.config.domain}/privkey.pem"
+        )
+        hypercorn_config.certfile = os.path.join(
+            f"/etc/letsencrypt/live/{glob.config.domain}/fullchain.pem"
+        )
         glob.config.host = f"https://{glob.config.domain}:443"
     else:
-        host = glob.config.ip
-        port = glob.config.port
+        app_asgi = ASGIApp(sio, app)
+        hypercorn_config.bind = [f"{glob.config.ip}:{glob.config.port}"]
         glob.config.host = f"http://{glob.config.ip}:{glob.config.port}"
-
-    uvicorn.run(
-        app_asgi,
-        host=host,
-        port=port,
-        log_level="debug",
-        ssl_keyfile=ssl_keyfile,
-        ssl_certfile=ssl_certfile,
-    )
+        hypercorn_config.debug = True
+        hypercorn_config.loglevel = "DEBUG"
+        hypercorn_config.accesslog = "-"
+        hypercorn_config.errorlog = "-"
+        asyncio.run(hypercorn.asyncio.serve(app_asgi, hypercorn_config))
 
 
 if __name__ == "__main__":
