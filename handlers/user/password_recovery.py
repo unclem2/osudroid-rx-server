@@ -14,9 +14,14 @@ bp = Blueprint("user_password_recovery", __name__)
 @bp.route("/", methods=["GET", "POST"])
 async def password_recovery():
     data = request.args
+    
+    return await render_template(
+        "error.jinja", error_message="Currently disabled"
+    )
+
     if data.get("type") is None and request.method == "GET":
         return await render_template("request_change.jinja")
-
+    
     if data.get("type") == "submit" and request.method == "POST":
         data = await request.form
         if data.get("email") is None:
