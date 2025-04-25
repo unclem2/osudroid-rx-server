@@ -2,6 +2,8 @@ from objects.beatmap import Beatmap
 from objects import glob
 from enum import IntEnum
 from typing import Dict, Union
+import json
+import os
 
 
 class RoomStatus(IntEnum):
@@ -149,3 +151,21 @@ class Room:
             "match": self.match.as_json(),  
         }
 
+async def write_event(id: int, event: str, data: dict):
+    """
+    Write an event to a JSON file for a specific room.
+
+    Args:
+        id (int): The ID of the room.
+        event (str): The event name.
+        data (dict): The event data to be written.
+    """
+    try:
+        with open(f"data/rooms/{id}.json", "w") as f:
+            dump_data = {
+                "event": event,
+                "data": data,
+            }
+            json.dump(dump_data, f, indent=4)
+    except Exception as e:
+        print(f"Failed to write event for room {id}: {e}")
