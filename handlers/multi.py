@@ -496,9 +496,8 @@ async def create_room():
 async def get_rooms():
     room = []
     for room_id, room_info in glob.rooms.items():
-        players = ""
-        for player in room_info.players:
-            players = ",".join(player.username)
+        players = ",".join([player.username for player in room_info.players])
+
         room.append(
             {
                 "id": room_info.id,

@@ -148,3 +148,4 @@ class Room:
             "winCondition": self.winCondition,
             "match": self.match.as_json(),  
         }
+
