@@ -16,6 +16,7 @@ data/replays/*
 data/beatmaps/*
 data/avatar/*
 data/replays_old/*
+data/rooms/*
 
 # Distribution / packaging
 .Python

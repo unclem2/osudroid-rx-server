@@ -151,7 +151,7 @@ class Room:
             "match": self.match.as_json(),  
         }
 
-async def write_event(id: int, event: str, data: dict):
+def write_event(id: int, event: str, data: dict):
     """
     Write an event to a JSON file for a specific room.
 
@@ -160,12 +160,11 @@ async def write_event(id: int, event: str, data: dict):
         event (str): The event name.
         data (dict): The event data to be written.
     """
-    try:
-        with open(f"data/rooms/{id}.json", "w") as f:
-            dump_data = {
-                "event": event,
-                "data": data,
-            }
-            json.dump(dump_data, f, indent=4)
-    except Exception as e:
-        print(f"Failed to write event for room {id}: {e}")
+    
+    with open(f"data/rooms/{id}.jsonl", "a") as f:
+        dump_data = {
+            "event": event,
+            "data": data,
+        }
+        json.dump(dump_data, f, ensure_ascii=False, indent=4)
+        f.write("\n")

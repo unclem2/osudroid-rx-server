@@ -11,6 +11,7 @@ from objects.room import (
     WinCondition,
     PlayerTeam,
     Match,
+    write_event
 )
 
 bp = Blueprint("multi", __name__)
@@ -243,6 +244,8 @@ class MultiNamespace(socketio.AsyncNamespace):
                     data=(str(player.uid), args[0]),
                     namespace=self.namespace,
                 )
+        write_event(self.room_id, "chatMessage", [str(player.uid), args[0]])
+        
 
     async def on_roomNameChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
