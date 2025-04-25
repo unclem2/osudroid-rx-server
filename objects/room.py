@@ -188,7 +188,7 @@ def get_id() -> str:
     
     rooms = os.listdir("data/rooms")
     if len(rooms) == 0:
-        return 1
+        return '1'
     else:
         ids = [int(room.split(".")[0]) for room in rooms]
         return str(max(ids) + 1)
