@@ -14,7 +14,6 @@ from objects.room import (
     write_event,
     get_id
 )
-import os
 
 bp = Blueprint("multi", __name__)
 bp.prefix = "/multi/"
@@ -30,6 +29,20 @@ class MultiNamespace(socketio.AsyncNamespace):
     @property
     def room_id(self):
         return self.namespace.split("/")[-1]
+    
+    async def emit_event(self, event, data=None, namespace=None, to=None, *args, **kwargs):
+        if to:
+            await sio.emit(event, data, namespace=namespace, to=to, *args, **kwargs)
+        else:
+            await sio.emit(event, data, namespace=namespace, *args, **kwargs)
+        write_event(
+            self.room_id,
+            event,
+            {
+                "data": data,
+                "to": to
+            },
+        )
 
     async def on_disconnect(self, sid, environ, *args):
         print(f"Client disconnected: {sid}")
@@ -41,9 +54,10 @@ class MultiNamespace(socketio.AsyncNamespace):
                 disconnected_player = player
                 break
 
-        await sio.emit(
+        await self.emit_event(
             "playerLeft", data=str(disconnected_player.uid), namespace=self.namespace
         )
+
 
         # Check if the disconnected player was the host
         if room_info.host.uid == disconnected_player.uid:
@@ -51,12 +65,13 @@ class MultiNamespace(socketio.AsyncNamespace):
             for new_host in room_info.players:
                 if new_host.uid != disconnected_player.uid:
                     room_info.host = new_host
-                    await sio.emit(
+                    await self.emit_event(
                         event="hostChanged",
                         data=str(room_info.host.uid),
                         namespace=self.namespace,
                     )
                     break
+ 
 
         # Remove the player from the room
         for i in range(len(room_info.players)):
@@ -72,9 +87,10 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         if room_info.isLocked == True:
             if args[0]["password"] != room_info.password:
-                await sio.emit(
+                await self.emit_event(
                     "error", "Wrong password", namespace=self.namespace, to=sid
                 )
+
                 await sio.disconnect(sid=sid, namespace=self.namespace)
         room_info.players.append(PlayerMulti().player(id=args[0]["uid"], sid=sid))
 
@@ -101,9 +117,10 @@ class MultiNamespace(socketio.AsyncNamespace):
             "sessionId": utils.make_uuid(),
         }
         # Emit initial connection event
-        await sio.emit(
+        await self.emit_event(
             data=resp, namespace=self.namespace, event="initialConnection", to=sid
         )
+
 
         # If there is only one player in the room, return early
         if len(room_info.players) == 1:
@@ -119,7 +136,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         # Notify other players about the new player joining
         for player in room_info.players:
             if player.sid != sid:
-                await sio.emit(
+                await self.emit_event(
                     "playerJoined",
                     data=new_player.as_json(),
                     namespace=self.namespace,
@@ -140,7 +157,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                 mods.customCS = mods_data.get("customCS", 0)
                 mods.customHP = mods_data.get("customHP", 0)
 
-                await sio.emit(
+                await self.emit_event(
                     "playerModsChanged",
                     (str(player.uid), mods_data),
                     namespace=self.namespace,
@@ -174,7 +191,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                         print(room_info.match.players)
                     if len(room_info.match.players) == 0:
                         room_info.status = RoomStatus.IDLE
-                        await sio.emit(
+                        await self.emit_event(
                             "roomStatusChanged",
                             int(room_info.status),
                             namespace=self.namespace,
@@ -186,7 +203,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     player.status = PlayerStatus.NOMAP
                 if args[0] == 3:
                     player.status = PlayerStatus.PLAYING
-                await sio.emit(
+                await self.emit_event(
                     "playerStatusChanged",
                     (str(player.uid), int(player.status)),
                     namespace=self.namespace,
@@ -196,7 +213,7 @@ class MultiNamespace(socketio.AsyncNamespace):
     async def on_hostChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.host = PlayerMulti().player(int(args[0]), sid=sid)
-        await sio.emit(
+        await self.emit_event(
             event="hostChanged", data=str(room_info.host.uid), namespace=self.namespace
         )
 
@@ -213,7 +230,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         mods.customCS = mods_data.get("customCS", 0)
         mods.customHP = mods_data.get("customHP", 0)
 
-        await sio.emit("roomModsChanged", mods_data, namespace=self.namespace)
+        await self.emit_event("roomModsChanged", mods_data, namespace=self.namespace)
 
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -231,7 +248,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             gameplay_settings.allowForceDifficultyStatistics,
         )
 
-        await sio.emit(
+        await self.emit_event(
             "roomGameplaySettingsChanged",
             gameplay_settings.as_json(),
             namespace=self.namespace,
@@ -241,18 +258,17 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
             if player.sid == sid:
-                await sio.emit(
+                await self.emit_event(
                     "chatMessage",
                     data=(str(player.uid), args[0]),
                     namespace=self.namespace,
                 )
-        write_event(self.room_id, "chatMessage", [str(player.uid), args[0]])
         
 
     async def on_roomNameChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.name = args[0]
-        await sio.emit(
+        await self.emit_event(
             "roomNameChanged", data=str(room_info.name), namespace=self.namespace
         )
 
@@ -278,22 +294,22 @@ class MultiNamespace(socketio.AsyncNamespace):
         if args[0] == 3:
             room_info.winCondition = WinCondition.SCOREV2
 
-        await sio.emit(
+        await self.emit_event(
             "winConditionChanged", data=room_info.winCondition, namespace=self.namespace
         )
 
     async def on_teamModeChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.teamMode = args[0]
-        await sio.emit("teamModeChanged", room_info.teamMode, namespace=self.namespace)
+        await self.emit_event("teamModeChanged", room_info.teamMode, namespace=self.namespace)
         for player in room_info.players:
             player.team = None
-            await sio.emit(
+            await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.IDLE)),
                 namespace=self.namespace,
             )
-            await sio.emit(
+            await self.emit_event(
                 "teamChanged",
                 data=(str(player.uid), player.team),
                 namespace=self.namespace,
@@ -307,7 +323,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     player.team = PlayerTeam.RED
                 if args[0] == 1:
                     player.team = PlayerTeam.BLUE
-                await sio.emit(
+                await self.emit_event(
                     "teamChanged",
                     data=(str(player.uid), player.team),
                     namespace=self.namespace,
@@ -317,7 +333,7 @@ class MultiNamespace(socketio.AsyncNamespace):
         room_info = glob.rooms.get(self.room_id)
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
-            await sio.emit("beatmapChanged", data=args[0], namespace=self.namespace)
+            await self.emit_event("beatmapChanged", data=args[0], namespace=self.namespace)
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
             try:
@@ -342,17 +358,17 @@ class MultiNamespace(socketio.AsyncNamespace):
             except:
                 pass
 
-            await sio.emit("beatmapChanged", data=return_data, namespace=self.namespace)
+            await self.emit_event("beatmapChanged", data=return_data, namespace=self.namespace)
 
     async def on_playBeatmap(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.status = RoomStatus.PLAYING
-        await sio.emit(
+        await self.emit_event(
             "roomStatusChanged", data=room_info.status, namespace=self.namespace
         )
-        await sio.emit("playBeatmap", namespace=self.namespace)
+        await self.emit_event("playBeatmap", namespace=self.namespace)
         for player in room_info.players:
-            await sio.emit(
+            await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.PLAYING)),
                 namespace=self.namespace,
@@ -365,7 +381,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             if player.sid == sid:
                 room_info.match.beatmap_load_status[player.uid] = {"loaded": True}
         if len(room_info.match.beatmap_load_status) == len(room_info.match.players):
-            await sio.emit("allPlayersBeatmapLoadComplete", namespace=self.namespace)
+            await self.emit_event("allPlayersBeatmapLoadComplete", namespace=self.namespace)
 
     async def on_skipRequested(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -375,7 +391,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                 room_info.match.skip_requests[player.uid] = {"skipped": True}
 
         if len(room_info.match.skip_requests) == len(room_info.match.players):
-            await sio.emit("allPlayersSkipRequested", namespace=self.namespace)
+            await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
 
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -417,7 +433,7 @@ class MultiNamespace(socketio.AsyncNamespace):
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )
 
-        await sio.emit("liveScoreData", live_score_data, namespace=self.namespace)
+        await self.emit_event("liveScoreData", live_score_data, namespace=self.namespace)
 
     async def on_scoreSubmission(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -442,25 +458,25 @@ class MultiNamespace(socketio.AsyncNamespace):
             elif room_info.winCondition == WinCondition.SCOREV2:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
 
-            await sio.emit(
+            await self.emit_event(
                 "allPlayersScoreSubmitted", data=data, namespace=self.namespace
             )
 
             room_info.status = RoomStatus.IDLE
-            await sio.emit(
+            await self.emit_event(
                 "roomStatusChanged", int(room_info.status), namespace=self.namespace
             )
 
             for player in room_info.players:
                 player.status = PlayerStatus.IDLE
-                await sio.emit(
+                await self.emit_event(
                     "playerStatusChanged", (str(player.uid), int(player.status))
                 )
 
             room_info.match = Match()
 
     async def on_playerKicked(self, sid, *args):
-        await sio.emit("playerKicked", data=str(args[0]), namespace=self.namespace)
+        await self.emit_event("playerKicked", data=str(args[0]), namespace=self.namespace)
 
 
 @bp.route("/createroom", methods=["POST"])
