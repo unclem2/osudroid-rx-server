@@ -12,8 +12,10 @@ from objects.room import (
     PlayerTeam,
     Match,
     write_event,
-    get_id
+    get_id,
+    read_room_log
 )
+
 
 bp = Blueprint("multi", __name__)
 bp.prefix = "/multi/"
@@ -39,7 +41,7 @@ class MultiNamespace(socketio.AsyncNamespace):
             self.room_id,
             event,
             {
-                "data": data,
+                "request": data,
                 "to": to
             },
         )
@@ -536,3 +538,10 @@ async def get_rooms():
         )
 
     return jsonify(room)
+
+
+@bp.route("/history")
+async def history():
+    data = request.args
+    return jsonify(read_room_log(data.get("id")))
+    

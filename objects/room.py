@@ -166,8 +166,17 @@ def write_event(id: int, event: str, data: dict):
             "event": event,
             "data": data,
         }
-        json.dump(dump_data, f, ensure_ascii=False, indent=4)
+        json.dump(dump_data, f, ensure_ascii=False)
         f.write("\n")
+
+def read_room_log(id: int) -> list:
+    with open(f"data/rooms/{id}.jsonl", "r") as f:
+        room_data = []
+        for line in f.readlines():
+            room_data.append(json.loads(line))
+            
+    return room_data
+
 
 def get_id() -> str:
     """
