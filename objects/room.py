@@ -104,6 +104,15 @@ class Match:
         self.live_score_data: dict = {}
         self.submitted_scores: dict = {}
         self.players: list = []
+        
+    def as_json(self) -> dict[str, dict]:
+        return {
+            "beatmap_load_status": self.beatmap_load_status,
+            "skip_requests": self.skip_requests,
+            "live_score_data": self.live_score_data,
+            "submitted_scores": self.submitted_scores,
+            "players": [player.as_json() for player in self.players],
+        }
 
 
 class Room:
@@ -122,3 +131,20 @@ class Room:
         self.winCondition: WinCondition = WinCondition.SCOREV1
         self.password: str = ""
         self.match = Match()
+        
+    def as_json(self) -> dict[str, Union[str, int, bool]]:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "map": self.map.as_json() if self.map else None,
+            "host": self.host.as_json(),
+            "isLocked": self.isLocked,
+            "gameplaySettings": self.gameplaySettings.as_json(),
+            "maxPlayers": self.maxPlayers,
+            "mods": self.mods.as_json(),
+            "players": [player.as_json() for player in self.players],
+            "status": self.status,
+            "teamMode": self.teamMode,
+            "winCondition": self.winCondition,
+            "match": self.match.as_json(),  
+        }
