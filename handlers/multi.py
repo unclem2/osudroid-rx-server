@@ -11,8 +11,10 @@ from objects.room import (
     WinCondition,
     PlayerTeam,
     Match,
-    write_event
+    write_event,
+    get_id
 )
+import os
 
 bp = Blueprint("multi", __name__)
 bp.prefix = "/multi/"
@@ -467,7 +469,7 @@ async def create_room():
     if not data:
         return jsonify({"error": "Invalid request"}), 400
 
-    room_id = str(len(glob.rooms) + 1)  # Simple dynamic ID generation
+    room_id = get_id()
     room = Room()
     room.id = room_id
     room.name = data["name"]

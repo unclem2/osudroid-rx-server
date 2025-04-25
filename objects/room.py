@@ -168,3 +168,18 @@ def write_event(id: int, event: str, data: dict):
         }
         json.dump(dump_data, f, ensure_ascii=False, indent=4)
         f.write("\n")
+
+def get_id() -> str:
+    """
+    Get the next available room ID.
+
+    Returns:
+        int: The next available room ID.
+    """
+    
+    rooms = os.listdir("data/rooms")
+    if len(rooms) == 0:
+        return 1
+    else:
+        ids = [int(room.split(".")[0]) for room in rooms]
+        return str(max(ids) + 1)
