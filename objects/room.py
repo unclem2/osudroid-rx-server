@@ -4,6 +4,7 @@ from enum import IntEnum
 from typing import Dict, Union
 import json
 import os
+import time
 
 
 class RoomStatus(IntEnum):
@@ -151,20 +152,26 @@ class Room:
             "match": self.match.as_json(),  
         }
 
-def write_event(id: int, event: str, data: dict):
+def write_event(id: int, event: str, direction: int, data: dict, receiver = None, sender = None):
     """
     Write an event to a JSON file for a specific room.
 
     Args:
         id (int): The ID of the room.
         event (str): The event name.
-        data (dict): The event data to be written.
+        direction (int): The direction of the event (0 for out, 1 for in).
+        data (dict): The data associated with the event.
+        to (str, optional): The recipient of the event. Defaults to None.   
     """
     
     with open(f"data/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,
             "data": data,
+            "direction": "out" if direction == 0 else "in",
+            "timestamp": int(time.time()),
+            "to": receiver,
+            "from": sender,
         }
         json.dump(dump_data, f, ensure_ascii=False)
         f.write("\n")
