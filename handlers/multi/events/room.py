@@ -103,3 +103,10 @@ class RoomEvents:
                     data=(str(player.uid), player.team),
                     namespace=self.namespace,
                 )
+                
+    async def on_maxPlayersChanged(self, sid, *args):
+        room_info = glob.rooms.get(self.room_id)
+        room_info.maxPlayers = args[0]
+        await self.emit_event(
+            "maxPlayersChanged", data=str(room_info.maxPlayers), namespace=self.namespace
+        )
