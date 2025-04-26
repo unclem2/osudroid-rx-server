@@ -2,12 +2,13 @@ from handlers.multi import sio
 from objects import glob
 from objects.room import PlayerMulti, Room
 import utils
+import asyncio
 
 
 class ConnectionEvents:
     async def on_disconnect(self, sid, *args):
         print(f"Client disconnected: {sid}")
-        room_info = glob.rooms.get(self.room_id)
+        room_info:Room = glob.rooms.get(self.room_id)
 
         disconnected_player = None
         for player in room_info.players:
@@ -41,6 +42,9 @@ class ConnectionEvents:
                 break
 
         if len(room_info.players) == 0:
+            room_info.name = "Closing"
+            room_info.isLocked = True
+            asyncio.sleep(5)
             glob.rooms.pop(self.room_id)
 
     async def on_connect(self, sid, environ, *args):

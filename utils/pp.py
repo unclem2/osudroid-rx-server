@@ -9,7 +9,9 @@ import objects.mods as Mods
 class PPCalculator:
     def __init__(self, path):
         self.bm_path = path
-        self.acc = 100
+        self.hit300 = 0
+        self.hit100 = 0
+        self.hit50 = 0
         self.hmiss = 0
         self.max_combo = 0
         self.mods = ""
@@ -82,9 +84,10 @@ class PPCalculator:
                     applied = True
                     break
 
-        # Create the performance object
         performance = osu_pp.Performance(
-            accuracy=self.acc,
+            n300=self.hit300,
+            n100=self.hit100,
+            n50=self.hit50,
             mods=mods,
             misses=self.hmiss,
             combo=self.max_combo,
@@ -106,7 +109,6 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-        # Calculate performance attributes
         attributes = performance.calculate(beatmap)
 
         try:
@@ -120,7 +122,6 @@ class PPCalculator:
         if force_ar is not None:
             force_ar_penalty = 0
 
-        # Calculate and return the final pp value
         aim_pp = attributes.pp_aim * 1.1
         amount_hitobjects = (
             attributes.difficulty.n_circles
