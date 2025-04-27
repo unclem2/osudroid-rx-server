@@ -85,12 +85,7 @@ class PPCalculator:
                     break
 
         performance = osu_pp.Performance(
-            n300=self.hit300,
-            n100=self.hit100,
-            n50=self.hit50,
             mods=mods,
-            misses=self.hmiss,
-            combo=self.max_combo,
         )
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
@@ -109,12 +104,19 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-        attributes = performance.calculate(beatmap)
-
+        
         try:
-            speed_reduction = attributes.pp_speed / attributes.pp
+            ideal_pp = performance.calculate(beatmap)
+            speed_reduction = ideal_pp.pp_speed / ideal_pp.pp
         except ZeroDivisionError:
-            return 0
+            speed_reduction = 1
+
+        performance.set_n300(self.hit300)
+        performance.set_n100(self.hit100)
+        performance.set_n50(self.hit50)
+        performance.set_misses(self.hmiss)
+        performance.set_combo(self.max_combo)
+        attributes = performance.calculate(beatmap)
 
         speed_reduction_factor = math.exp(-speed_reduction)
 
@@ -139,6 +141,10 @@ class PPCalculator:
         )
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
+        
+        print(
+            f"PP: {pp_return} | Aim: {attributes.pp_aim} | Speed: {attributes.pp_speed} | Speed Reduction: {speed_reduction_factor} | Force AR: {force_ar_penalty} | Miss Penality Aim: {miss_penality_aim}"
+        )
         self.calc_pp = pp_return
         return pp_return
 
