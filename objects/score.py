@@ -224,7 +224,9 @@ async def recalc_scores():
                         s = Score()
                         s.id = user_map_score["id"]
                         s.pp = await PPCalculator.from_md5(maphash)
-                        s.acc = user_map_score["acc"]
+                        s.h300 = user_map_score["hit300"]
+                        s.h100 = user_map_score["hit100"]
+                        s.h50 = user_map_score["hit50"]
                         s.hmiss = user_map_score["hitmiss"]
                         s.max_combo = user_map_score["combo"]
                         s.mods = user_map_score["mods"]
@@ -233,7 +235,9 @@ async def recalc_scores():
                 if s.pp == False:
                     print(f"{player.id} - failed to load map {maphash}")
                     continue
-                s.pp.acc = s.acc
+                s.pp.hit300 = s.h300
+                s.pp.hit100 = s.h100
+                s.pp.hit50 = s.h50
                 s.pp.hmiss = s.hmiss
                 s.pp.max_combo = s.max_combo
                 s.pp.mods = s.mods

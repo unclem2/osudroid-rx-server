@@ -151,7 +151,9 @@ async def recalc_single_score(score_id: int):
 
     m = await PPCalculator.from_md5(score["maphash"])
     if m:
-        m.acc = score["acc"]
+        m.hit300 = score["hit300"]
+        m.hit100 = score["hit100"]
+        m.hit50 = score["hit50"]
         m.hmiss = score["hitmiss"]
         m.max_combo = score["combo"]
         m.mods = score["mods"]
@@ -160,6 +162,6 @@ async def recalc_single_score(score_id: int):
 
         print(score["id"], score["maphash"], m.calc_pp)
 
-        await glob.db.execute(
-            "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
-        )
+        # await glob.db.execute(
+        #     "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
+        # )
