@@ -104,12 +104,6 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-        
-        try:
-            ideal_pp = performance.calculate(beatmap)
-            speed_reduction = ideal_pp.pp_speed / ideal_pp.pp
-        except ZeroDivisionError:
-            speed_reduction = 1
 
         performance.set_n300(self.hit300)
         performance.set_n100(self.hit100)
@@ -118,7 +112,6 @@ class PPCalculator:
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
 
-        speed_reduction_factor = math.exp(-speed_reduction)
 
         force_ar_penalty = 1
         if force_ar is not None:
@@ -137,14 +130,11 @@ class PPCalculator:
             miss_penality_aim = 0.99
 
         pp_return = (
-            aim_pp * speed_reduction_factor * force_ar_penalty * miss_penality_aim
+            aim_pp * force_ar_penalty * miss_penality_aim
         )
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
         
-        print(
-            f"PP: {pp_return} | Aim: {attributes.pp_aim} | Speed: {attributes.pp_speed} | Speed Reduction: {speed_reduction_factor} | Force AR: {force_ar_penalty} | Miss Penality Aim: {miss_penality_aim}"
-        )
         self.calc_pp = pp_return
         return pp_return
 
