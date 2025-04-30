@@ -34,17 +34,18 @@ async def calculate():
     score.pp.mods = data.get("mods", "")
     score.mods = score.pp.mods
 
+    acc = int(100)
     if acc := data.get("acc"):
         if acc.isdecimal():
             score.acc = float(acc)
             score.pp.acc = score.acc
-
+    miss = int(0)
     if miss := data.get("miss"):
         if miss.isdecimal():
             score.pp.hmiss = int(miss)
             score.hmiss = score.pp.hmiss
 
-    score.pp.max_combo = score.bmap.max_combo
+    score.pp.max_combo = int(score.bmap.max_combo)
     if combo := data.get("combo"):
         if combo.isdecimal():
             score.pp.max_combo = int(combo)
