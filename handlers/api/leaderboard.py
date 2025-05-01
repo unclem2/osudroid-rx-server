@@ -7,7 +7,7 @@ bp = Blueprint("leaderboard", __name__)
 @bp.route("/")
 async def leaderboard():
     players_stats = await glob.db.fetchall(
-        "SELECT stats.id, stats.rank, stats.pp, stats.plays, users.username, users.country "
+        "SELECT stats.id, stats.rank, stats.pp, stats.plays, stats.acc, stats.tscore, stats.rscore, users.username, users.country "
         "FROM stats "
         "INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC"
     )
