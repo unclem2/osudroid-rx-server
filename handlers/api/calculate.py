@@ -34,12 +34,12 @@ async def calculate():
     score.pp.mods = data.get("mods", "")
     score.mods = score.pp.mods
 
-    acc = int(100)
+    score.acc = float(100.00)
     if acc := data.get("acc"):
         if acc.isdecimal():
             score.acc = float(acc)
             score.pp.acc = score.acc
-    miss = int(0)
+    score.pp.hmiss = int(0)
     if miss := data.get("miss"):
         if miss.isdecimal():
             score.pp.hmiss = int(miss)
