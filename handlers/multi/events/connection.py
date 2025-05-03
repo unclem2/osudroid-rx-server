@@ -38,8 +38,19 @@ class ConnectionEvents:
         # Remove the player from the room
         for i in range(len(room_info.players)):
             if room_info.players[i] == disconnected_player:
-                room_info.players.pop(i)
+                room_info.players.pop(i)  
                 break
+
+        if len(room_info.match.players) != 0:
+            for i in range(len(room_info.match.players)):
+                if room_info.match.players[i] == disconnected_player:
+                    room_info.match.players.pop(i)
+                    for j in range(len(room_info.match.live_score_data)):
+                        if room_info.match.live_score_data[j].username == disconnected_player.username:
+                            room_info.match.live_score_data.pop(j)
+                            break  
+                    break
+
 
         if len(room_info.players) == 0:
             room_info.name = "Closing"
