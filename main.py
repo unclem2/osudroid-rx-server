@@ -23,7 +23,6 @@ import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
 
 
-
 async def init_players():
     player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
     for player_id in player_ids:
@@ -38,12 +37,11 @@ async def update_player_stats():
                 await player.update_stats()
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
- 
+
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-
 
 
 async def update_map_status():
@@ -75,8 +73,9 @@ def make_app():
 
 app = make_app()
 
+
 def handle_ex(loop, context):
-    logging.warning("SSL error ignored: " )
+    logging.warning("SSL error ignored: ")
 
 
 @app.before_serving
