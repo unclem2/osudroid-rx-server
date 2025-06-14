@@ -3,62 +3,293 @@
 {% block title %}Leaderboard{% endblock %}
 
 {% block content %}
+<style>
+    :root {
+        --text-color: #333;
+        --primary-color: #007BFF;
+        --card-bg: #fff;
+        --card-radius: 12px;
+        --gold: #ffd700;
+        --silver: #c0c0c0;
+        --bronze: #cd7f32;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        background-color: var(--background-color);
+        color: var(--text-color);
+    }
+
+    header {
+        text-align: center;
+        padding: 30px 0 10px;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin: 0;
+    }
+
+    .controls {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin: 20px auto;
+    }
+
+    .controls input[type="text"] {
+        padding: 10px;
+        width: 250px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+    }
+
+    .controls button {
+        padding: 10px 16px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s ease-in-out;
+    }
+
+    .controls button:hover {
+        background-color: #0056b3;
+    }
+
+    .leaderboard-wrapper {
+        display: flex;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .leaderboard-card {
+        width: 100%;
+        max-width: 1000px;
+        background-color: var(--card-bg);
+        border-radius: var(--card-radius);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    /* Table */
+    table.leaderboard-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+        border-radius: 10px;
+    }
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 16px 14px;
+        text-align: left;
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .leaderboard-table th {
+        background: linear-gradient(to right, #007bff, #3399ff);
+        color: white;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .leaderboard-table tr:nth-child(even) {
+        background-color: #f5f9ff;
+    }
+
+    .leaderboard-table tr:hover {
+        background-color: #e6f0ff;
+        transition: background-color 0.2s ease;
+    }
+
+    .leaderboard-table td a {
+        color: var(--text-color);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .leaderboard-table td a:hover {
+        text-decoration: underline;
+    }
+
+    /* Pagination */
+    .pagination {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .pagination button {
+        margin: 0 5px;
+        padding: 8px 14px;
+        background-color: var(--primary-color);
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+    }
+
+    .pagination button:disabled {
+        background-color: #999;
+        cursor: not-allowed;
+    }
+
+    @media (max-width: 768px) {
+        .controls {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls input {
+            width: 90%;
+        }
+    }
+</style>
+
 <header>
     <h1>Leaderboard</h1>
 </header>
-<main>
-    <section id="leaderboard">
-        <div class="sort-buttons">
-            <button id="sort-pp">Sort by PP</button>
-            <button id="sort-rscore">Sort by Ranked Score</button>
-        </div>
-        <table id="leaderboard-table">
+
+<div class="controls">
+    <input type="text" id="search-input" placeholder="Search by username...">
+    <button id="sort-pp">Sort by PP</button>
+    <button id="sort-rscore">Sort by Ranked Score</button>
+</div>
+
+<div class="leaderboard-wrapper">
+    <div class="leaderboard-card">
+        <table class="leaderboard-table" id="leaderboard-table">
             <thead>
                 <tr>
                     <th>Rank</th>
                     <th>Player</th>
                     <th>PP</th>
-                    <th>Ranked score</th>
+                    <th>Ranked Score</th>
                     <th>Plays</th>
                     <th>ID</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody id="leaderboard-body">
                 {% for player in leaderboard %}
-                    <tr>
-                        <td>{{ player.rank }}</td>
-                        <td><a href="/user/profile.php?id={{player.id}}">{{ player.username }}</a></td>
-                        <td>{{ player.pp }}</td>
-                        <td>{{ player.rscore }}</td>
-                        <td>{{ player.plays }}</td>
-                        <td>{{ player.id }}</td>
-                    </tr>
+                <tr>
+                    <td>{{ player.rank }}</td>
+                    <td><a href="/user/profile.php?id={{ player.id }}">{{ player.username }}</a></td>
+                    <td>{{ player.pp }}</td>
+                    <td>{{ player.rscore }}</td>
+                    <td>{{ player.plays }}</td>
+                    <td>{{ player.id }}</td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>
-    </section>
-</main>
+    </div>
+</div>
+
+<div class="pagination">
+    <button id="prev-page" disabled>Previous</button>
+    <button id="next-page">Next</button>
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const table = document.querySelector('#leaderboard-table tbody');
-        const rows = Array.from(table.rows);
+        const tableBody = document.querySelector('#leaderboard-body');
+        let allRows = Array.from(tableBody.querySelectorAll('tr'));
+        const searchInput = document.getElementById('search-input');
+        const perPage = 10;
+        let currentPage = 1;
+        let filteredRows = allRows.slice();
 
-        function sortTable(key, isNumeric = true) {
-            rows.sort((a, b) => {
-                const cellA = a.cells[key].textContent.trim();
-                const cellB = b.cells[key].textContent.trim();
+        function displayPage(page) {
+            const start = (page - 1) * perPage;
+            const end = start + perPage;
 
-                return isNumeric
-                    ? parseFloat(cellB) - parseFloat(cellA)
-                    : cellA.localeCompare(cellB);
+            // Hide all rows first
+            allRows.forEach(row => (row.style.display = 'none'));
+
+            // Show only filtered rows for current page
+            filteredRows.slice(start, end).forEach(row => {
+                row.style.display = '';
             });
 
-            rows.forEach(row => table.appendChild(row));
+            // Remove previous rank highlights
+            filteredRows.forEach(row => {
+                row.cells[0].style.color = '';
+                row.cells[0].style.fontWeight = '';
+            });
+
+            // Apply top 3 styling based on actual rank in filteredRows
+            filteredRows.slice(start, end).forEach(row => {
+                const actualRank = parseInt(row.cells[0].textContent.trim());
+                if (actualRank === 1) {
+                    row.cells[0].style.color = 'var(--gold)';
+                    row.cells[0].style.fontWeight = 'bold';
+                } else if (actualRank === 2) {
+                    row.cells[0].style.color = 'var(--silver)';
+                    row.cells[0].style.fontWeight = 'bold';
+                } else if (actualRank === 3) {
+                    row.cells[0].style.color = 'var(--bronze)';
+                    row.cells[0].style.fontWeight = 'bold';
+                }
+            });
+
+            document.getElementById('prev-page').disabled = page === 1;
+            document.getElementById('next-page').disabled = end >= filteredRows.length;
         }
 
-        document.querySelector('#sort-pp').addEventListener('click', () => sortTable(2));
-        document.querySelector('#sort-rscore').addEventListener('click', () => sortTable(3));
+        function sortTable(columnIndex, isNumeric = true) {
+            filteredRows.sort((a, b) => {
+                const aVal = a.cells[columnIndex].textContent.trim();
+                const bVal = b.cells[columnIndex].textContent.trim();
+
+                return isNumeric
+                    ? parseFloat(bVal) - parseFloat(aVal)
+                    : aVal.localeCompare(bVal);
+            });
+            currentPage = 1;
+            updateTable();
+        }
+
+        function updateTable() {
+            tableBody.innerHTML = '';
+            filteredRows.forEach(row => tableBody.appendChild(row));
+            displayPage(currentPage);
+        }
+
+        function filterTable() {
+            const query = searchInput.value.toLowerCase().trim();
+            filteredRows = allRows.filter(row => {
+                return row.cells[1].textContent.toLowerCase().includes(query);
+            });
+            currentPage = 1;
+            updateTable();
+        }
+
+        document.getElementById('sort-pp').addEventListener('click', () => sortTable(2));
+        document.getElementById('sort-rscore').addEventListener('click', () => sortTable(3));
+        searchInput.addEventListener('input', filterTable);
+
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                displayPage(currentPage);
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', () => {
+            const maxPage = Math.ceil(filteredRows.length / perPage);
+            if (currentPage < maxPage) {
+                currentPage++;
+                displayPage(currentPage);
+            }
+        });
+
+        displayPage(currentPage);
     });
 </script>
 {% endblock %}
