@@ -1,9 +1,69 @@
-{% block title %}<h1>Change Email</h1>{% endblock %}
-{% block content %}
-<form method="post", action="{{ url_for('user_change_email.change_email') }}">
-    <label for="new_email">New Email:</label><br>
-    <input type="email" id="new_email" name="new_email" required><br>
-    <input type="submit" value="Change Email">
-</form>
+{% block title %}
+  <h1>Change Email</h1>
+{% endblock %}
 
+{% block content %}
+<style>
+  .form-container {
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(6px);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .form-container form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-container label {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+  }
+
+  .form-container input[type="email"],
+  .form-container input[type="submit"] {
+    padding: 0.8rem;
+    margin-bottom: 1.2rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1rem;
+  }
+
+  .form-container input[type="submit"] {
+    background-color: #1E3A8A;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .form-container input[type="submit"]:hover {
+    background-color: #374151;
+  }
+
+  @media (max-width: 480px) {
+    .form-container {
+      padding: 1.5rem;
+    }
+
+    .form-container input {
+      font-size: 0.95rem;
+    }
+  }
+</style>
+
+<div class="form-container">
+  <form method="post" action="{{ url_for('user_change_email.change_email') }}">
+    <label for="new_email">New Email</label>
+    <input type="email" id="new_email" name="new_email" required>
+    <input type="submit" value="Change Email">
+  </form>
+</div>
 {% endblock %}
