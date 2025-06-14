@@ -1,71 +1,158 @@
 {% extends "base.html" %}
 
-{% block head %}
-    <title>Login</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-        }
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-        }
-        input[type="text"], input[type="password"] {
-            margin-bottom: 10px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        input[type="submit"] {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: #007BFF;
-            color: #fff;
-            cursor: pointer;
-        }
-        input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-    </style>
-{% endblock %}
+{% block title %}Login{% endblock %}
 
 {% block content %}
-    <div class="container">
-        <h1>Login</h1>
-        {% if error_message %}
-            <div class="error">
-                <p>{{ error_message }}</p>
-            </div>
-        {% endif %}
-        <form method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <input type="submit" value="Login">
-        </form>
+<style>
+  .login-container {
+    background: #fff;
+    max-width: 400px;
+    width: 90vw; /* fluid width */
+    padding: 30px 25px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    margin: 40px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  .login-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #007BFF;
+  }
+
+  form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #333;
+    text-align: center;
+  }
+
+  form input[type="text"],
+  form input[type="password"] {
+    width: 100%; /* full container width */
+    padding: 10px 12px;
+    margin-bottom: 16px;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    display: block;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+  }
+
+  form input[type="text"]:focus,
+  form input[type="password"]:focus {
+    border-color: #007BFF;
+    outline: none;
+  }
+
+  form input[type="submit"] {
+    display: block;
+    width: 150px;
+    margin: 25px auto 0 auto;
+    padding: 10px;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  form input[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  .error {
+    color: red;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .forgot-password {
+    text-align: center;
+    margin-top: 15px;
+  }
+
+  .forgot-password a {
+    color: #007BFF;
+    text-decoration: none;
+    font-size: 14px;
+  }
+
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .login-container {
+      padding: 25px 15px;
+      margin: 20px 10px;
+      width: 95vw;
+    }
+
+    form input[type="submit"] {
+      width: 100%;
+      max-width: 200px;
+      margin: 25px auto 0 auto;
+    }
+  }
+</style>
+
+<div class="login-container" role="main" aria-labelledby="login-title">
+  <h1 id="login-title">Login</h1>
+
+  {% if error_message %}
+    <div class="error" role="alert">
+      <p>{{ error_message }}</p>
     </div>
+  {% endif %}
+
+  <form method="post" novalidate>
+    <label for="username">Username</label>
+    <input
+      type="text"
+      id="username"
+      name="username"
+      placeholder="Enter username"
+      required
+      autocomplete="username"
+      minlength="3"
+      maxlength="20"
+      pattern="^[a-zA-Z0-9_]+$"
+      aria-describedby="username-note"
+    />
+    <div id="username-note" style="text-align:center; font-size:12px; color:#555; margin-bottom: 16px;">
+      3-20 characters, letters, numbers, and underscores only
+    </div>
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      placeholder="Enter password"
+      required
+      minlength="6"
+      autocomplete="current-password"
+      aria-describedby="password-note"
+    />
+    <div id="password-note" style="text-align:center; font-size:12px; color:#555; margin-bottom: 16px;">
+      At least 6 characters
+    </div>
+
+    <input type="submit" value="Login" />
+  </form>
+
+  <div class="forgot-password">
     <a href="/user/password_recovery">Forgot password?</a>
+  </div>
+</div>
 {% endblock %}
