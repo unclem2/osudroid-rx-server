@@ -5,89 +5,168 @@
 {% endblock %}
 
 {% block content %}
-    <div class="background">
-        <div class="content-wrapper">
-            <div class="logo">
-                <img src="static/logo.png" alt="Logo" class="logo-image">
-            </div>
-            <h1 class="fade-in">{{ title }}</h1>
-            <p><i class="fas fa-users"></i> Number of players: {{ players }}</p>
-            <p><i class="fas fa-user-check"></i> Number of online players: {{ online }}</p>
-            <p><i class="fas fa-code-branch"></i> Client version: {{ version }}</p>
-            <p><a href="{{ download_link }}" class="button"><i class="fas fa-download"></i> Download</a></p>
-            <p><i class="fas fa-list"></i> Changelog: {{ changelog }}</p>
-        </div>
-    </div>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-    <style>
-        .button {
-            background-color: #1E3A8A;
-            border: none;
-            color: white;
-            padding: 15px 32px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            transition-duration: 0.4s;
-            cursor: pointer;
-            border-radius: 25px;
-        }
+<style>
+  :root {
+    --accent: #007BFF;
+    --button-bg: #1E3A8A;
+    --button-hover: #374151;
+    --discord-bg: #5865F2;
+    --discord-hover: #4752c4;
+    --text-color: var(--text-color);
+    --bg-color: var(--background-color);
+  }
 
-        .button i {
-            margin-right: 8px;
-        }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-x: hidden;
+  }
 
-        .button:hover {
-            background-color: #374151;
-            color: white;
-        }
+  .animated-background {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 0;
+    pointer-events: none;
+  }
 
-        .background {
-            position: relative;
-            width: 100%;
-            height: 100vh;
-            overflow: hidden;
-            background-color: var(--background-color, #f0f0f0);
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            padding-top: 20px;
-        }
+  .note {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    animation: float 15s linear infinite;
+    opacity: 0.2;
+  }
 
-        .content-wrapper {
-            text-align: center;
-        }
+  @keyframes float {
+    from { transform: translateY(100vh); }
+    to { transform: translateY(-10vh); }
+  }
 
-        .logo {
-            margin-bottom: 20px;
-        }
+  .background {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+    z-index: 1;
+  }
 
-        .logo-image {
-            max-width: 100px;
-            max-height: 100px;
-        }
+  .content-wrapper {
+    background-color: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(10px);
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    text-align: center;
+    z-index: 2;
+    max-width: 420px;
+    width: 100%;
+  }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
+  .logo-image {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 1rem;
+  }
 
-        .fade-in {
-            animation: fadeIn 2s ease-in-out;
-        }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 0.8rem;
+    color: var(--text-color);
+  }
 
-        @media (prefers-color-scheme: dark) {
-            .background {
-                background-color: var(--background-color, #111);
-            }
-        }
-    </style>
+  p {
+    font-size: 1rem;
+    margin: 0.5rem 0;
+  }
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  .button {
+    display: inline-block;
+    background-color: var(--button-bg);
+    color: white;
+    font-weight: 600;
+    padding: 12px 24px;
+    border-radius: 30px;
+    margin-top: 1rem;
+    text-decoration: none;
+    transition: background 0.3s ease;
+  }
+  .button:hover {
+    background-color: var(--button-hover);
+  }
+  .button i {
+    margin-right: 8px;
+  }
+
+  /* Discord button style */
+  .button.discord {
+    background-color: var(--discord-bg);
+  }
+  .button.discord:hover {
+    background-color: var(--discord-hover);
+  }
+
+  @media (max-width: 500px) {
+    .background {
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .content-wrapper {
+      padding: 1.5rem;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+    }
+
+    .logo-image {
+      width: 70px;
+      height: 70px;
+    }
+  }
+</style>
+
+<div class="animated-background">
+  {% for i in range(30) %}
+    <div class="note" style="
+      left: {{ (loop.index * 3) % 100 }}%;
+      animation-delay: -{{ (loop.index * 0.5) }}s;
+      animation-duration: {{ 10 + (loop.index % 10) }}s;
+    "></div>
+  {% endfor %}
+</div>
+
+<div class="background">
+  <div class="content-wrapper">
+    <img src="static/logo.png" alt="Logo" class="logo-image">
+    <h1>{{ title }}</h1>
+    <p><i class="fas fa-users"></i> Players: {{ players }}</p>
+    <p><i class="fas fa-user-check"></i> Online: {{ online }}</p>
+    <p><i class="fas fa-code-branch"></i> Version: {{ version }}</p>
+
+    <p>
+      <a href="{{ download_link }}" class="button"><i class="fas fa-download"></i> Download</a>
+    </p>
+    <p>
+      <a href="https://discord.gg/syd5GjFk5Q" target="_blank" rel="noopener" class="button discord">
+        <i class="fab fa-discord"></i> Join Discord
+      </a>
+    </p>
+
+    <p><i class="fas fa-list"></i> Changelog: {{ changelog }}</p>
+  </div>
+</div>
 {% endblock %}
