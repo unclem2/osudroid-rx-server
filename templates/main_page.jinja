@@ -16,6 +16,14 @@
     --discord-hover: #4752c4;
     --text-color: var(--text-color);
     --bg-color: var(--background-color);
+    --color-primary: #000;
+    --color-background: #fffb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background-color: #111;
+      --text-color: #DDD;
+      }
   }
 
   html, body {
@@ -151,7 +159,7 @@
 
 <div class="background">
   <div class="content-wrapper">
-    <img src="static/logo.png" alt="Logo" class="logo-image">
+    <img src="https://files.catbox.moe/d8ycd0.jpg" alt="Logo" class="logo-image">
     <h1>{{ title }}</h1>
     <p><i class="fas fa-users"></i> Players: {{ players }}</p>
     <p><i class="fas fa-user-check"></i> Online: {{ online }}</p>
