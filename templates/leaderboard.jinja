@@ -7,11 +7,19 @@
     :root {
         --text-color: #333;
         --primary-color: #007BFF;
-        --card-bg: #fff;
+        --card-bg: var(--background-color);
         --card-radius: 12px;
         --gold: #ffd700;
         --silver: #c0c0c0;
         --bronze: #cd7f32;
+        --color-primary: #000;
+        --color-background: #fffb
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --background-color: #111;
+        --text-color: #DDD;
+        }
     }
 
     body {
@@ -100,8 +108,8 @@
         letter-spacing: 0.5px;
     }
 
-    .leaderboard-table tr:nth-child(even) {
-        background-color: #f5f9ff;
+    .leaderboard-table tr:nth-child {
+        background-color: var(background-color);
     }
 
     .leaderboard-table tr:hover {
