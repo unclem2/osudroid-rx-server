@@ -24,7 +24,6 @@
             padding: 0;
             background-color: var(--background-color);
             color: var(--text-color);
-            transition: opacity 0.5s ease-in-out;
         }
         .menu {
             background-color: #3d3d3d;
@@ -172,15 +171,6 @@
                 dropdownContents.forEach(content => content.style.display = 'none');
             }
         });
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.body.style.opacity = '1';
-        });
-
-        window.addEventListener('beforeunload', () => {
-            document.body.style.opacity = '0';
-        });
-
     </script>
 </body>
 </html>
