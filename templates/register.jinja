@@ -3,27 +3,141 @@
 {% block title %}Register{% endblock %}
 
 {% block content %}
+<style>
+  .form-container {
+    background: var(--background-color);
+    max-width: 400px;
+    width: 90vw;
+    padding: 30px 25px;
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+    margin: 40px auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Register</title>
-  </head>
-  <body>
-    <h1>Register</h1>
-    <form method="post" action="/api/register.php">
-      <label for="username">Username:</label><br>
-      <input type="text" id="username" name="username"><br>
-      <label for="password">Password:</label><br>
-      <input type="password" id="password" name="password"><br><br>
-      <label for="email">Email:</label><br>
-      <input type="text" id="email" name="email"><br>
+  .form-container h1 {
+    text-align: center;
+    margin-bottom: 25px;
+    color: var(--text-color);
+  }
 
-      <input type="submit" value="Register">
-    </form>
-  </body>
-</html>
+  form label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--test-color);
+    text-align: center;
+  }
+
+  form input[type="text"],
+  form input[type="email"],
+  form input[type="password"] {
+    width: 100%;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    display: block;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+  }
+
+  form input[type="text"]:focus,
+  form input[type="email"]:focus,
+  form input[type="password"]:focus {
+    border-color: #007BFF;
+    outline: none;
+  }
+
+  form input[type="submit"] {
+    display: block;
+    width: 150px;
+    margin: 25px auto 0 auto;
+    padding: 10px;
+    background-color: #007BFF;
+    border: none;
+    border-radius: 6px;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+
+  form input[type="submit"]:hover {
+    background-color: #0056b3;
+  }
+
+  .form-note {
+    font-size: 13px;
+    color: #555;
+    margin-top: -10px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 480px) {
+    .form-container {
+      margin: 20px 15px;
+      padding: 25px 20px;
+      width: 95vw;
+    }
+
+    form input[type="submit"] {
+      width: 100%;
+      max-width: 200px;
+      margin: 25px auto 0 auto;
+    }
+  }
+</style>
+
+<div class="form-container" role="main" aria-labelledby="register-title">
+  <h1 id="register-title">Register</h1>
+  <form method="post" action="/api/register.php" novalidate>
+    <label for="username">Username</label>
+    <input
+      type="text"
+      id="username"
+      name="username"
+      required
+      minlength="3"
+      maxlength="20"
+      pattern="^[a-zA-Z0-9_]+$"
+      aria-describedby="username-note"
+      autocomplete="username"
+      placeholder="Enter username"
+    />
+    <div id="username-note" class="form-note">3-20 characters, letters, numbers, and underscores only</div>
+
+    <label for="password">Password</label>
+    <input
+      type="password"
+      id="password"
+      name="password"
+      required
+      minlength="6"
+      aria-describedby="password-note"
+      autocomplete="new-password"
+      placeholder="Enter password"
+    />
+    <div id="password-note" class="form-note">At least 6 characters</div>
+
+    <label for="email">Email</label>
+    <input
+      type="email"
+      id="email"
+      name="email"
+      required
+      autocomplete="email"
+      placeholder="Enter email"
+    />
+    
+    <input type="submit" value="Register" />
+  </form>
+</div>
 {% endblock %}
-

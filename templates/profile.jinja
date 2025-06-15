@@ -4,218 +4,220 @@
 
 {% block content %}
 <style>
+  :root {
+    --card-bg: var(--background-color);
+    --card-border: rgba(0, 0, 0, 0.15);
+    --accent-bar: #007BFF;
+  }
 
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    background-color: var(--background-color);
+    color: var(--text-color);
+  }
 
+  .profile-card {
+    max-width: 800px;
+    margin: 30px auto;
+    background-color: var(--card-bg);
+    border-left: 6px solid var(--accent-bar);
+    box-shadow: 0 4px 12px var(--card-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color)
-        }
+  .profile-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
 
-    .profile-table {
-        width: 90%;
-        margin: 20px auto;
-        border-collapse: collapse;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
+  .profile-photo {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--accent-bar);
+  }
+
+  .header-info {
+    flex-grow: 1;
+  }
+
+  .username {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0 0 6px;
+  }
+
+  .username + .country-rank {
+    font-size: 14px;
+    opacity: 0.8;
+  }
+
+  .stats-grid {
+    display: flex;
+    justify-content: space-around;
+    padding: 20px;
+    background-color: var(--card-bg);
+    gap: 20px;
+  }
+
+  .stat {
+    text-align: center;
+    flex: 1 1 0;
+  }
+
+  .stat .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    opacity: 0.7;
+    margin-bottom: 4px;
+  }
+
+  .stat .value {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--accent-bar);
+  }
+
+  .section-title {
+    margin: 40px auto 10px;
+    max-width: 800px;
+    font-size: 20px;
+    font-weight: 600;
+    border-left: 6px solid var(--accent-bar);
+    padding-left: 10px;
+  }
+
+  .scores-wrapper {
+    max-width: 800px;
+    margin: 0 auto 40px;
+    overflow-x: auto;
+  }
+
+  .scores-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .scores-table th,
+  .scores-table td {
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .scores-table th {
+    background-color: var(--accent-bar);
+    color: #fff;
+    font-size: 12px;
+    text-transform: uppercase;
+  }
+
+  .scores-table tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+
+  .scores-table tr:hover {
+    background-color: rgba(0, 0, 0, 0.06);
+  }
+
+  .scores-table td {
+    font-size: 14px;
+  }
+
+  .country-flag {
+    width: 24px;
+    height: 16px;
+    vertical-align: middle;
+    margin-left: 4px;
+  }
+
+  @media (max-width: 600px) {
+    .profile-header {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
     }
-   
-    h1, h2 {
-        text-align: center;
-        color: var(--text-color)
+    .stats-grid {
+      flex-direction: column;
+      gap: 12px;
     }
-
-    .profile-photo {
-        display: block;
-        margin: 0 auto;
-        border-radius: 50%;
-        width: 150px;
-        height: 150px;
-        object-fit: cover;
+    .scores-table th, .scores-table td {
+      padding: 8px 6px;
+      font-size: 12px;
     }
-
-    
-    .profile {
-        width: 85%;
-        max-width: 600px;
-        margin: 12px auto;
-        border-collapse: collapse;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-    }
-
-    .profile th, .profile td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-        color var(--text-color);
-    }
-
-    .profile th {
-        background-color: #007BFF;
-        color: var(--text-color);
-        text-transform: uppercase;
-        font-size: 14px;
-        width: 25%
-    }
-
-    .profile tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-
-    .profile tr:hover {
-        background-color: #f1f1f1;
-    }
-
-    .profile td {
-        font-size: 14px;
-        background-color: var(--background-color);
-    }
-
-    .scores-wrapper {
-        overflow-x: auto;
-        margin: 20px auto;
-        width: 90%;
-    }
-
-    .scores {
-        width: 100%;
-        border-collapse: collapse;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: #fff;
-    }
-
-    .scores th, .scores td {
-        padding: 12px;
-        text-align: center;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .scores th {
-        background-color: #007BFF;
-        color: var(--text-color);
-        text-transform: uppercase;
-        font-size: 14px;
-        text-align: center;
-    }
-
-    .scores tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-
-    .scores tr:hover {
-        background-color: #f1f1f1;
-    }
-
-    .scores td {
-        font-size: 14px;
-        background-color: var(--background-color);
-    }
-
-
-    .country-flag {
-        width: 30px;
-        height: 20px;
-        object-fit: cover;
-    }
+  }
 </style>
 
-<h1>Player Profile</h1>
-<img src="{{ avatar_url }}" alt="Profile Photo" class="profile-photo">
-
-<table class="profile">
-    <tbody>
-        <tr>
-            <th>Username:</th>
-            <td>{{ player.name }}</td>
-        </tr>
-        <tr>
-            <th>Country:</th>
-            <td><img src="https://flagsapi.com/{{ player.country }}/flat/64.png" class="country-flag"></td>
-        </tr>
-        <tr>
-            <th>Rank:</th>
-            <td>{{ player_stats.rank }}</td>
-        </tr>
-        <tr>
-            <th>PP</th>
-            <td>{{ player_stats.pp }}</td>
-        </tr>
-        <tr>
-            <th>Accuracy:</th>
-            <td>{{ player_stats.accuracy }}</td>
-        </tr>
-        <tr>
-            <th>Playcount:</th>
-            <td>{{ player_stats.plays }}</td>
-        </tr>
-        <tr>
-            <th>Level:</th>
-            <td>{{ level }}</td>
-        </tr>
-    </tbody>    
-</table>
-
-<h2>Recent Scores</h2>
-<div class="scores-wrapper">
-    <table class="scores">
-        <thead>
-            <tr>
-                <th>Map title</th>
-                <th>Mods</th>
-                <th>PP</th>
-                <th>Accuracy</th>
-                <th>Combo</th>
-                <th>Misses</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for score in recent_scores %}
-                <tr>
-                    <td>{{ score.map }}</td>
-                    <td>{{ score.mods }}</td>
-                    <td>{{ score.pp }}</td>
-                    <td>{{ score.acc }}</td>
-                    <td>{{ score.combo }}</td>
-                    <td>{{ score.hitmiss }}</td>
-                    <td>{{ score.date }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="profile-card">
+  <div class="profile-header">
+    <img src="{{ avatar_url }}" alt="Avatar" class="profile-photo">
+    <div class="header-info">
+      <p class="username">{{ player.name }}</p>
+      <p class="country-rank">
+        <img class="country-flag"
+             src="https://flagsapi.com/{{ player.country }}/flat/64.png"
+             alt="Flag of {{ player.country }}"> 
+        Rank #{{ player_stats.rank }}
+      </p>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat"><div class="label">pp</div><div class="value">{{ player_stats.pp }}</div></div>
+    <div class="stat"><div class="label">Accuracy</div><div class="value">{{ player_stats.accuracy }}</div></div>
+    <div class="stat"><div class="label">Playcount</div><div class="value">{{ player_stats.plays }}</div></div>
+    <div class="stat"><div class="label">Level</div><div class="value">{{ level }}</div></div>
+  </div>
 </div>
 
-<h2>Top Scores</h2>
+<h2 class="section-title">Recent Scores</h2>
 <div class="scores-wrapper">
-    <table class="scores">
-        <thead>
-            <tr>
-                <th>Map title</th>
-                <th>Mods</th>
-                <th>PP</th>
-                <th>Accuracy</th>
-                <th>Combo</th>
-                <th>Misses</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for score in top_scores %}
-                <tr>
-                    <td>{{ score.map }}</td>
-                    <td>{{ score.mods }}</td>
-                    <td>{{ score.pp }}</td>
-                    <td>{{ score.acc }}</td>
-                    <td>{{ score.combo }}</td>
-                    <td>{{ score.hitmiss }}</td>
-                    <td>{{ score.date }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+  <table class="scores-table">
+    <thead>
+      <tr>
+        <th>Map</th><th>Mods</th><th>PP</th><th>Acc</th><th>Combo</th><th>Miss</th><th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for score in recent_scores %}
+      <tr>
+        <td>{{ score.map }}</td>
+        <td>{{ score.mods }}</td>
+        <td>{{ score.pp }}</td>
+        <td>{{ score.acc }}%</td>
+        <td>{{ score.combo }}</td>
+        <td>{{ score.hitmiss }}</td>
+        <td>{{ score.date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="section-title">Top Scores</h2>
+<div class="scores-wrapper">
+  <table class="scores-table">
+    <thead>
+      <tr>
+        <th>Map</th><th>Mods</th><th>PP</th><th>Acc</th><th>Combo</th><th>Miss</th><th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for score in top_scores %}
+      <tr>
+        <td>{{ score.map }}</td>
+        <td>{{ score.mods }}</td>
+        <td>{{ score.pp }}</td>
+        <td>{{ score.acc }}</td>
+        <td>{{ score.combo }}</td>
+        <td>{{ score.hitmiss }}</td>
+        <td>{{ score.date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
 {% endblock %}
