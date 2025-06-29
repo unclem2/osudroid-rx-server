@@ -16,7 +16,6 @@ class PPCalculator:
         self.max_combo = 0
         self.mods = ""
         self.calc_pp = 0.0
-        
 
     @classmethod
     async def from_md5(cls, md5: str, **kwargs):
@@ -104,14 +103,12 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-
         performance.set_n300(self.hit300)
         performance.set_n100(self.hit100)
         performance.set_n50(self.hit50)
         performance.set_misses(self.hmiss)
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
-
 
         force_ar_penalty = 1
         if force_ar is not None:
@@ -129,12 +126,10 @@ class PPCalculator:
         if miss_penality_aim > 0.99:
             miss_penality_aim = 0.99
 
-        pp_return = (
-            aim_pp * force_ar_penalty * miss_penality_aim
-        )
+        pp_return = aim_pp * force_ar_penalty * miss_penality_aim
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
-        
+
         self.calc_pp = pp_return
         return pp_return
 
