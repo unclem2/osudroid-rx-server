@@ -8,7 +8,7 @@ import asyncio
 class ConnectionEvents:
     async def on_disconnect(self, sid, *args):
         print(f"Client disconnected: {sid}")
-        room_info:Room = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(self.room_id)
 
         disconnected_player = None
         for player in room_info.players:
@@ -19,7 +19,6 @@ class ConnectionEvents:
         await self.emit_event(
             "playerLeft", data=str(disconnected_player.uid), namespace=self.namespace
         )
-
 
         # Check if the disconnected player was the host
         if room_info.host.uid == disconnected_player.uid:
@@ -33,12 +32,11 @@ class ConnectionEvents:
                         namespace=self.namespace,
                     )
                     break
- 
 
         # Remove the player from the room
         for i in range(len(room_info.players)):
             if room_info.players[i] == disconnected_player:
-                room_info.players.pop(i)  
+                room_info.players.pop(i)
                 break
 
         if len(room_info.match.players) != 0:
@@ -46,11 +44,13 @@ class ConnectionEvents:
                 if room_info.match.players[i] == disconnected_player:
                     room_info.match.players.pop(i)
                     for j in range(len(room_info.match.live_score_data)):
-                        if room_info.match.live_score_data[j].username == disconnected_player.username:
+                        if (
+                            room_info.match.live_score_data[j].username
+                            == disconnected_player.username
+                        ):
                             room_info.match.live_score_data.pop(j)
-                            break  
+                            break
                     break
-
 
         if len(room_info.players) == 0:
             room_info.name = "Closing"
@@ -60,7 +60,7 @@ class ConnectionEvents:
 
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
-        room_info:Room = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(self.room_id)
         if room_info.isLocked == True:
             if args[0]["password"] != room_info.password:
                 await self.emit_event(
@@ -103,7 +103,6 @@ class ConnectionEvents:
         await self.emit_event(
             data=resp, namespace=self.namespace, event="initialConnection", to=sid
         )
-
 
         # If there is only one player in the room, return early
         if len(room_info.players) == 1:
