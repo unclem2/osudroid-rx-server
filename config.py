@@ -20,7 +20,7 @@ client_link = "https://github.com/unclem2/odrx-client/releases/download/1.15/osu
 client_version = "1.15(250420)"
 client_version_code = 1745145666
 client_changelog = "1.8 migration + new domain 2"
-banner_url = "https://github.com/unclem2/osudroid-rx-server"
+banner_url = "https://discord.gg/Ub4nXasaHd"
 
 ## CRON ##
 # 1 = 1 Minute

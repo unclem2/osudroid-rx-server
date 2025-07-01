@@ -16,9 +16,6 @@ import utils
 from objects.beatmap import Beatmap
 
 import hypercorn
-import hypercorn.logging
-import hypercorn.run
-
 import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
 

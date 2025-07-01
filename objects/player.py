@@ -8,12 +8,13 @@ import utils
 @dataclass
 class Stats:
     id: int
-    rank: int
-    tscore: int
-    rscore: int
-    acc: float
-    plays: int
-    pp: float
+    pp_rank: int 
+    score_rank: int 
+    tscore: int 
+    rscore: int 
+    acc: float 
+    plays: int 
+    pp: float 
     playing: str = None
 
     @property
@@ -26,22 +27,26 @@ class Stats:
 
     @property
     def droid_submit_stats(self):
-        # returns current stats
+        string = f"{self.pp_rank if glob.config.pp else self.score_rank} "
         if glob.config.legacy == True:
-            return f"{self.rank} {self.rank_by} {self.droid_acc} 0"
+            string += f"{self.pp if glob.config.pp else self.rscore} "
         else:
-            return f"{self.rank} {self.rscore} {self.droid_acc} 0 {self.pp}"
-
-    @property
-    def rank_by(self):
-        if glob.config.legacy == True:
-            return self.pp if glob.config.pp else self.rscore
+            string += f"{self.rscore} "
+        string += f"{self.droid_acc} 0"
+        if glob.config.legacy == False:
+            if glob.config.pp:
+                string += f" {self.pp}"
+            else:
+                string += f" 0"
+                
+        return string
 
     @property
     def as_json(self):
         return {
             "id": self.id,
-            "rank": self.rank,
+            "pp_rank": self.pp_rank,
+            "score_rank": self.score_rank,
             "total_score": self.tscore,
             "ranked_score": self.rscore,
             "accuracy": self.acc,
@@ -115,19 +120,26 @@ class Player:
 
     async def update_stats(self):
         # Fetch player scores
-        scores_query = """
-        SELECT s.acc, s.pp, s.score FROM scores s
-        WHERE s.playerID = $1 AND s.status = 2 AND
-        s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
-        ORDER BY s.pp DESC
-    """
-        scores = await glob.db.fetchall(scores_query, [int(self.id)])
-
-        all_scores = await glob.db.fetchall(
-            "SELECT * FROM scores WHERE playerID = $1", [int(self.id)]
+        top_scores = await glob.db.fetchall("""
+        SELECT * 
+        FROM scores s
+        WHERE s.playerID = $1 
+            AND s.status = 2 
+            AND s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
+        ORDER BY s.pp 
+        DESC
+        """, [int(self.id)]
         )
 
-        if not scores:
+        all_scores = await glob.db.fetchall(
+            """
+            SELECT * 
+            FROM scores 
+            WHERE playerID = $1
+            """, [int(self.id)]
+        )
+
+        if not top_scores or not all_scores:
             logging.error(
                 f"Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})"
             )
@@ -137,14 +149,13 @@ class Player:
         except:
             stats = Stats(
                 id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0
-            )
+            ) 
 
         # Calculate average accuracy
         if stats is None:
             stats = Stats(
                 id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0
-            )
-        top_scores = scores
+            )   
         stats.acc = sum(row["acc"] for row in top_scores) / len(top_scores)
 
         # Calculate performance points (pp)
@@ -153,30 +164,46 @@ class Player:
             weight = 0.95**i
             weighted_pp = row["pp"] * weight
             total_pp += weighted_pp
-            # logging.info(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
+            logging.debug(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
         stats.pp = round(total_pp)
-        stats.rscore = sum(row["score"] for row in scores)
+        stats.rscore = sum(row["score"] for row in top_scores)
         stats.tscore = sum(row["score"] for row in all_scores)
-        # Determine rank
-        rank_by = "pp" if glob.config.pp else "rscore"
-        higher_by = stats.pp if glob.config.pp else stats.rscore
-        rank_query = f"SELECT count(*) AS c FROM stats WHERE {rank_by} > $1"
-        rank_result = await glob.db.fetch(rank_query, [higher_by])
-        stats.rank = rank_result["c"] + 1
+
+        score_rank_query = """
+        SELECT COUNT(*) AS c 
+        FROM stats 
+        WHERE rscore > $1
+        
+        """
+        score_rank_result = await glob.db.fetch(
+            score_rank_query, [int(stats.rscore)]
+        )
+
+        pp_rank_query = """ 
+        SELECT COUNT(*) AS c
+        FROM stats 
+        WHERE pp > $1
+        """
+        pp_rank_result = await glob.db.fetch(
+            pp_rank_query, [int(stats.pp)]
+        )
+        stats.score_rank = score_rank_result["c"] + 1
+        stats.pp_rank = pp_rank_result["c"] + 1
         stats.plays = len(all_scores)
 
         # Update stats in the database
-        update_query = "UPDATE stats SET acc = $1, rank = $2, pp = $3, rscore = $4, tscore = $5, plays= $6 WHERE id = $7"
+        update_query = "UPDATE stats SET acc = $1, pp_rank = $2, pp = $3, rscore = $4, tscore = $5, plays = $6, score_rank = $7 WHERE id = $8"
         await glob.db.execute(
             update_query,
             [
                 stats.acc,
-                stats.rank,
+                stats.pp_rank,
                 stats.pp,
                 stats.rscore,
                 stats.tscore,
                 stats.plays,
-                self.id,
+                stats.score_rank,
+                self.id
             ],
         )
 

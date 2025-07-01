@@ -62,7 +62,8 @@ class PostgresDB:
 
                 CREATE TABLE IF NOT EXISTS stats (
                     id SERIAL PRIMARY KEY,
-                    rank BIGINT DEFAULT 0,
+                    pp_rank BIGINT DEFAULT 0,
+                    score_rank BIGINT DEFAULT 0,
                     pp REAL DEFAULT 0,
                     acc REAL DEFAULT 100.0,
                     tscore BIGINT DEFAULT 0,
@@ -92,7 +93,7 @@ class PostgresDB:
                 VALUES(-1, '???', '???', 'rembestwaifu69420!!@', -1)
                 ON CONFLICT (id) DO NOTHING;
 
-                INSERT INTO stats (id, rank)
+                INSERT INTO stats (id, pp_rank)
                 VALUES (-1, 100)
                 ON CONFLICT (id) DO NOTHING;
                 """
@@ -115,6 +116,7 @@ class PostgresDB:
             async with connection.transaction():
                 if "INSERT" in query.upper() and "RETURNING" not in query.upper():
                     query += " RETURNING id"
+                logging.debug(f"Executing query: {query} with params: {params}")
                 result = await connection.fetchval(query, *params)
         return result
 
@@ -124,6 +126,7 @@ class PostgresDB:
                 result = await connection.fetch(query, *params)
             else:
                 result = await connection.fetchrow(query, *params)
+            logging.debug(f"Fetching query: {query} with params: {params}")
             return (
                 [self.dict_factory(row) for row in result]
                 if _all

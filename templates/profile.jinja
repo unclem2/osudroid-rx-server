@@ -157,12 +157,12 @@
     <img src="{{ avatar_url }}" alt="Avatar" class="profile-photo">
     <div class="header-info">
       <p class="username">{{ player.name }}</p>
-      <p class="country">
+      <p class="country-rank">
         <img class="country-flag"
              src="https://flagsapi.com/{{ player.country }}/flat/64.png"
-             alt="Flag of {{ player.country }}">
+             alt="Flag of {{ player.country }}"> 
+        Rank #{{ player_stats.pp_rank }} / {{ player_stats.score_rank}}
       </p>
-      <p class="rank">Rank #{{ player_stats.rank }}</p>
     </div>
   </div>
   <div class="stats-grid">

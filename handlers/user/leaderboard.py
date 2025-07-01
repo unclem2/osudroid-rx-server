@@ -9,7 +9,7 @@ php_file = True
 @bp.route("/")
 async def leaderboard():
     players_stats = await glob.db.fetchall(
-        "SELECT stats.id, stats.rank, stats.pp, stats.plays, users.username, stats.rscore "
+        "SELECT stats.id, stats.pp_rank, stats.pp, stats.plays, users.username, stats.rscore, stats.score_rank "
         "FROM stats "
         "INNER JOIN users ON stats.id = users.id ORDER BY stats.pp DESC"
     )
