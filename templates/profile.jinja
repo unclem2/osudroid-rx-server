@@ -52,7 +52,7 @@
     margin: 0 0 6px;
   }
 
-  .username + .country-rank {
+  .username + .country + .rank {
     font-size: 14px;
     opacity: 0.8;
   }
@@ -173,30 +173,6 @@
   </div>
 </div>
 
-<h2 class="section-title">Recent Scores</h2>
-<div class="scores-wrapper">
-  <table class="scores-table">
-    <thead>
-      <tr>
-        <th>Map</th><th>Mods</th><th>PP</th><th>Acc</th><th>Combo</th><th>Miss</th><th>Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for score in recent_scores %}
-      <tr>
-        <td>{{ score.map }}</td>
-        <td>{{ score.mods }}</td>
-        <td>{{ score.pp }}</td>
-        <td>{{ score.acc }}%</td>
-        <td>{{ score.combo }}</td>
-        <td>{{ score.hitmiss }}</td>
-        <td>{{ score.date }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
 <h2 class="section-title">Top Scores</h2>
 <div class="scores-wrapper">
   <table class="scores-table">
@@ -207,6 +183,30 @@
     </thead>
     <tbody>
       {% for score in top_scores %}
+      <tr>
+        <td>{{ score.map }}</td>
+        <td>{{ score.mods }}</td>
+        <td>{{ score.pp }}</td>
+        <td>{{ score.acc }}</td>
+        <td>{{ score.combo }}</td>
+        <td>{{ score.hitmiss }}</td>
+        <td>{{ score.date }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="section-title">Recent Scores</h2>
+<div class="scores-wrapper">
+  <table class="scores-table">
+    <thead>
+      <tr>
+        <th>Map</th><th>Mods</th><th>PP</th><th>Acc</th><th>Combo</th><th>Miss</th><th>Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for score in recent_scores %}
       <tr>
         <td>{{ score.map }}</td>
         <td>{{ score.mods }}</td>
