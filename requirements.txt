@@ -1,7 +1,7 @@
 # requirements.txt
 
 aiohttp~=3.10.5
-asyncpg~=0.29.0
+asyncpg
 coloredlogs==15.0.1
 Hypercorn==0.17.3
 python-dotenv==1.0.1

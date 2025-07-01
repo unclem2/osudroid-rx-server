@@ -21,7 +21,7 @@ async def submit_play():
     if "userID" not in params:
         return Failed("Not enough argument.")
 
-    player = glob.players.get(id=int(params["userID"]))
+    player:Player = glob.players.get(id=int(params["userID"]))
     player.last_online = time.time()
     if not player:
         return Failed("Player not found, report to server admin.")
@@ -132,9 +132,9 @@ async def submit_play():
         )
         if glob.config.legacy == True:
             return Success(
-                "{rank} {rank_by} {acc} {map_rank} {score_id}".format(
-                    rank=int(stats.rank),
-                    rank_by=int(stats.rank_by),
+                "{rank} {legacy_metric} {acc} {map_rank} {score_id}".format(
+                    rank=int(stats.pp_rank if glob.config.pp else stats.score_rank),
+                    legacy_metric=int(stats.pp if glob.config.pp else stats.rscore),
                     acc=stats.droid_acc,
                     map_rank=score.rank,
                     score_id=score.id if upload_replay else "",
@@ -160,7 +160,7 @@ async def submit_play():
                 file.write(raw_replay)
             return Success(
                 "{rank} {score} {acc} {map_rank} {pp}".format(
-                    rank=int(stats.rank),
+                    rank=int(stats.pp_rank if glob.config.pp else stats.score_rank),
                     score=stats.rscore,
                     acc=stats.droid_acc,
                     map_rank=score.rank,

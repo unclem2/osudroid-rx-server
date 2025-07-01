@@ -175,7 +175,8 @@
         <table class="leaderboard-table" id="leaderboard-table">
             <thead>
                 <tr>
-                    <th>Rank</th>
+                    <th>PP Rank</th>
+                    <th>Score Rank</th>
                     <th>Player</th>
                     <th>PP</th>
                     <th>Ranked Score</th>
@@ -186,7 +187,8 @@
             <tbody id="leaderboard-body">
                 {% for player in leaderboard %}
                 <tr>
-                    <td>{{ player.rank }}</td>
+                    <td>{{ player.pp_rank }}</td>
+                    <td>{{ player.score_rank }}</td>
                     <td><a href="/user/profile.php?id={{ player.id }}">{{ player.username }}</a></td>
                     <td>{{ player.pp }}</td>
                     <td>{{ player.rscore }}</td>
@@ -278,8 +280,8 @@
             updateTable();
         }
 
-        document.getElementById('sort-pp').addEventListener('click', () => sortTable(2));
-        document.getElementById('sort-rscore').addEventListener('click', () => sortTable(3));
+        document.getElementById('sort-pp').addEventListener('click', () => sortTable(3));
+        document.getElementById('sort-rscore').addEventListener('click', () => sortTable(4));
         searchInput.addEventListener('input', filterTable);
 
         document.getElementById('prev-page').addEventListener('click', () => {

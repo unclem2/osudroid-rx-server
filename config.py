@@ -30,10 +30,7 @@ cron_delay = 10  # used for updating user stats, if your server is big,
 
 ## RANKING ##
 # - GLOBAL -#
-# enable to use pp system
-pp = True
-pp_leaderboard = True  # Shows pp instead of score and sort by pp
-# used for beatmap info, unused if pp is disabled
+
 max_pp_value = (
     10000  # Max value for a play, if play is worth more than this it will return 0
 )
@@ -41,6 +38,11 @@ osu_key = os.getenv("OSU_KEY", "")
 db_url = os.getenv("DATABASE_URL", "")
 discord_hook = os.getenv("DISCORD", "")
 wl_hook = os.getenv("WL_DISCORD", "")
+
+# enable to use pp system
+pp = True
+pp_leaderboard = True # Shows pp instead of score and sort by pp
+# used for beatmap info, unused if pp is disabled
 legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#

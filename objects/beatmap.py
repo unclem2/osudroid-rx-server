@@ -62,7 +62,6 @@ class Beatmap:
         star (float): Star rating of the beatmap.
     """
     def __init__(self, **kwargs):
-
         self.id:int = int(kwargs["id"] if "id" in kwargs else kwargs.get("beatmap_id", -1))
         self.set_id: int = int(kwargs["set_id"] if "set_id" in kwargs else kwargs.get("beatmapset_id", -1))
         self.md5: str = kwargs.get("md5", "") or kwargs.get("file_md5", "")
