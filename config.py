@@ -20,7 +20,7 @@ client_link = "https://github.com/unclem2/odrx-client/releases/download/1.15/osu
 client_version = "1.15(250420)"
 client_version_code = 1745145666
 client_changelog = "1.8 migration + new domain 2"
-banner_url = "https://github.com/unclem2/osudroid-rx-server"
+banner_url = "https://discord.gg/Ub4nXasaHd"
 
 ## CRON ##
 # 1 = 1 Minute
@@ -30,7 +30,10 @@ cron_delay = 10  # used for updating user stats, if your server is big,
 
 ## RANKING ##
 # - GLOBAL -#
-
+# enable to use pp system
+pp = True
+pp_leaderboard = True  # Shows pp instead of score and sort by pp
+# used for beatmap info, unused if pp is disabled
 max_pp_value = (
     10000  # Max value for a play, if play is worth more than this it will return 0
 )
@@ -38,11 +41,6 @@ osu_key = os.getenv("OSU_KEY", "")
 db_url = os.getenv("DATABASE_URL", "")
 discord_hook = os.getenv("DISCORD", "")
 wl_hook = os.getenv("WL_DISCORD", "")
-
-# enable to use pp system
-pp = True
-pp_leaderboard = True # Shows pp instead of score and sort by pp
-# used for beatmap info, unused if pp is disabled
 legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#
