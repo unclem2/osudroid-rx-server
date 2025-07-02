@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Global Leaderboard{% endblock %}
+{% block title %}Global Score Leaderboard{% endblock %}
 
 {% block content %}
 <style>
@@ -166,17 +166,17 @@
 </style>
 
 <header>
-    <h1>Global Leaderboard</h1>
+    <h1>Global Score Leaderboard</h1>
 </header>
 
 <div class="controls">
     <input type="text" id="search-input" placeholder="Search by username...">
-    <button disabled onclick="location.href='/user/leaderboard.php'">Sort by PP</button>
-    <button onclick="location.href='/user/leaderboard.php?type=score'">Sort by Ranked Score</button>
+    <button onclick="location.href='/user/leaderboard.php'">Sort by PP</button>
+    <button disabled onclick="location.href='/user/leaderboard.php?type=score'">Sort by Ranked Score</button>
     <select onchange="redirect(this.value)">
-        <option value="/user/leaderboard.php">All countries</option>
+        <option value="/user/leaderboard.php?type=score">All countries</option>
         {% for c in countries %}
-          <option value="/user/leaderboard.php/country/{{ c }}">{{ c }}</option>
+          <option value="/user/leaderboard.php/country/{{ c }}?type=score">{{ c }}</option>
         {% endfor %}
     </select>
 </div>
@@ -188,7 +188,7 @@
                 <tr>
                     <th>Rank</th>
                     <th>Player</th>
-                    <th>PP</th>
+                    <th>Ranked Score</th>
                     <th>Plays</th>
                     <th>ID</th>
                 </tr>
@@ -196,9 +196,9 @@
             <tbody id="leaderboard-body">
                 {% for player in leaderboard %}
                 <tr>
-                    <td>{{ player.pp_rank }}</td>
+                    <td>{{ player.score_rank }}</td>
                     <td><a href="/user/profile.php?id={{ player.id }}">{{ player.username }}</a></td>
-                    <td>{{ player.pp }}</td>
+                    <td>{{ player.rscore }}</td>
                     <td>{{ player.plays }}</td>
                     <td>{{ player.id }}</td>
                 </tr>
@@ -219,7 +219,7 @@
         window.location.href = url;
       }
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         const tableBody = document.querySelector('#leaderboard-body');
         let allRows = Array.from(tableBody.querySelectorAll('tr'));

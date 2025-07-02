@@ -2,6 +2,7 @@ import os
 import hashlib
 import discord_webhook
 import uuid
+from objects import glob
 
 
 def make_safe(n: str):
@@ -52,7 +53,10 @@ async def send_webhook(
         print("Webhook sent successfully ")
     except Exception:
         return print("Error while sending webhook")
-
+        
+async def get_countries():
+    countries = await glob.db.fetchall("SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country")
+    return [row["country"] for row in countries]
 
 def is_convertable(value, type):
     try:
