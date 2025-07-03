@@ -45,7 +45,7 @@ async def profile():
         )
         for score in recent_scores:
             try:
-                bmap = await Beatmap.from_md5_sql(score["maphash"])
+                bmap = await Beatmap.from_md5(score["maphash"])
                 score["map"] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
             except:
                 score["map"] = score["maphash"]
@@ -70,7 +70,7 @@ async def profile():
         )
         for score in top_scores:
             try:
-                bmap = await Beatmap.from_md5_sql(score["maphash"])
+                bmap = await Beatmap.from_md5(score["maphash"])
                 score["map"] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
             except:
                 score["map"] = score["maphash"]

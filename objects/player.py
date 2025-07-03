@@ -168,29 +168,26 @@ class Player:
         stats.pp_rank = pp_rank_result["c"] + 1
         stats.score_rank = score_rank_result["c"] + 1
 
-        # Country ranks (if player has country)
-        if self.country:
-            country_pp_rank_result = await glob.db.fetch(
-                """
-                SELECT COUNT(*) AS c
-                FROM stats s
-                INNER JOIN users u ON u.id = s.id
-                WHERE u.country = $1 AND s.pp > $2
-                """, [self.country, int(stats.pp)]
-            )
-            country_score_rank_result = await glob.db.fetch(
-                """
-                SELECT COUNT(*) AS c
-                FROM stats s
-                INNER JOIN users u ON u.id = s.id
-                WHERE u.country = $1 AND s.rscore > $2
-                """, [self.country, int(stats.rscore)]
-            )
-            stats.country_pp_rank = country_pp_rank_result["c"] + 1
-            stats.country_score_rank = country_score_rank_result["c"] + 1
-        else:
-            stats.country_pp_rank = 0
-            stats.country_score_rank = 0
+   
+        country_pp_rank_result = await glob.db.fetch(
+            """
+            SELECT COUNT(*) AS c
+            FROM stats s
+            INNER JOIN users u ON u.id = s.id
+            WHERE u.country = $1 AND s.pp > $2
+            """, [self.country, int(stats.pp)]
+        )
+        country_score_rank_result = await glob.db.fetch(
+            """
+            SELECT COUNT(*) AS c
+            FROM stats s
+            INNER JOIN users u ON u.id = s.id
+            WHERE u.country = $1 AND s.rscore > $2
+            """, [self.country, int(stats.rscore)]
+        )
+        stats.country_pp_rank = country_pp_rank_result["c"] + 1
+        stats.country_score_rank = country_score_rank_result["c"] + 1
+
 
         # Update database
         await glob.db.execute("""
