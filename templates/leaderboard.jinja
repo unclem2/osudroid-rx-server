@@ -167,10 +167,9 @@
 </style>
 
 
-<!-- Временно выводим значение переменной -->
-<p>sortby = {{ sortby }}</p>
+{# <p>sortby = {{ sortby }}</p>
 <p>country = {{ country }}</p>
-<p>leaderboard length = {{ leaderboard | length }}</p>
+<p>leaderboard length = {{ leaderboard | length }}</p> #}
 
 <header>
     <h1>
@@ -185,34 +184,37 @@
 <div class="controls">
     <input type="text" id="search-input" placeholder="Search by username...">
 
-    {% set base_url = "/user/leaderboard/country/" + country if country else "/user/leaderboard/global" %}
-
+    {% set base_url = "/user/leaderboard" %}
+    {% set query_country = "country=" + country if country else "" %}
+    {% set has_query = query_country %}
+    
     <button 
         {% if sortby == 'score' %}disabled{% endif %}
-        onclick="location.href='{{ base_url }}?sortby=score'">
+        onclick="location.href='{{ base_url }}{% if has_query %}?{{ query_country }}{% endif %}{% if has_query %}&{% else %}?{% endif %}sortby=score'">
         Sort by Ranked Score
     </button>
 
     <button 
         {% if sortby != 'score' %}disabled{% endif %}
-        onclick="location.href='{{ base_url }}'">
+        onclick="location.href='{{ base_url }}{% if has_query %}?{{ query_country }}{% endif %}'">
         Sort by PP
     </button>
 
     <select onchange="redirect(this.value)">
-        <option value="/user/leaderboard/global{% if sortby == 'score' %}?sortby=score{% endif %}">
+        <option value="/user/leaderboard{% if sortby == 'score' %}?sortby=score{% endif %}">
             All countries
         </option>
 
         {% for c in countries %}
             <option 
-                value="/user/leaderboard/country/{{ c }}{% if sortby == 'score' %}?sortby=score{% endif %}"
+                value="/user/leaderboard?country={{ c }}{% if sortby == 'score' %}&sortby=score{% endif %}"
                 {% if c == country %}selected{% endif %}>
                 {{ c }}
             </option>
         {% endfor %}
     </select>
 </div>
+
 
 <div class="leaderboard-wrapper">
     <div class="leaderboard-card">
