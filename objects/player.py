@@ -7,6 +7,9 @@ import utils
 
 @dataclass
 class Stats:
+    """
+    Dataclass representing player statistics.
+    """
     id: int
     pp_rank: int
     score_rank: int
@@ -20,7 +23,12 @@ class Stats:
     playing: str = None
 
     @property
-    def droid_acc(self):
+    def droid_acc(self) -> (int | float):
+        """
+        Returns the accuracy in a format suitable for client.
+        For pre-1.8 state, it returns accuracy as an integer multiplied by 1000.
+        For 1.8 and later, it returns accuracy as a float divided by 100 in the range of 0.00 to 1.00
+        """
         return (
             int(self.acc * 1000)
             if glob.config.legacy == True
@@ -28,22 +36,24 @@ class Stats:
         )
 
     @property
-    def droid_submit_stats(self):
-        string = f"{self.pp_rank if glob.config.pp else self.score_rank} "
-        if glob.config.legacy == True:
-            string += f"{self.pp if glob.config.pp else self.rscore} "
-        else:
-            string += f"{self.rscore} "
-        string += f"{self.droid_acc} 0"
-        if glob.config.legacy == False:
-            if glob.config.pp:
-                string += f" {self.pp}"
-            else:
-                string += f" 0"
+    def droid_submit_stats(self) -> str:
+        """
+        Returns dummy stats string for client submission.\n
+        For pre-1.8 state, it returns {global rank} {pp or score} {droid_acc} {lb placement which is 0 here}.\n
+        For 1.8 and later, it returns {global rank} {score} {droid_acc} {lb placement which is 0 here} {pp}.
+        """
+        rank = self.pp_rank if glob.config.pp else self.score_rank
+        metric = self.pp if glob.config.pp and glob.config.legacy else self.rscore
+        string = f"{rank} {metric} {self.droid_acc} 0"
+        if not glob.config.legacy:
+            string += f" {self.pp if glob.config.pp else 0}"
         return string
 
     @property
-    def as_json(self):
+    def as_json(self) -> dict:
+        """
+        Returns the stats as a JSON serializable dictionary.
+        """
         return {
             "id": self.id,
             "pp_rank": self.pp_rank,
@@ -60,29 +70,51 @@ class Stats:
 
 
 class Player:
+    """
+    Class representing a player in the game.
+    Attributes:
+        id (str): Unique identifier for the player.
+        prefix (str): Prefix for the player's name.
+        name (str): Username of the player.
+        name_safe (str): Safe version of the username.
+        email_hash (str): MD5 hash of the player's email.
+        uuid (str): Unique UUID for the player.
+        last_online (float): Timestamp of the last time the player was online.
+        stats (Stats): Player's statistics.
+        country (str): Country of the player.
+    """
     def __init__(self, **kwargs):
+  
         self.id: str = kwargs.get("id")
         self.prefix: str = kwargs.get("prefix", "")
         self.name: str = kwargs.get("username")
         self.name_safe: str = utils.make_safe(self.name) if self.name else None
-        self.email_hash: str = kwargs.get(
-            "email_hash", "35da3c1a5130111d0e3a5f353389b476"
-        )
+        self.email_hash: str = kwargs.get("email_hash", "0")
         self.uuid: str = kwargs.get("uuid", None)
         self.last_online: float = 0
         self.stats: Stats = None
         self.country: str = kwargs.get("country", None)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        """
+        Returns a string representation of the Player object.
+        """
         return f"<{self.id} - {self.name}>"
 
     @property
-    def online(self):
-        # 30 seconds timeout (actually 150 here)
+    def online(self) -> bool:
+        """ 
+        Checks if the player is online based on the last_online timestamp.
+        Returns:
+            bool: True if the player is online, False otherwise.
+        """
         return time.time() - 150 < self.last_online
 
     @property
-    def as_json(self):
+    def as_json(self) -> dict:
+        """ 
+        Returns the player data as a JSON serializable dictionary.
+        """
         return {
             "id": self.id,
             "country": self.country,
@@ -136,6 +168,7 @@ class Player:
         all_scores = await glob.db.fetchall(
             "SELECT * FROM scores WHERE playerID = $1", [int(self.id)]
         )
+
 
         if not top_scores or not all_scores:
             logging.error(
@@ -224,10 +257,6 @@ class Player:
                 self.id,
             ],
         )
-
-        # update self.stats too
-        self.stats = stats
-
 
 async def recalc_stats():
     players = await glob.db.fetchall("SELECT id FROM users")

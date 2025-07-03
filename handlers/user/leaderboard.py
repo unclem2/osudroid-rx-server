@@ -32,7 +32,7 @@ async def leaderboard():
     params = []
 
     if country:
-        query += "WHERE stats.country = $1 "
+        query += "WHERE users.country = $1 "
         params.append(country)
 
     query += f"ORDER BY {order_field} DESC"
