@@ -10,6 +10,7 @@ class Stats:
     """
     Dataclass representing player statistics.
     """
+
     id: int
     pp_rank: int
     score_rank: int
@@ -23,7 +24,7 @@ class Stats:
     playing: str = None
 
     @property
-    def droid_acc(self) -> (int | float):
+    def droid_acc(self) -> int | float:
         """
         Returns the accuracy in a format suitable for client.
         For pre-1.8 state, it returns accuracy as an integer multiplied by 1000.
@@ -83,8 +84,8 @@ class Player:
         stats (Stats): Player's statistics.
         country (str): Country of the player.
     """
+
     def __init__(self, **kwargs):
-  
         self.id: str = kwargs.get("id")
         self.prefix: str = kwargs.get("prefix", "")
         self.name: str = kwargs.get("username")
@@ -103,7 +104,7 @@ class Player:
 
     @property
     def online(self) -> bool:
-        """ 
+        """
         Checks if the player is online based on the last_online timestamp.
         Returns:
             bool: True if the player is online, False otherwise.
@@ -112,7 +113,7 @@ class Player:
 
     @property
     def as_json(self) -> dict:
-        """ 
+        """
         Returns the player data as a JSON serializable dictionary.
         """
         return {
@@ -168,7 +169,6 @@ class Player:
         all_scores = await glob.db.fetchall(
             "SELECT * FROM scores WHERE playerID = $1", [int(self.id)]
         )
-
 
         if not top_scores or not all_scores:
             logging.error(
@@ -257,6 +257,7 @@ class Player:
                 self.id,
             ],
         )
+
 
 async def recalc_stats():
     players = await glob.db.fetchall("SELECT id FROM users")
