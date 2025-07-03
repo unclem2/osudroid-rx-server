@@ -64,6 +64,8 @@ class PostgresDB:
                     id SERIAL PRIMARY KEY,
                     pp_rank BIGINT DEFAULT 0,
                     score_rank BIGINT DEFAULT 0,
+                    country_pp_rank BIGINT DEFAULT 0,
+                    country_score_rank BIGINT DEFAULT 0,
                     pp REAL DEFAULT 0,
                     acc REAL DEFAULT 100.0,
                     tscore BIGINT DEFAULT 0,

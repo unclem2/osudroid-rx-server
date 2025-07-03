@@ -15,6 +15,8 @@ class Stats:
     acc: float 
     plays: int 
     pp: float 
+    country_pp_rank: int = 0
+    country_score_rank: int = 0
     playing: str = None
 
     @property
@@ -38,7 +40,6 @@ class Stats:
                 string += f" {self.pp}"
             else:
                 string += f" 0"
-                
         return string
 
     @property
@@ -47,6 +48,8 @@ class Stats:
             "id": self.id,
             "pp_rank": self.pp_rank,
             "score_rank": self.score_rank,
+            "country_pp_rank": self.country_pp_rank,
+            "country_score_rank": self.country_score_rank,
             "total_score": self.tscore,
             "ranked_score": self.rscore,
             "accuracy": self.acc,
@@ -62,13 +65,8 @@ class Player:
         self.prefix: str = kwargs.get("prefix", "")
         self.name: str = kwargs.get("username")
         self.name_safe: str = utils.make_safe(self.name) if self.name else None
-
-        #
-        self.email_hash: str = kwargs.get(
-            "email_hash", "35da3c1a5130111d0e3a5f353389b476"
-        )  # used for gravatar, default to my pfp lole
-        self.uuid: str = kwargs.get("uuid", None)  # ...yea
-
+        self.email_hash: str = kwargs.get("email_hash", "35da3c1a5130111d0e3a5f353389b476")
+        self.uuid: str = kwargs.get("uuid", None)
         self.last_online: float = 0
         self.stats: Stats = None
         self.country: str = kwargs.get("country", None)
@@ -78,7 +76,7 @@ class Player:
 
     @property
     def online(self):
-        # 30 seconds timeout, not really accurate cuz we update the last_online time on login and submit
+        # 30 seconds timeout (actually 150 here)
         return time.time() - 150 < self.last_online
 
     @property
@@ -104,39 +102,34 @@ class Player:
         if not user_data or not user_stats:
             raise Exception("Failed to get user from database.")
 
-        # fix email_hash if its none and user got email (there should be)
+        # Fix missing email_hash if needed
         if user_data["email_hash"] is None and user_data["email"] is not None:
             email_hash = utils.make_md5(user_data["email"])
             await glob.db.execute(
                 "UPDATE users SET email_hash = ? WHERE id = ?", [email_hash, user_id]
             )
+            user_data["email_hash"] = email_hash
 
         user_data.pop("email", None)
 
         p = cls(**user_data)
         p.stats = Stats(**user_stats)
-
         return p
 
     async def update_stats(self):
-        # Fetch player scores
+        # Fetch top ranked scores (status=2 and approved maps)
         top_scores = await glob.db.fetchall("""
-        SELECT * 
-        FROM scores s
-        WHERE s.playerID = $1 
-            AND s.status = 2 
-            AND s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
-        ORDER BY s.pp 
-        DESC
-        """, [int(self.id)]
-        )
+            SELECT *
+            FROM scores s
+            WHERE s.playerID = $1
+                AND s.status = 2
+                AND s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
+            ORDER BY s.pp DESC
+        """, [int(self.id)])
 
+        # Fetch all scores (total plays)
         all_scores = await glob.db.fetchall(
-            """
-            SELECT * 
-            FROM scores 
-            WHERE playerID = $1
-            """, [int(self.id)]
+            "SELECT * FROM scores WHERE playerID = $1", [int(self.id)]
         )
 
         if not top_scores or not all_scores:
@@ -144,75 +137,86 @@ class Player:
                 f"Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})"
             )
             return
-        try:
-            stats = self.stats
-        except:
-            stats = Stats(
-                id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0
-            ) 
 
-        # Calculate average accuracy
-        if stats is None:
-            stats = Stats(
-                id=self.id, rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0
-            )   
+        stats = self.stats or Stats(
+            id=int(self.id), pp_rank=0, score_rank=0, tscore=0, rscore=0, acc=100, plays=0, pp=0
+        )
+
+        # Average accuracy from top scores
         stats.acc = sum(row["acc"] for row in top_scores) / len(top_scores)
 
-        # Calculate performance points (pp)
+        # Weighted pp calculation (top 100 scores)
         total_pp = 0
         for i, row in enumerate(top_scores[:100]):
-            weight = 0.95**i
+            weight = 0.95 ** i
             weighted_pp = row["pp"] * weight
             total_pp += weighted_pp
             logging.debug(f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}')
         stats.pp = round(total_pp)
+
         stats.rscore = sum(row["score"] for row in top_scores)
         stats.tscore = sum(row["score"] for row in all_scores)
-
-        score_rank_query = """
-        SELECT COUNT(*) AS c 
-        FROM stats 
-        WHERE rscore > $1
-        
-        """
-        score_rank_result = await glob.db.fetch(
-            score_rank_query, [int(stats.rscore)]
-        )
-
-        pp_rank_query = """ 
-        SELECT COUNT(*) AS c
-        FROM stats 
-        WHERE pp > $1
-        """
-        pp_rank_result = await glob.db.fetch(
-            pp_rank_query, [int(stats.pp)]
-        )
-        stats.score_rank = score_rank_result["c"] + 1
-        stats.pp_rank = pp_rank_result["c"] + 1
         stats.plays = len(all_scores)
 
-        # Update stats in the database
-        update_query = "UPDATE stats SET acc = $1, pp_rank = $2, pp = $3, rscore = $4, tscore = $5, plays = $6, score_rank = $7 WHERE id = $8"
-        await glob.db.execute(
-            update_query,
-            [
-                stats.acc,
-                stats.pp_rank,
-                stats.pp,
-                stats.rscore,
-                stats.tscore,
-                stats.plays,
-                stats.score_rank,
-                self.id
-            ],
+        # Global ranks
+        pp_rank_result = await glob.db.fetch(
+            "SELECT COUNT(*) AS c FROM stats WHERE pp > $1", [int(stats.pp)]
         )
+        score_rank_result = await glob.db.fetch(
+            "SELECT COUNT(*) AS c FROM stats WHERE rscore > $1", [int(stats.rscore)]
+        )
+        stats.pp_rank = pp_rank_result["c"] + 1
+        stats.score_rank = score_rank_result["c"] + 1
+
+        # Country ranks (if player has country)
+        if self.country:
+            country_pp_rank_result = await glob.db.fetch(
+                """
+                SELECT COUNT(*) AS c
+                FROM stats s
+                INNER JOIN users u ON u.id = s.id
+                WHERE u.country = $1 AND s.pp > $2
+                """, [self.country, int(stats.pp)]
+            )
+            country_score_rank_result = await glob.db.fetch(
+                """
+                SELECT COUNT(*) AS c
+                FROM stats s
+                INNER JOIN users u ON u.id = s.id
+                WHERE u.country = $1 AND s.rscore > $2
+                """, [self.country, int(stats.rscore)]
+            )
+            stats.country_pp_rank = country_pp_rank_result["c"] + 1
+            stats.country_score_rank = country_score_rank_result["c"] + 1
+        else:
+            stats.country_pp_rank = 0
+            stats.country_score_rank = 0
+
+        # Update database
+        await glob.db.execute("""
+            UPDATE stats
+            SET acc = $1, pp_rank = $2, pp = $3, rscore = $4, tscore = $5, plays = $6,
+                score_rank = $7, country_pp_rank = $8, country_score_rank = $9
+            WHERE id = $10
+        """, [
+            stats.acc,
+            stats.pp_rank,
+            stats.pp,
+            stats.rscore,
+            stats.tscore,
+            stats.plays,
+            stats.score_rank,
+            stats.country_pp_rank,
+            stats.country_score_rank,
+            self.id
+        ])
+
+        # update self.stats too
+        self.stats = stats
 
 
 async def recalc_stats():
-    # Fetch players from the database
     players = await glob.db.fetchall("SELECT id FROM users")
-
     for player in players:
-        # Assuming you have a Player class that can update stats
         player_obj = Player(id=int(player["id"]))
         await player_obj.update_stats()
