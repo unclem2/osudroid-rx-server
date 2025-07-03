@@ -3,7 +3,6 @@ from objects.room import PlayerMulti, PlayerStatus, RoomStatus, Match
 
 
 class PlayerEvents:
-
     async def on_playerModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         for player in room_info.players:
@@ -77,6 +76,8 @@ class PlayerEvents:
         await self.emit_event(
             event="hostChanged", data=str(room_info.host.uid), namespace=self.namespace
         )
-        
+
     async def on_playerKicked(self, sid, *args):
-        await self.emit_event("playerKicked", data=str(args[0]), namespace=self.namespace)
+        await self.emit_event(
+            "playerKicked", data=str(args[0]), namespace=self.namespace
+        )

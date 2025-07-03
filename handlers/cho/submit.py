@@ -21,7 +21,7 @@ async def submit_play():
     if "userID" not in params:
         return Failed("Not enough argument.")
 
-    player:Player = glob.players.get(id=int(params["userID"]))
+    player: Player = glob.players.get(id=int(params["userID"]))
     player.last_online = time.time()
     if not player:
         return Failed("Player not found, report to server admin.")

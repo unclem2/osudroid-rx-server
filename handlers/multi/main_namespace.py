@@ -21,43 +21,31 @@ class MultiNamespace(
     MatchEvents,
     ChatEvents,
     BeatmapEvents,
-    socketio.AsyncNamespace
-    ):
+    socketio.AsyncNamespace,
+):
     def __init__(self, namespace):
         super().__init__(namespace)
 
     @property
     def room_id(self):
         return self.namespace.split("/")[-1]
-    
+
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
-        handler_name = f'on_{event}'
+        handler_name = f"on_{event}"
         if handler_name == "on_connect":
             self.receive_event(sid, event, args[0])
         else:
             self.receive_event(sid, event, data)
         return await super().trigger_event(event, sid, data, *args, **kwargs)
-    
-    async def emit_event(self, event, data=None, namespace=None, to=None, *args, **kwargs):
+
+    async def emit_event(
+        self, event, data=None, namespace=None, to=None, *args, **kwargs
+    ):
         if to:
             await sio.emit(event, data, namespace=namespace, to=to, *args, **kwargs)
         else:
             await sio.emit(event, data, namespace=namespace, *args, **kwargs)
-        write_event(
-            self.room_id,
-            event,
-            0,
-            data,
-            receiver=to
-        )
+        write_event(self.room_id, event, 0, data, receiver=to)
 
     def receive_event(self, sid, event, data=None):
-        write_event(
-            self.room_id,
-            event,
-            1,
-            data,
-            sender=sid
-        )
-    
-
+        write_event(self.room_id, event, 1, data, sender=sid)

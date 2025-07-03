@@ -1,6 +1,7 @@
 from quart import Blueprint, render_template, request
 from objects import glob
-from utils import get_countries 
+from utils import get_countries
+
 bp = Blueprint("user_leaderboard", __name__)
 
 
@@ -44,5 +45,5 @@ async def leaderboard():
         leaderboard=players_stats,
         country=country if country else None,
         countries=countries,
-        sortby=sortby
+        sortby=sortby,
     )

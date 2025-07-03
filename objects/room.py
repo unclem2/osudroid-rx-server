@@ -107,7 +107,7 @@ class Match:
         self.live_score_data: dict = {}
         self.submitted_scores: dict = {}
         self.players: list = []
-        
+
     def as_json(self) -> dict[str, dict]:
         return {
             "beatmap_load_status": self.beatmap_load_status,
@@ -134,7 +134,7 @@ class Room:
         self.winCondition: WinCondition = WinCondition.SCOREV1
         self.password: str = ""
         self.match = Match()
-        
+
     def as_json(self) -> dict[str, Union[str, int, bool]]:
         return {
             "id": self.id,
@@ -149,10 +149,13 @@ class Room:
             "status": self.status,
             "teamMode": self.teamMode,
             "winCondition": self.winCondition,
-            "match": self.match.as_json(),  
+            "match": self.match.as_json(),
         }
 
-def write_event(id: int, event: str, direction: int, data: dict, receiver = None, sender = None):
+
+def write_event(
+    id: int, event: str, direction: int, data: dict, receiver=None, sender=None
+):
     """
     Write an event to a JSON file for a specific room.
 
@@ -161,9 +164,9 @@ def write_event(id: int, event: str, direction: int, data: dict, receiver = None
         event (str): The event name.
         direction (int): The direction of the event (0 for out, 1 for in).
         data (dict): The data associated with the event.
-        to (str, optional): The recipient of the event. Defaults to None.   
+        to (str, optional): The recipient of the event. Defaults to None.
     """
-    
+
     with open(f"data/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,
@@ -176,12 +179,13 @@ def write_event(id: int, event: str, direction: int, data: dict, receiver = None
         json.dump(dump_data, f, ensure_ascii=False)
         f.write("\n")
 
+
 def read_room_log(id: int) -> list:
     with open(f"data/rooms/{id}.jsonl", "r") as f:
         room_data = []
         for line in f.readlines():
             room_data.append(json.loads(line))
-            
+
     return room_data
 
 
@@ -192,10 +196,10 @@ def get_id() -> str:
     Returns:
         int: The next available room ID.
     """
-    
+
     rooms = os.listdir("data/rooms")
     if len(rooms) == 0:
-        return '1'
+        return "1"
     else:
         ids = [int(room.split(".")[0]) for room in rooms]
         return str(max(ids) + 1)

@@ -1,8 +1,8 @@
 from objects import glob
 from objects.room import PlayerStatus, WinCondition, PlayerTeam
 
-class RoomEvents:
 
+class RoomEvents:
     async def on_roomModsChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         mods_data = args[0]
@@ -76,7 +76,9 @@ class RoomEvents:
     async def on_teamModeChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.teamMode = args[0]
-        await self.emit_event("teamModeChanged", room_info.teamMode, namespace=self.namespace)
+        await self.emit_event(
+            "teamModeChanged", room_info.teamMode, namespace=self.namespace
+        )
         for player in room_info.players:
             player.team = None
             await self.emit_event(
@@ -103,10 +105,12 @@ class RoomEvents:
                     data=(str(player.uid), player.team),
                     namespace=self.namespace,
                 )
-                
+
     async def on_maxPlayersChanged(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.maxPlayers = args[0]
         await self.emit_event(
-            "maxPlayersChanged", data=str(room_info.maxPlayers), namespace=self.namespace
+            "maxPlayersChanged",
+            data=str(room_info.maxPlayers),
+            namespace=self.namespace,
         )
