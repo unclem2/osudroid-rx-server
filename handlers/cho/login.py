@@ -20,7 +20,7 @@ async def login():
     if "username" not in params or len(params["username"]) == 0:
         return Failed("Invalid username.")
 
-    p:Player = glob.players.get(name=params["username"])
+    p: Player = glob.players.get(name=params["username"])
 
     if not p:
         return Failed("User not found.")
@@ -65,7 +65,9 @@ async def login():
             id=p.id,
             uuid=p.uuid,
             rank=p.stats.pp_rank if glob.config.pp else p.stats.score_rank,
-            legacy_metric=int(p.stats.pp if glob.config.pp else p.stats.rscore) if glob.config.legacy == True else "",
+            legacy_metric=int(p.stats.pp if glob.config.pp else p.stats.rscore)
+            if glob.config.legacy == True
+            else "",
             score=p.stats.rscore if glob.config.legacy == False else "",
             pp=p.stats.pp if glob.config.legacy == False else "",
             acc=p.stats.droid_acc,

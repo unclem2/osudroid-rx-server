@@ -25,6 +25,7 @@ class RankedStatus(IntEnum):
         Loved (int): 4 — The beatmap is loved (Bancho).
         Whitelisted (int): 5 — The beatmap is whitelisted (locally).
     """
+
     Graveyard = -2
     NotSubmitted = -1
     Pending = 0
@@ -61,9 +62,14 @@ class Beatmap:
         hp (float): Health drain of the beatmap.
         star (float): Star rating of the beatmap.
     """
+
     def __init__(self, **kwargs):
-        self.id:int = int(kwargs["id"] if "id" in kwargs else kwargs.get("beatmap_id", -1))
-        self.set_id: int = int(kwargs["set_id"] if "set_id" in kwargs else kwargs.get("beatmapset_id", -1))
+        self.id: int = int(
+            kwargs["id"] if "id" in kwargs else kwargs.get("beatmap_id", -1)
+        )
+        self.set_id: int = int(
+            kwargs["set_id"] if "set_id" in kwargs else kwargs.get("beatmapset_id", -1)
+        )
         self.md5: str = kwargs.get("md5", "") or kwargs.get("file_md5", "")
 
         self.artist: str = kwargs.get("artist", "")
@@ -75,13 +81,17 @@ class Beatmap:
         self.total_length: float = float(kwargs.get("total_length", 0.0))
         self.max_combo: int = int(kwargs.get("max_combo", 0))
 
-        self.status: RankedStatus = RankedStatus(int(kwargs["status"] if "status" in kwargs else kwargs.get("approved", -1)))
+        self.status: RankedStatus = RankedStatus(
+            int(kwargs["status"] if "status" in kwargs else kwargs.get("approved", -1))
+        )
 
         self.mode: int = int(kwargs.get("mode", 0))
         self.bpm: float = float(kwargs.get("bpm", 0.0))
         self.cs: float = float(kwargs.get("cs", 0.0) or kwargs.get("diff_size", 0.0))
         self.od: float = float(kwargs.get("od", 0.0) or kwargs.get("diff_overall", 0.0))
-        self.ar: float = float(kwargs.get("ar", 0.0) or kwargs.get("diff_approach", 0.0))
+        self.ar: float = float(
+            kwargs.get("ar", 0.0) or kwargs.get("diff_approach", 0.0)
+        )
         self.hp: float = float(kwargs.get("hp", 0.0) or kwargs.get("diff_drain", 0.0))
 
         self.star: float = float(kwargs.get("star", 0))
@@ -138,16 +148,16 @@ class Beatmap:
             md5 (str): The MD5 hash of the beatmap.
         Returns:
             Optional[Beatmap]: The beatmap object if found, otherwise None.
-            """
-        
+        """
+
         # Return cached beatmap if it exists
         if beatmap := glob.cache["beatmaps"].get(md5):
-            return beatmap  
+            return beatmap
 
         # If the beatmap is unsubmitted, return None
         if md5 in glob.cache["unsubmitted"]:
             return
-        
+
         # Try to get beatmap from database
         try:
             beatmap = await cls.from_md5_sql(md5)
@@ -176,7 +186,7 @@ class Beatmap:
         Returns:
             Optional[Beatmap]: The beatmap object if found, otherwise None.
         """
-        
+
         if res := await glob.db.fetch(
             "SELECT id, set_id, "
             "artist, title, version, creator, "
@@ -188,7 +198,6 @@ class Beatmap:
             [md5],
         ):
             return cls(**res)
-
 
     @classmethod
     async def from_md5_osuapi(cls, md5: str) -> Optional["Beatmap"]:
@@ -211,20 +220,21 @@ class Beatmap:
 
                 data = await response.json()
                 if not data:
-                    return None 
+                    return None
 
         bmap = data[0]
 
         # Create a Beatmap instance using API response
         beatmap = cls(**bmap)
         beatmap.md5 = md5
-        beatmap.last_update = datetime.strptime(bmap["last_update"], "%Y-%m-%d %H:%M:%S")
+        beatmap.last_update = datetime.strptime(
+            bmap["last_update"], "%Y-%m-%d %H:%M:%S"
+        )
 
         # Optionally save to local SQL database
         await beatmap.save_to_sql()
 
         return beatmap
-
 
     @classmethod
     async def from_bid_osuapi(cls, bid: int) -> Optional["Beatmap"]:
@@ -253,13 +263,14 @@ class Beatmap:
 
         # Create a Beatmap instance using API response
         beatmap = cls(**bmap)
-        beatmap.last_update = datetime.strptime(bmap["last_update"], "%Y-%m-%d %H:%M:%S")
+        beatmap.last_update = datetime.strptime(
+            bmap["last_update"], "%Y-%m-%d %H:%M:%S"
+        )
 
         # Optionally save to database
         await beatmap.save_to_sql()
 
         return beatmap
-
 
     @property
     def as_json(self) -> dict:
@@ -291,7 +302,7 @@ class Beatmap:
         }
 
     async def save_to_sql(self) -> None:
-        """        
+        """
         Saves the beatmap object to the SQL database.
         If the beatmap already exists, it updates the existing record.
         """

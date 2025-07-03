@@ -3,7 +3,6 @@ from objects import glob
 
 
 class MatchEvents:
-    
     async def on_playBeatmap(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
         room_info.status = RoomStatus.PLAYING
@@ -25,7 +24,9 @@ class MatchEvents:
             if player.sid == sid:
                 room_info.match.beatmap_load_status[player.uid] = {"loaded": True}
         if len(room_info.match.beatmap_load_status) == len(room_info.match.players):
-            await self.emit_event("allPlayersBeatmapLoadComplete", namespace=self.namespace)
+            await self.emit_event(
+                "allPlayersBeatmapLoadComplete", namespace=self.namespace
+            )
 
     async def on_skipRequested(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -77,7 +78,9 @@ class MatchEvents:
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )
 
-        await self.emit_event("liveScoreData", live_score_data, namespace=self.namespace)
+        await self.emit_event(
+            "liveScoreData", live_score_data, namespace=self.namespace
+        )
 
     async def on_scoreSubmission(self, sid, *args):
         room_info = glob.rooms.get(self.room_id)
@@ -118,6 +121,3 @@ class MatchEvents:
                 )
 
             room_info.match = Match()
-
-
-    

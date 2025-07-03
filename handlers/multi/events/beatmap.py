@@ -8,7 +8,9 @@ class BeatmapEvents:
         room_info = glob.rooms.get(self.room_id)
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
-            await self.emit_event("beatmapChanged", data=args[0], namespace=self.namespace)
+            await self.emit_event(
+                "beatmapChanged", data=args[0], namespace=self.namespace
+            )
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
             try:
@@ -33,5 +35,6 @@ class BeatmapEvents:
             except:
                 pass
 
-            await self.emit_event("beatmapChanged", data=return_data, namespace=self.namespace)
-
+            await self.emit_event(
+                "beatmapChanged", data=return_data, namespace=self.namespace
+            )

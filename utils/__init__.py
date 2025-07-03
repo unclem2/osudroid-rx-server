@@ -53,10 +53,12 @@ async def send_webhook(
         print("Webhook sent successfully ")
     except Exception:
         return print("Error while sending webhook")
-        
+
 
 async def get_countries():
-    countries = await glob.db.fetchall("SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country")
+    countries = await glob.db.fetchall(
+        "SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country"
+    )
     return [row["country"] for row in countries]
 
 
