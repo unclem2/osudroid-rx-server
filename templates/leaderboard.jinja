@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Global Leaderboard{% endblock %}
+{% block title %}
+    {% if country %}
+        {{ country }} {% if sortby == 'score' %}Score{% else %}PP{% endif %} Leaderboard
+    {% else %}
+        Global {% if sortby == 'score' %}Score{% else %}PP{% endif %} Leaderboard
+    {% endif %}
+{% endblock %}
 
 {% block content %}
 <style>
@@ -13,12 +19,13 @@
         --silver: #c0c0c0;
         --bronze: #cd7f32;
         --color-primary: #000;
-        --color-background: #fffb
+        --color-background: #fffb;
     }
+
     @media (prefers-color-scheme: dark) {
-      :root {
-        --background-color: #111;
-        --text-color: #DDD;
+        :root {
+            --background-color: #111;
+            --text-color: #DDD;
         }
     }
 
@@ -67,7 +74,7 @@
     .controls button:hover {
         background-color: #0056b3;
     }
-    
+
     .controls button:disabled {
         background-color: #999;
         cursor: not-allowed;
@@ -89,7 +96,6 @@
         overflow-x: auto;
     }
 
-    /* Table */
     table.leaderboard-table {
         width: 100%;
         border-collapse: separate;
@@ -113,10 +119,6 @@
         letter-spacing: 0.5px;
     }
 
-    .leaderboard-table tr:nth-child {
-        background-color: var(background-color);
-    }
-
     .leaderboard-table tr:hover {
         background-color: var(--background-color);
         transition: background-color 0.2s ease;
@@ -132,7 +134,6 @@
         text-decoration: underline;
     }
 
-    /* Pagination */
     .pagination {
         text-align: center;
         margin: 20px 0;
@@ -165,18 +166,50 @@
     }
 </style>
 
+
+<!-- Временно выводим значение переменной -->
+<p>sortby = {{ sortby }}</p>
+<p>country = {{ country }}</p>
+<p>leaderboard length = {{ leaderboard | length }}</p>
+
 <header>
-    <h1>Global Leaderboard</h1>
+    <h1>
+        {% if country %}
+            {{ country }} {% if sortby == 'score' %}Score{% else %}PP{% endif %} Leaderboard
+        {% else %}
+            Global {% if sortby == 'score' %}Score{% else %}PP{% endif %} Leaderboard
+        {% endif %}
+    </h1>
 </header>
 
 <div class="controls">
     <input type="text" id="search-input" placeholder="Search by username...">
-    <button disabled onclick="location.href='/user/leaderboard.php'">Sort by PP</button>
-    <button onclick="location.href='/user/leaderboard.php?type=score'">Sort by Ranked Score</button>
+
+    {% set base_url = "/user/leaderboard/country/" + country if country else "/user/leaderboard/global" %}
+
+    <button 
+        {% if sortby == 'score' %}disabled{% endif %}
+        onclick="location.href='{{ base_url }}?sortby=score'">
+        Sort by Ranked Score
+    </button>
+
+    <button 
+        {% if sortby != 'score' %}disabled{% endif %}
+        onclick="location.href='{{ base_url }}'">
+        Sort by PP
+    </button>
+
     <select onchange="redirect(this.value)">
-        <option value="/user/leaderboard.php">All countries</option>
+        <option value="/user/leaderboard/global{% if sortby == 'score' %}?sortby=score{% endif %}">
+            All countries
+        </option>
+
         {% for c in countries %}
-          <option value="/user/leaderboard.php/country/{{ c }}">{{ c }}</option>
+            <option 
+                value="/user/leaderboard/country/{{ c }}{% if sortby == 'score' %}?sortby=score{% endif %}"
+                {% if c == country %}selected{% endif %}>
+                {{ c }}
+            </option>
         {% endfor %}
     </select>
 </div>
@@ -188,7 +221,11 @@
                 <tr>
                     <th>Rank</th>
                     <th>Player</th>
-                    <th>PP</th>
+                    {% if sortby == 'score' %}
+                        <th>Ranked Score</th>
+                    {% else %}
+                        <th>PP</th>
+                    {% endif %}
                     <th>Plays</th>
                     <th>ID</th>
                 </tr>
@@ -196,9 +233,29 @@
             <tbody id="leaderboard-body">
                 {% for player in leaderboard %}
                 <tr>
-                    <td>{{ player.pp_rank }}</td>
+                    <td>
+                        {% if country %}
+                            {% if sortby == 'score' %}
+                                {{ player.country_score_rank }}
+                            {% else %}
+                                {{ player.country_pp_rank }}
+                            {% endif %}
+                        {% else %}
+                            {% if sortby == 'score' %}
+                                {{ player.score_rank }}
+                            {% else %}
+                                {{ player.pp_rank }}
+                            {% endif %}
+                        {% endif %}
+                    </td>
                     <td><a href="/user/profile.php?id={{ player.id }}">{{ player.username }}</a></td>
-                    <td>{{ player.pp }}</td>
+                    <td>
+                        {% if sortby == 'score' %}
+                            {{ player.rscore }}
+                        {% else %}
+                            {{ player.pp }}
+                        {% endif %}
+                    </td>
                     <td>{{ player.plays }}</td>
                     <td>{{ player.id }}</td>
                 </tr>
@@ -215,11 +272,11 @@
 
 <script>
     function redirect(url) {
-      if (url) {
-        window.location.href = url;
-      }
+        if (url) {
+            window.location.href = url;
+        }
     }
-    
+
     document.addEventListener('DOMContentLoaded', () => {
         const tableBody = document.querySelector('#leaderboard-body');
         let allRows = Array.from(tableBody.querySelectorAll('tr'));
@@ -232,21 +289,14 @@
             const start = (page - 1) * perPage;
             const end = start + perPage;
 
-            // Hide all rows first
             allRows.forEach(row => (row.style.display = 'none'));
+            filteredRows.slice(start, end).forEach(row => row.style.display = '');
 
-            // Show only filtered rows for current page
-            filteredRows.slice(start, end).forEach(row => {
-                row.style.display = '';
-            });
-
-            // Remove previous rank highlights
             filteredRows.forEach(row => {
                 row.cells[0].style.color = '';
                 row.cells[0].style.fontWeight = '';
             });
 
-            // Apply top 3 styling based on actual rank in filteredRows
             filteredRows.slice(start, end).forEach(row => {
                 const actualRank = parseInt(row.cells[0].textContent.trim());
                 if (actualRank === 1) {
