@@ -29,6 +29,10 @@ async def change_username():
             return await render_template(
                 "error.jinja", error_message="Invalid new username"
             )
+        if glob.players.get(username=new_username): 
+            return await render_template(
+                "error.jinja", error_message="Username already taken"
+            )
 
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
