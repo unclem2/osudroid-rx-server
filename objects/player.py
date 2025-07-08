@@ -258,8 +258,3 @@ class Player:
             ],
         )
 
-async def recalc_stats():
-    players = await glob.db.fetchall("SELECT id FROM users")
-    for player in players:
-        player_obj = Player(id=int(player["id"]))
-        await player_obj.update_stats()

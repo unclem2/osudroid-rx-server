@@ -7,30 +7,33 @@ import objects.mods as Mods
 
 
 class PPCalculator:
-    def __init__(self, path):
-        self.bm_path = path
-        self.hit300 = 0
-        self.hit100 = 0
-        self.hit50 = 0
-        self.hmiss = 0
-        self.max_combo = 0
-        self.mods = ""
-        self.calc_pp = 0.0
+    def __init__(self, **kwargs):
+        self.mods = kwargs.get("mods", [])
+        self.bm_path = kwargs.get("bm_path")
+        self.h300 = kwargs.get("h300", 0)
+        self.h100 = kwargs.get("h100", 0)
+        self.h50 = kwargs.get("h50", 0)
+        self.hmiss = kwargs.get("hmiss", 0)
+        self.max_combo = kwargs.get("max_combo", 0)
+        self.acc = kwargs.get("acc", 0.0)
+        self.calc_pp = None
+  
 
     @classmethod
-    async def from_md5(cls, md5: str, **kwargs):
+    async def from_score(cls, score):
         if not glob.config.pp:
             return False
 
-        if not (bmap := await Beatmap.from_md5(md5)):
-            logging.error(f"Failed to get map: {md5}")
+        if not (bmap := await Beatmap.from_md5(score.map_hash)):
+            logging.error(f"Failed to get map: {score.map_hash}")
             return False
 
         res = await bmap.download()
         if not res:
             return False
 
-        return cls(res, **kwargs)
+        return cls(**{"bm_path": res, **score.as_json})
+
 
     async def calc(self):
         # Get the speed multiplier for the mods
@@ -103,9 +106,12 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-        performance.set_n300(self.hit300)
-        performance.set_n100(self.hit100)
-        performance.set_n50(self.hit50)
+        if self.acc is not 0.0:
+            performance.set_accuracy(self.acc)
+        else:
+            performance.set_n300(self.h300)
+            performance.set_n100(self.h100)
+            performance.set_n50(self.h50)
         performance.set_misses(self.hmiss)
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
@@ -130,29 +136,12 @@ class PPCalculator:
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
 
+        logging.debug(
+            f"PP Calculation: Aim PP: {aim_pp}, Force AR Penalty: {force_ar_penalty}, "
+            f"Miss Penalty Aim: {miss_penality_aim}, Final PP: {pp_return}"
+        )
+
         self.calc_pp = pp_return
         return pp_return
 
 
-async def recalc_single_score(score_id: int):
-    """recalculate a single score"""
-    score = await glob.db.fetch(
-        "SELECT * FROM scores WHERE id = $1 ORDER BY id ASC LIMIT 100", [score_id]
-    )
-
-    m = await PPCalculator.from_md5(score["maphash"])
-    if m:
-        m.hit300 = score["hit300"]
-        m.hit100 = score["hit100"]
-        m.hit50 = score["hit50"]
-        m.hmiss = score["hitmiss"]
-        m.max_combo = score["combo"]
-        m.mods = score["mods"]
-
-        await m.calc()
-
-        print(score["id"], score["maphash"], m.calc_pp)
-
-        # await glob.db.execute(
-        #     "UPDATE scores SET pp = $1 WHERE id = $2", [m.calc_pp, score["id"]]
-        # )

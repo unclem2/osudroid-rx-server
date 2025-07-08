@@ -28,33 +28,30 @@ async def calculate():
 
     if score.bmap is None:
         return {"error": "Beatmap not found"}, 404
-    await score.bmap.download()
-
-    score.pp = await utils.pp.PPCalculator.from_md5(score.bmap.md5)
-    score.pp.mods = data.get("mods", "")
-    score.mods = score.pp.mods
-
+    acc = 100
     if acc := data.get("acc"):
         if acc.isdecimal():
             score.acc = float(acc)
-            score.pp.acc = score.acc
-
+          
+    miss = 0
     if miss := data.get("miss"):
         if miss.isdecimal():
-            score.pp.hmiss = int(miss)
-            score.hmiss = score.pp.hmiss
+            score.hmiss = int(miss)
 
-    score.pp.max_combo = score.bmap.max_combo
+    score.max_combo = score.bmap.max_combo
     if combo := data.get("combo"):
         if combo.isdecimal():
-            score.pp.max_combo = int(combo)
+            score.max_combo = int(combo)
 
-    pp = await score.pp.calc()
+    score.pp  = await utils.pp.PPCalculator.from_score(score)
+    if score.pp is False:
+        return {"error": "Failed to calculate performance points."}, 500
+    await score.pp.calc()
 
     # Prepare result dictionary
     result = {
         "beatmap": score.bmap.as_json,
-        "pp": pp,
+        "pp": score.pp.calc_pp,
         "acc": score.acc,
         "hmiss": score.hmiss,
         "max_combo": score.pp.max_combo,
