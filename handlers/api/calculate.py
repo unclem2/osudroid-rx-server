@@ -46,7 +46,7 @@ async def calculate():
     score.pp  = await utils.pp.PPCalculator.from_score(score)
     if score.pp is False:
         return {"error": "Failed to calculate performance points."}, 500
-    await score.pp.calc()
+    await score.pp.calc(api=True)
 
     # Prepare result dictionary
     result = {

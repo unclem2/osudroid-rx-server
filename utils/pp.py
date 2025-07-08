@@ -59,7 +59,7 @@ class PPCalculator:
         return cls(**{"bm_path": res, **score.as_json})
 
 
-    async def calc(self):
+    async def calc(self, api=False):
         # Get the speed multiplier for the mods
 
         mods = Mods.Mods(self.mods)
@@ -83,7 +83,7 @@ class PPCalculator:
         beatmap_content = self.bm_path.read_text()
         beatmap = osu_pp.Beatmap(content=beatmap_content)
         original_od = beatmap.od - 4
-        cs = droid_cs_to_standard_cs(beatmap.cs)
+        cs = beatmap.cs
         applied = None
 
         if speed_multiplier != 1:
@@ -117,7 +117,7 @@ class PPCalculator:
             performance.set_clock_rate(speed_multiplier)
 
         performance.set_od(original_od, od_with_mods=False)
-        performance.set_cs(cs, cs_with_mods=False)
+        
         for i, mod in enumerate(mods):
             if mod["acronym"] == "PR":
                 original_od += 4
@@ -126,11 +126,14 @@ class PPCalculator:
                 return 0
             if mod["acronym"] == "REZ":
                 original_od = original_od / 2
-                performance.set_cs(cs * 0.66, cs_with_mods=False)
+                cs *= 0.66
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
-        if self.acc is not 0.0:
+        cs = droid_cs_to_standard_cs(cs)
+        performance.set_cs(cs, cs_with_mods=False)
+
+        if api == True:
             performance.set_accuracy(self.acc)
         else:
             performance.set_n300(self.h300)
