@@ -1,7 +1,6 @@
 import asyncio
-from objects import glob, score
+from objects import glob
 from objects.db import PostgresDB
-from utils import pp
 from objects.player import Player
 from objects.score import Score
 from utils.pp import PPCalculator
@@ -24,7 +23,6 @@ async def recalc_scores():
 
     for player in glob.players:
         print(f"{player.id} - processing")
-
         scores = await glob.db.fetchall(
             "SELECT * FROM scores WHERE playerid = $1", [player.id]
         )

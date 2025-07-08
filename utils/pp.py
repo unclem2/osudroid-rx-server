@@ -6,6 +6,30 @@ import math
 import objects.mods as Mods
 
 
+def droid_cs_to_standard_cs(cs: float) -> float:
+    """
+        Converts Droid CS to standard CS.
+        Formulas taken from Rian8337 osu-droid-module:
+        https://github.com/Rian8337/osu-droid-module/blob/master/packages/osu-base/src/utils/CircleSizeCalculator.ts
+    """
+    old_assumed_droid_height = 681
+    base_radius = 64
+    old_droid_scale_multiplier = (0.5 * (11 - 5.2450170716245195)) / 5
+    broken_gamefield_rounding_allowance = 1.00041
+
+    old_droid_scale = max(
+        ((old_assumed_droid_height / 480) * (54.42 - cs * 4.48)) / base_radius + old_droid_scale_multiplier,
+        1e-3
+    )
+
+    standard_radius = (base_radius * old_droid_scale) / ((old_assumed_droid_height * 0.85) / 384)
+
+    scale = standard_radius / base_radius
+
+    standard_cs = 5 + (5 * (1 - (2 * scale) / broken_gamefield_rounding_allowance)) / 0.7
+    return standard_cs
+
+
 class PPCalculator:
     def __init__(self, **kwargs):
         self.mods = kwargs.get("mods", [])
@@ -59,7 +83,7 @@ class PPCalculator:
         beatmap_content = self.bm_path.read_text()
         beatmap = osu_pp.Beatmap(content=beatmap_content)
         original_od = beatmap.od - 4
-
+        cs = droid_cs_to_standard_cs(beatmap.cs)
         applied = None
 
         if speed_multiplier != 1:
@@ -92,8 +116,8 @@ class PPCalculator:
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
 
-        performance.set_od(original_od, od_with_mods=True)
-
+        performance.set_od(original_od, od_with_mods=False)
+        performance.set_cs(cs, cs_with_mods=False)
         for i, mod in enumerate(mods):
             if mod["acronym"] == "PR":
                 original_od += 4
@@ -102,7 +126,7 @@ class PPCalculator:
                 return 0
             if mod["acronym"] == "REZ":
                 original_od = original_od / 2
-                performance.set_cs(beatmap.cs * 0.66, cs_with_mods=False)
+                performance.set_cs(cs * 0.66, cs_with_mods=False)
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
 
@@ -126,6 +150,8 @@ class PPCalculator:
             + attributes.difficulty.n_sliders
             + attributes.difficulty.n_spinners
         )
+        if amount_hitobjects == 0:
+            return 0
         miss_penality_aim = 0.99 * pow(
             1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss - 10
         )
