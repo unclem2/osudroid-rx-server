@@ -143,6 +143,7 @@ class PPCalculator:
                 cs *= 0.5
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
+                performance.set_cs(cs, cs_with_mods=False)
                 difficulty.set_od(original_od, od_with_mods=False)
                 difficulty.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
 
