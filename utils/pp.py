@@ -146,6 +146,8 @@ class PPCalculator:
                 performance.set_cs(cs, cs_with_mods=False)
                 difficulty.set_od(original_od, od_with_mods=False)
                 difficulty.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
+                difficulty.set_cs(cs, cs_with_mods=False)
+
 
 
         # cs = droid_cs_to_standard_cs(cs)
