@@ -166,6 +166,7 @@ class PPCalculator:
             force_ar_penalty = 0
 
         pp_return = attributes.pp - attributes.pp_speed
+        pp_return *= force_ar_penalty
         diff_return = calculated_diff.stars - calculated_diff.speed
 
         if float(pp_return) >= float(glob.config.max_pp_value):
