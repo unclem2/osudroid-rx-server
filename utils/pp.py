@@ -65,9 +65,7 @@ class PPCalculator:
 
         mods = Mods.Mods(self.mods)
 
-        if mods.count({"acronym": "RX"}) == 0 and api == False:
-            self.calc_pp = 0
-            return 0
+
         speed_multiplier = mods.speed_multiplier
         if speed_multiplier is None:
             speed_multiplier = 1
@@ -79,6 +77,9 @@ class PPCalculator:
 
         mods = mods.convert_droid
 
+        if mods.count({"acronym": "RX"}) == 0 and api == False:
+            self.calc_pp = 0
+            return 0
         if force_cs is not None:
             return 0
         if fl_delay is not None:
