@@ -27,7 +27,7 @@ def droid_cs_to_standard_cs(cs: float) -> float:
     scale = standard_radius / base_radius
 
     standard_cs = 5 + (5 * (1 - (2 * scale) / broken_gamefield_rounding_allowance)) / 0.7
-    return standard_cs
+    return standard_cs 
 
 
 class PPCalculator:
@@ -40,6 +40,7 @@ class PPCalculator:
         self.hmiss = kwargs.get("hmiss", 0)
         self.max_combo = kwargs.get("max_combo", 0)
         self.acc = kwargs.get("acc", 0.0)
+        self.difficulty = 0
         self.calc_pp = None
   
 
@@ -63,6 +64,10 @@ class PPCalculator:
         # Get the speed multiplier for the mods
 
         mods = Mods.Mods(self.mods)
+
+        if mods.count({"acronym": "RX"}) == 0 and api == False:
+            self.calc_pp = 0
+            return 0
         speed_multiplier = mods.speed_multiplier
         if speed_multiplier is None:
             speed_multiplier = 1
@@ -110,28 +115,39 @@ class PPCalculator:
                     applied = True
                     break
 
+        print(mods)
         performance = osu_pp.Performance(
             mods=mods,
         )
+        difficulty = osu_pp.Difficulty(
+            mods=mods
+        )
         if applied != True and speed_multiplier != 1:
+            difficulty.set_clock_rate(speed_multiplier)
             performance.set_clock_rate(speed_multiplier)
 
         performance.set_od(original_od, od_with_mods=False)
+        difficulty.set_od(original_od, od_with_mods=False)
         
         for i, mod in enumerate(mods):
             if mod["acronym"] == "PR":
                 original_od += 4
                 performance.set_od(original_od, od_with_mods=False)
+                difficulty.set_od(original_od, od_with_mods=False)
+
             if mod["acronym"] == "AP":
                 return 0
             if mod["acronym"] == "REZ":
                 original_od = original_od / 2
-                cs *= 0.66
+                cs *= 0.5
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
+                difficulty.set_od(original_od, od_with_mods=False)
+                difficulty.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
 
-        cs = droid_cs_to_standard_cs(cs)
-        performance.set_cs(cs, cs_with_mods=False)
+
+        # cs = droid_cs_to_standard_cs(cs)
+        # performance.set_cs(cs, cs_with_mods=False)
 
         if api == True:
             performance.set_accuracy(self.acc)
@@ -142,34 +158,24 @@ class PPCalculator:
         performance.set_misses(self.hmiss)
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
+        calculated_diff = difficulty.calculate(beatmap)
 
         force_ar_penalty = 1
         if force_ar is not None:
             force_ar_penalty = 0
 
-        aim_pp = attributes.pp_aim * 1.1
-        amount_hitobjects = (
-            attributes.difficulty.n_circles
-            + attributes.difficulty.n_sliders
-            + attributes.difficulty.n_spinners
-        )
-        if amount_hitobjects == 0:
-            return 0
-        miss_penality_aim = 0.99 * pow(
-            1 - pow(self.hmiss / amount_hitobjects, 0.775), self.hmiss - 10
-        )
-        if miss_penality_aim > 0.99:
-            miss_penality_aim = 0.99
+        pp_return = attributes.pp - attributes.pp_speed
+        diff_return = calculated_diff.stars - calculated_diff.speed
 
-        pp_return = aim_pp * force_ar_penalty * miss_penality_aim
         if float(pp_return) >= float(glob.config.max_pp_value):
             return 0
 
         logging.debug(
-            f"PP Calculation: Aim PP: {aim_pp}, Force AR Penalty: {force_ar_penalty}, "
-            f"Miss Penalty Aim: {miss_penality_aim}, Final PP: {pp_return}"
+            f"PP Calculation: Force AR Penalty: {force_ar_penalty}, "
+            f" Final PP: {pp_return}"
         )
 
+        self.difficulty = diff_return
         self.calc_pp = pp_return
         return pp_return
 

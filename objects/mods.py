@@ -53,7 +53,7 @@ class Mods:
             "r": {"acronym": "HR"},
             "u": {"acronym": "SD"},
             "d": {"acronym": "DT"},
-            "x": {"acronym": ""},
+            "x": {"acronym": "RX"},
             "t": {"acronym": "HT"},
             "c": {"acronym": "NC"},
             "i": {"acronym": "FL"},

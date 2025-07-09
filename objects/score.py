@@ -127,7 +127,7 @@ class Score:
             await s.calc_status()
             s.rank = await s.calc_lb_placement()
         else:
-            s.pp = PPCalculator("")
+            s.pp = PPCalculator()
             s.pp.calc_pp = 0.0
             s.status = SubmissionStatus.SUBMITTED
 
@@ -139,7 +139,7 @@ class Score:
             "id": self.id,
             "bmap": self.bmap.as_json,
             "map_hash": self.map_hash,
-            "player": self.player.name,
+            "player": self.player.name if self.player else "",
             "pp": self.pp,
             "score": self.score,
             "max_combo": self.max_combo,

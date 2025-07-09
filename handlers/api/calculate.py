@@ -28,6 +28,9 @@ async def calculate():
 
     if score.bmap is None:
         return {"error": "Beatmap not found"}, 404
+    
+    score.map_hash = score.bmap.md5
+
     acc = 100
     if acc := data.get("acc"):
         if acc.isdecimal():
@@ -42,7 +45,9 @@ async def calculate():
     if combo := data.get("combo"):
         if combo.isdecimal():
             score.max_combo = int(combo)
-
+    score.mods = ""
+    if mods := data.get("mods"):
+        score.mods = mods
     score.pp  = await utils.pp.PPCalculator.from_score(score)
     if score.pp is False:
         return {"error": "Failed to calculate performance points."}, 500
@@ -56,6 +61,7 @@ async def calculate():
         "hmiss": score.hmiss,
         "max_combo": score.pp.max_combo,
         "mods": score.mods,
+        "difficulty": score.pp.difficulty
     }
     result = jsonify(result)
     return result
