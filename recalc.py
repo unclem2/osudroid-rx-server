@@ -3,10 +3,11 @@ from objects import glob
 from objects.db import PostgresDB
 from objects.player import Player
 from objects.score import Score
+from objects.beatmap import Beatmap
 from utils.pp import PPCalculator
 import logging
 
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
 glob.db = PostgresDB()
 
@@ -23,9 +24,11 @@ async def recalc_scores():
 
     for player in glob.players:
         print(f"{player.id} - processing")
+        total_recalculated = 0
         scores = await glob.db.fetchall(
             "SELECT * FROM scores WHERE playerid = $1", [player.id]
         )
+        left = len(scores)
         print(f"{player.id} - {len(scores)} scores found")
 
         grouped_scores = {}
@@ -33,43 +36,41 @@ async def recalc_scores():
             grouped_scores.setdefault(score["maphash"], []).append(score)
 
         for maphash, user_map_scores in grouped_scores.items():
-            print(f"{player.id} - processing map {maphash}")
+            print(f"[{total_recalculated}/{left}]{player.id} - processing map {maphash}")
 
-            for user_map_score in user_map_scores:
-                try:
-                    s = await Score.from_sql(user_map_score["id"])
-                    print(f"{player.id} - loaded score {user_map_score['id']}")
-                except Exception as e:
-                    print(f"{player.id} - failed to load score {user_map_score['id']}")
-                    if user_map_score["status"] is None:
-                        user_map_score["status"] = 1
-                        s = Score()
-                        s.id = user_map_score["id"]
-                        
-                        s.h300 = user_map_score["hit300"]
-                        s.h100 = user_map_score["hit100"]
-                        s.h50 = user_map_score["hit50"]
-                        s.hmiss = user_map_score["hitmiss"]
-                        s.max_combo = user_map_score["combo"]
-                        s.mods = user_map_score["mods"]
-                        s.player = player
-                        s.pp = await PPCalculator.from_score(s)
-                if s.pp == False:
-                    print(f"{player.id} - failed to load map {maphash}")
-                    continue
-                await s.pp.calc()
-                user_map_score["pp"] = s.pp.calc_pp
-                print(
-                    f"{player.id} - calculated pp for score {user_map_score['id']} - {s.pp.calc_pp}"
-                )
+            for score_data in user_map_scores:
+                s = Score()
+                
+                s.id = score_data["id"]
+                if s.id == 11002:
+                    pass
+                s.bmap = await Beatmap.from_md5(maphash)
+                s.map_hash = maphash
+                s.player = player
+                s.h300 = score_data["hit300"]
+                s.h100 = score_data["hit100"]
+                s.h50 = score_data["hit50"]
+                s.hmiss = score_data["hitmiss"]
+                s.max_combo = score_data["combo"]
+                s.mods = score_data["mods"]
+                s.pp = await PPCalculator.from_score(s)
+                if s.pp != False:
+                    await s.pp.calc()
+                    score_data["pp"] = s.pp.calc_pp
+                else:
+                    score_data["pp"] = 0
 
                 await glob.db.execute(
-                    "UPDATE scores SET pp = $1 WHERE id = $2", [s.pp.calc_pp, s.id]
+                    "UPDATE scores SET pp = $1 WHERE id = $2",
+                    [score_data["pp"], s.id],
                 )
-                print(f"{player.id} - updated pp for score {user_map_score['id']}")
+
+                total_recalculated += 1  # ← увеличиваем счётчик
+                print(
+                    f"[{total_recalculated}/{left}]{player.id} - recalculated score {s.id} with pp {score_data['pp']}"
+                )
 
             user_map_scores.sort(key=lambda x: x["pp"], reverse=True)
-
             for i, user_map_score in enumerate(user_map_scores):
                 new_status = 2 if i == 0 else 1
                 await glob.db.execute(
@@ -77,7 +78,7 @@ async def recalc_scores():
                     [new_status, user_map_score["id"]],
                 )
                 print(
-                    f"{player.id} - updated status for score {user_map_score['id']} to {new_status}"
+                    f"[{total_recalculated}/{left}]{player.id} - updated status for score {user_map_score['id']} to {new_status}"
                 )
 
         await player.update_stats()

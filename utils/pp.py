@@ -81,8 +81,10 @@ class PPCalculator:
             self.calc_pp = 0
             return 0
         if force_cs is not None:
+            self.calc_pp = 0
             return 0
         if fl_delay is not None:
+            self.calc_pp = 0
             return 0
 
         # Read the beatmap content
@@ -116,27 +118,30 @@ class PPCalculator:
                     applied = True
                     break
 
-        print(mods)
+        # print(mods)
         performance = osu_pp.Performance(
             mods=mods,
         )
-        difficulty = osu_pp.Difficulty(
-            mods=mods
+
+        beatmap_attrs = osu_pp.BeatmapAttributesBuilder(
+            mods=mods,
+            map=beatmap
         )
+
         if applied != True and speed_multiplier != 1:
-            difficulty.set_clock_rate(speed_multiplier)
             performance.set_clock_rate(speed_multiplier)
+            beatmap_attrs.set_clock_rate(speed_multiplier)
 
         performance.set_od(original_od, od_with_mods=False)
-        difficulty.set_od(original_od, od_with_mods=False)
+        beatmap_attrs.set_od(original_od, od_with_mods=False)
         
         for i, mod in enumerate(mods):
             if mod["acronym"] == "PR":
                 original_od += 4
                 performance.set_od(original_od, od_with_mods=False)
-                difficulty.set_od(original_od, od_with_mods=False)
-
+                beatmap_attrs.set_od(original_od, od_with_mods=False)
             if mod["acronym"] == "AP":
+                self.calc_pp = 0
                 return 0
             if mod["acronym"] == "REZ":
                 original_od = original_od / 2
@@ -144,11 +149,12 @@ class PPCalculator:
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
                 performance.set_od(original_od, od_with_mods=False)
                 performance.set_cs(cs, cs_with_mods=False)
-                difficulty.set_od(original_od, od_with_mods=False)
-                difficulty.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
-                difficulty.set_cs(cs, cs_with_mods=False)
 
+                beatmap_attrs.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
+                beatmap_attrs.set_od(original_od, od_with_mods=False)
+                beatmap_attrs.set_cs(cs, cs_with_mods=False)
 
+        
 
         # cs = droid_cs_to_standard_cs(cs)
         # performance.set_cs(cs, cs_with_mods=False)
@@ -162,25 +168,36 @@ class PPCalculator:
         performance.set_misses(self.hmiss)
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
-        calculated_diff = difficulty.calculate(beatmap)
+        
+
+        beatmap_attrs = beatmap_attrs.build()
 
         force_ar_penalty = 1
         if force_ar is not None:
             force_ar_penalty = 0
 
-        pp_return = attributes.pp - attributes.pp_speed
+        ar_bonus = 0.0
+
+        if beatmap_attrs.ar > 10.33:
+            ar_bonus += 0.4 * (beatmap_attrs.ar - 10.33)
+
+        elif beatmap_attrs.ar < 8.0:
+            ar_bonus += 0.01 * (8.0 - beatmap_attrs.ar)
+
+
+        pp_return = attributes.pp * (1+min(ar_bonus, ar_bonus * (beatmap.n_objects / 1000)))
         pp_return *= force_ar_penalty
-        diff_return = calculated_diff.stars - calculated_diff.speed
 
         if float(pp_return) >= float(glob.config.max_pp_value):
+            self.calc_pp = 0
             return 0
 
         logging.debug(
             f"PP Calculation: Force AR Penalty: {force_ar_penalty}, "
             f" Final PP: {pp_return}"
         )
-
-        self.difficulty = diff_return
+        if api == True:
+            self.difficulty = attributes.difficulty.stars
         self.calc_pp = pp_return
         return pp_return
 
