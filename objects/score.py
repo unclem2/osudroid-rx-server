@@ -109,7 +109,6 @@ class Score:
 
         if s.map_hash:
             s.bmap = await Beatmap.from_md5(s.map_hash)
-            
 
         (s.score, s.max_combo) = map(int, data[1:3])
         (s.hgeki, s.h300, s.hkatsu, s.h100, s.h50, s.hmiss) = map(int, data[4:10])
@@ -188,5 +187,3 @@ class Score:
                 )
         else:
             self.status = SubmissionStatus.BEST
-
-
