@@ -45,4 +45,5 @@ legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#
 
+maintenance = True
 disable_submit = False  # Does what it says and shows a message to user when trying to play submit a play.

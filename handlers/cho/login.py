@@ -27,6 +27,9 @@ async def login():
     if int(params["version"]) != int(glob.config.online_version):
         return Failed("This client is outdated")
 
+    if glob.config.maintenance == True:
+        return Failed("not yet")
+
     res = await glob.db.fetch(
         "SELECT password_hash, status FROM users WHERE id = $1", [p.id]
     )
