@@ -18,7 +18,7 @@ async def profile():
     try:
         if "login_state" in request.cookies:
             player_id = int(request.cookies["login_state"].split("-")[1])
-        elif "id" in params or "uid" in params:
+        if "id" in params or "uid" in params:
             player_id = int(params.get("id")) or int(params.get("uid"))
     except (ValueError, TypeError):
         return await render_template("error.jinja", error_message="Invalid player ID")
