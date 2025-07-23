@@ -67,7 +67,8 @@ class PPCalculator:
         speed_multiplier = mods.get_mod("CS")
         if speed_multiplier is None:
             speed_multiplier = 1
-        speed_multiplier = speed_multiplier.get("settings", {}).get("rateMultiplier", 1)
+        else:
+            speed_multiplier = speed_multiplier.get("settings", {}).get("rateMultiplier", 1)
 
         if mods.get_mod("RX") is None:
             self.calc_pp = 0
