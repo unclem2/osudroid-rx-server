@@ -1,6 +1,7 @@
 from quart import Blueprint, render_template, request
 from objects import glob
 from objects.beatmap import Beatmap
+from objects.player import Player
 from objects.mods import Mods
 import time
 import os
@@ -14,25 +15,20 @@ php_file = True
 async def profile():
     params = request.args
     player_id = None
-    if "login_state" not in request.cookies:
-        pass
-    if "login_state" in request.cookies:
-        player_id = int(request.cookies["login_state"].split("-")[1])
     try:
-        if "id" in params:
-            player_id = int(params["id"])
-        if "uid" in params:
-            player_id = int(params["uid"])
-    except ValueError:
-        return await render_template(
-            "error.jinja", error_message="No player ID provided"
-        )
-
+        if "login_state" in request.cookies:
+            player_id = int(request.cookies["login_state"].split("-")[1])
+        elif "id" in params or "uid" in params:
+            player_id = int(params.get("id")) or int(params.get("uid"))
+    except (ValueError, TypeError):
+        return await render_template("error.jinja", error_message="Invalid player ID")
+    
     if player_id is None:
         return await render_template(
             "error.jinja", error_message="No player ID provided"
         )
-    p = glob.players.get(id=player_id)
+    
+    p:Player = glob.players.get(id=player_id)
     if not p:
         return await render_template("error.jinja", error_message="Player not found")
 
@@ -48,16 +44,12 @@ async def profile():
         for score in recent_scores:
             try:
                 bmap = await Beatmap.from_md5(score["maphash"])
-                score["map"] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+                score["map"] = bmap.full
             except:
                 score["map"] = score["maphash"]
-            score["date"] = time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
-            )
+            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
             score["acc"] = f"{score['acc']:.2f}%"
-
             score["pp"] = f"{round(score['pp'])}pp"
-
             score["mods"] = f"{Mods(score['mods']).convert_std}"
 
     except BaseException:
@@ -73,16 +65,12 @@ async def profile():
         for score in top_scores:
             try:
                 bmap = await Beatmap.from_md5(score["maphash"])
-                score["map"] = f"{bmap.artist} - {bmap.title} [{bmap.version}]"
+                score["map"] = bmap.full
             except:
                 score["map"] = score["maphash"]
-            score["date"] = time.strftime(
-                "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
-            )
+            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
             score["acc"] = f"{score['acc']:.2f}%"
-
             score["pp"] = f"{round(score['pp'])}pp"
-
             score["mods"] = f"{Mods(score['mods']).convert_std}"
     except BaseException:
         top_scores = []

@@ -44,6 +44,9 @@ class Score:
         self.hmiss: int = 0
         self.hgeki: int = 0
         self.hkatsu: int = 0
+        self.slidertickhits: int = 0
+        self.sliderendhits: int = 0
+
         self.grade: str = ""
 
         self.rank: str = ""
@@ -79,6 +82,7 @@ class Score:
         s.hmiss = res["hitmiss"]
         s.hgeki = res["hitgeki"]
         s.hkatsu = res["hitkatsu"]
+        
         s.date = res["date"]
         s.pp = await PPCalculator.from_score(s)
         s.pp.calc_pp = int(round(res["pp"]))
@@ -93,7 +97,7 @@ class Score:
         data = data.split(" ")
 
         s = cls()
-        pname = data[13]
+        pname = data[13] if glob.config.legacy else data[15]
         s.player = glob.players.get(name=pname)
 
         if not s.player:
@@ -110,15 +114,21 @@ class Score:
         if s.map_hash:
             s.bmap = await Beatmap.from_md5(s.map_hash)
             
-
+        s.mods = data[0]
         (s.score, s.max_combo) = map(int, data[1:3])
+        s.grade = data[3]
         (s.hgeki, s.h300, s.hkatsu, s.h100, s.h50, s.hmiss) = map(int, data[4:10])
 
-        s.mods = data[0]
-        s.grade = data[3]
-        s.acc = float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
-        s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
-        s.date = int(data[11])  # 1.6.8: Int?
+        if glob.config.legacy:
+            s.acc = float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
+            s.date = int(data[11])  # 1.6.8: Int?
+            s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
+        else:
+            s.slidertickhits = int(data[10])
+            s.sliderendhits = int(data[11])
+            s.acc = float(data[12]) * 100
+            s.date = int(data[13])
+            s.fc = (data[14] == "true") or (data[14] == "1")  # 1.6.8 Fix
 
         s.pp = await PPCalculator.from_score(s)
 

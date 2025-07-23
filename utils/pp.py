@@ -61,31 +61,24 @@ class PPCalculator:
 
 
     async def calc(self, api=False):
-        # Get the speed multiplier for the mods
 
         mods = Mods.Mods(self.mods)
 
-
-        speed_multiplier = mods.speed_multiplier
+        speed_multiplier = mods.get_mod("CS")
         if speed_multiplier is None:
             speed_multiplier = 1
-        speed_multiplier = float(speed_multiplier)
+        speed_multiplier = speed_multiplier.get("settings", {}).get("rateMultiplier", 1)
 
-        force_ar = mods.forcear
-        force_cs = mods.forcecs
-        fl_delay = mods.fldelay
-
-        mods = mods.convert_droid
-
-        if mods.count({"acronym": "RX"}) == 0 and api == False:
+        if mods.get_mod("RX") is None:
             self.calc_pp = 0
             return 0
-        if force_cs is not None:
+        if mods.get_mod("AP") is not None:
             self.calc_pp = 0
             return 0
-        if fl_delay is not None:
+        if mods.get_mod("DA") is not None:
             self.calc_pp = 0
             return 0
+    
 
         # Read the beatmap content
         beatmap_content = self.bm_path.read_text()
@@ -95,7 +88,7 @@ class PPCalculator:
         applied = None
 
         if speed_multiplier != 1:
-            for i, mod in enumerate(mods):
+            for i, mod in enumerate(mods.convert_droid):
                 if mod["acronym"] == "DT":
                     mods[i] = {
                         "acronym": "DT",
@@ -120,11 +113,12 @@ class PPCalculator:
 
         # print(mods)
         performance = osu_pp.Performance(
-            mods=mods,
+            mods=mods.convert_droid,
+
         )
 
         beatmap_attrs = osu_pp.BeatmapAttributesBuilder(
-            mods=mods,
+            mods=mods.convert_droid,
             map=beatmap
         )
 
@@ -135,14 +129,11 @@ class PPCalculator:
         performance.set_od(original_od, od_with_mods=False)
         beatmap_attrs.set_od(original_od, od_with_mods=False)
         
-        for i, mod in enumerate(mods):
+        for i, mod in enumerate(mods.convert_droid):
             if mod["acronym"] == "PR":
                 original_od += 4
                 performance.set_od(original_od, od_with_mods=False)
                 beatmap_attrs.set_od(original_od, od_with_mods=False)
-            if mod["acronym"] == "AP":
-                self.calc_pp = 0
-                return 0
             if mod["acronym"] == "REZ":
                 original_od = original_od / 2
                 cs *= 0.5
@@ -172,10 +163,6 @@ class PPCalculator:
 
         beatmap_attrs = beatmap_attrs.build()
 
-        force_ar_penalty = 1
-        if force_ar is not None:
-            force_ar_penalty = 0
-
         ar_bonus = 0.0
 
         if beatmap_attrs.ar > 10.33:
@@ -186,16 +173,11 @@ class PPCalculator:
 
 
         pp_return = attributes.pp * (1+min(ar_bonus, ar_bonus * (beatmap.n_objects / 1000)))
-        pp_return *= force_ar_penalty
 
         if float(pp_return) >= float(glob.config.max_pp_value):
             self.calc_pp = 0
             return 0
 
-        logging.debug(
-            f"PP Calculation: Force AR Penalty: {force_ar_penalty}, "
-            f" Final PP: {pp_return}"
-        )
         if api == True:
             self.difficulty = attributes.difficulty.stars
         self.calc_pp = pp_return
