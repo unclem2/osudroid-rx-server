@@ -155,6 +155,18 @@ class Mods:
     def convert_droid(self):
         if self.is_json == False:
             return self.__old_convert_droid()
+        for mod in self.mods:
+            if mod["acronym"] == "DA":
+                if "settings" not in mod:
+                    mod["settings"] = {}
+                if "approach_rate" in mod["settings"]:
+                    mod["settings"]["ar"] = mod["settings"].pop("approach_rate")
+                if "circle_size" in mod["settings"]:
+                    mod["settings"]["cs"] = mod["settings"].pop("circle_size")
+                if "overall_difficulty" in mod["settings"]:
+                    mod["settings"]["od"] = mod["settings"].pop("overall_difficulty")
+                if "health_points" in mod["settings"]:
+                    mod["settings"]["hp"] = mod["settings"].pop("health_points")
         return self.mods
 
     @property
