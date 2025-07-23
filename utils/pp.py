@@ -88,8 +88,9 @@ class PPCalculator:
         cs = beatmap.cs
         applied = None
 
+        submit_mods = mods.convert_droid
         if speed_multiplier != 1:
-            for i, mod in enumerate(mods.convert_droid):
+            for i, mod in enumerate(submit_mods):
                 if mod["acronym"] == "DT":
                     mods[i] = {
                         "acronym": "DT",
@@ -114,12 +115,12 @@ class PPCalculator:
 
         # print(mods)
         performance = osu_pp.Performance(
-            mods=mods.convert_droid,
+            mods=submit_mods
 
         )
 
         beatmap_attrs = osu_pp.BeatmapAttributesBuilder(
-            mods=mods.convert_droid,
+            mods=submit_mods,
             map=beatmap
         )
 
