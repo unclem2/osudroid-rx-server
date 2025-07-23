@@ -1,18 +1,16 @@
 import re
 
-
-def get_used_mods(mods: str):
-    mods = re.sub(r"\bx\d+\.\d+\b", "", mods, flags=re.IGNORECASE)
-
-    mods = re.sub(r"[^a-zA-Z]", "", mods)
-    return mods
-
-
-class Mods:
+class OldMods:
     def __init__(self, mods: str):
         self.mods = mods
-        self.used_mods = get_used_mods(mods)
+        self.used_mods = self.get_used_mods(mods)
 
+    def get_used_mods(mods: str):
+        mods = re.sub(r"\bx\d+\.\d+\b", "", mods, flags=re.IGNORECASE)
+
+        mods = re.sub(r"[^a-zA-Z]", "", mods)
+        return mods
+    
     @property
     def convert_std(self):
         mod_mapping = {
@@ -67,12 +65,12 @@ class Mods:
             "b": {"acronym": "TC"},
         }
 
-        used_mods = []
+        mods= []
         for char in self.used_mods:
             if char in mod_mapping:
-                used_mods.append(mod_mapping[char])
+                mods.append(mod_mapping[char])
 
-        return used_mods
+        return mods
 
     @property
     def speed_multiplier(self):
@@ -97,3 +95,23 @@ class Mods:
     def fldelay(self):
         match = re.search(r"\bFLD(\d+\.\d+)\b", self.mods)
         return match.group(1) if match else None
+
+
+class Mods:
+    def __init__(self, mods):
+        self.mods = list(mods)
+        self.used_mods = [mod for mod in self.mods if mod["acronym"] != "CS"]
+    
+    @property
+    def convert_std(self):
+        return "".join(mod["acronym"] for mod in self.mods)
+
+    @property
+    def convert_droid(self):
+        return self.used_mods
+
+    @property
+    def speed_multiplier(self):
+        return next((mod for mod in self.mods if mod["acronym"] == "CS"), None)
+
+    
