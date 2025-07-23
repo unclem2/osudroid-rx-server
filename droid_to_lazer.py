@@ -22,13 +22,13 @@ async def convert_db():
             continue
 
         old_mods = Mods(mods)
-        converted_mods = old_mods.convert_droid
-        string = json.dumps(converted_mods, ensure_ascii=False)
+        string = old_mods.convert_json
         await glob.db.execute(
             "UPDATE scores SET mods = $1 WHERE id = $2",
             [string, score["id"]]
         )
-        logging.info(f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {converted_mods}")
+        logging.info(f"[{i}/{len(scores)}]Before conversion: {mods}, After conversion: {string}")
+        logging.info(f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {string}")
 
 
 asyncio.run(convert_db())

@@ -111,13 +111,13 @@ class Mods:
                 "settings": {}
             }
             if matchar:
-                da["settings"]["approach_rate"] = float(matchar.group(1))
+                da["settings"]["ar"] = float(matchar.group(1))
             if matchcs:
-                da["settings"]["circle_size"] = float(matchcs.group(1))
+                da["settings"]["cs"] = float(matchcs.group(1))
             if matchod:
-                da["settings"]["overall_difficulty"] = float(matchod.group(1))
+                da["settings"]["od"] = float(matchod.group(1))
             if matchhp:
-                da["settings"]["drain_rate"] = float(matchhp.group(1))
+                da["settings"]["hp"] = float(matchhp.group(1))
             mods.append(da)
 
         if matchsm:
@@ -155,22 +155,15 @@ class Mods:
     def convert_droid(self):
         if self.is_json == False:
             return self.__old_convert_droid()
-        for mod in self.mods:
-            if mod["acronym"] == "DA":
-                if "settings" not in mod:
-                    mod["settings"] = {}
-                if "ar" in mod["settings"]:
-                    mod["settings"]["approach_rate"] = mod["settings"].pop("ar")
-                if "cs" in mod["settings"]:
-                    mod["settings"]["circle_size"] = mod["settings"].pop("cs")
-                if "od" in mod["settings"]:
-                    mod["settings"]["overall_difficulty"] = mod["settings"].pop("od")
-                if "hp" in mod["settings"]:
-                    mod["settings"]["drain_rate"] = mod["settings"].pop("hp")
         return self.mods
+
+    @property
+    def convert_json(self):
+        return json.dumps(self.convert_droid, separators=(",", ":"))
 
     def get_mod(self, acronym):
         for mod in self.convert_droid:
             if mod["acronym"] == acronym:
                 return mod
         return None    
+
