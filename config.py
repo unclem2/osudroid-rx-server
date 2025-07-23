@@ -15,11 +15,11 @@ smtp_port = 587  # smtp port, 587 for tls, 25 no tls, also 465 can be used
 host = ""  # for internal use, dont change this
 
 ## CLIENT STUFF ##
-online_version = 5
-client_link = "https://github.com/unclem2/odrx-client/releases/download/1.15/osu.droid-1.15.250420.-debug-2025-04-20.apk"
-client_version = "1.15(250420)"
-client_version_code = 1745145666
-client_changelog = "1.8 migration + new domain 2"
+online_version = 6
+client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16/osu.droid-1.16.250724.-debug-2025-07-23.apk"
+client_version = "1.16(250724)"
+client_version_code = 1753309279
+client_changelog = "1.8.4-3 patch"
 banner_url = "https://discord.gg/Ub4nXasaHd"
 
 ## CRON ##
@@ -45,5 +45,5 @@ legacy = False  # Enable to use legacy ranking system
 
 # - MAINTENACE -#
 
-maintenance = True
+maintenance = False
 disable_submit = False  # Does what it says and shows a message to user when trying to play submit a play.
