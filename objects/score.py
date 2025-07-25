@@ -82,7 +82,7 @@ class Score:
         s.hmiss = res["hitmiss"]
         s.hgeki = res["hitgeki"]
         s.hkatsu = res["hitkatsu"]
-        
+
         s.date = res["date"]
         s.pp = await PPCalculator.from_score(s)
         s.pp.calc_pp = int(round(res["pp"]))
@@ -113,14 +113,16 @@ class Score:
 
         if s.map_hash:
             s.bmap = await Beatmap.from_md5(s.map_hash)
-            
+
         s.mods = data[0]
         (s.score, s.max_combo) = map(int, data[1:3])
         s.grade = data[3]
         (s.hgeki, s.h300, s.hkatsu, s.h100, s.h50, s.hmiss) = map(int, data[4:10])
 
         if glob.config.legacy:
-            s.acc = float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
+            s.acc = (
+                float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
+            )
             s.date = int(data[11])  # 1.6.8: Int?
             s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
         else:
@@ -198,5 +200,3 @@ class Score:
                 )
         else:
             self.status = SubmissionStatus.BEST
-
-

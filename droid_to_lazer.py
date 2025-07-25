@@ -11,7 +11,10 @@ import json
 
 glob.db = PostgresDB()
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 async def convert_db():
     await glob.db.connect()
@@ -24,11 +27,14 @@ async def convert_db():
         old_mods = Mods(mods)
         string = old_mods.convert_json
         await glob.db.execute(
-            "UPDATE scores SET mods = $1 WHERE id = $2",
-            [string, score["id"]]
+            "UPDATE scores SET mods = $1 WHERE id = $2", [string, score["id"]]
         )
-        logging.info(f"[{i}/{len(scores)}]Before conversion: {mods}, After conversion: {string}")
-        logging.info(f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {string}")
+        logging.info(
+            f"[{i}/{len(scores)}]Before conversion: {mods}, After conversion: {string}"
+        )
+        logging.info(
+            f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {string}"
+        )
 
 
 asyncio.run(convert_db())
