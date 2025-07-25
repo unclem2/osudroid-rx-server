@@ -167,6 +167,8 @@ class Mods:
                     mod["settings"]["od"] = mod["settings"].pop("overall_difficulty")
                 if "health_points" in mod["settings"]:
                     mod["settings"]["hp"] = mod["settings"].pop("health_points")
+            if mod["acronym"] == "REZ":
+                mod["acronym"] = "RE"
         return self.mods
 
     @property

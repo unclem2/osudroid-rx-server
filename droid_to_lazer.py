@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 async def convert_db():
     await glob.db.connect()
-    scores = await glob.db.fetchall("SELECT * FROM scores")
+    scores = await glob.db.fetchall("SELECT * FROM scores WHERE mods like '%REZ%'")
     for i, score in enumerate(scores):
         mods = score["mods"]
         if not mods:

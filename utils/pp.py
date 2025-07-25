@@ -136,7 +136,7 @@ class PPCalculator:
                 original_od += 4
                 performance.set_od(original_od, od_with_mods=False)
                 beatmap_attrs.set_od(original_od, od_with_mods=False)
-            if mod["acronym"] == "REZ":
+            if mod["acronym"] == "RE":
                 original_od = original_od / 2
                 cs *= 0.5
                 performance.set_ar(beatmap.ar - 0.5, ar_with_mods=True)
