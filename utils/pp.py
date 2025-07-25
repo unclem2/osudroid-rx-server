@@ -92,21 +92,21 @@ class PPCalculator:
         if speed_multiplier != 1:
             for i, mod in enumerate(submit_mods):
                 if mod["acronym"] == "DT":
-                    mods[i] = {
+                    submit_mods[i] = {
                         "acronym": "DT",
                         "settings": {"speed_change": 1.5 * speed_multiplier},
                     }
                     applied = True
                     break
                 elif mod["acronym"] == "HT":
-                    mods[i] = {
+                    submit_mods[i] = {
                         "acronym": "HT",
                         "settings": {"speed_change": 0.75 * speed_multiplier},
                     }
                     applied = True
                     break
                 elif mod["acronym"] == "NC":
-                    mods[i] = {
+                    submit_mods[i] = {
                         "acronym": "NC",
                         "settings": {"speed_change": 1.5 * speed_multiplier},
                     }
