@@ -185,7 +185,7 @@
     <tbody>
       {% for score in top_scores %}
       <tr>
-        <td>{{ score.map }}</td>
+        <td><a href="{{ score.link }}">{{ score.map }}</a></td>
         <td>{{ score.mods }}</td>
         <td>{{ score.pp }}</td>
         <td>{{ score.acc }}</td>
@@ -209,7 +209,7 @@
     <tbody>
       {% for score in recent_scores %}
       <tr>
-        <td>{{ score.map }}</td>
+        <td><a href="{{ score.link }}">{{ score.map }}</a></td>
         <td>{{ score.mods }}</td>
         <td>{{ score.pp }}</td>
         <td>{{ score.acc }}</td>

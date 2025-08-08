@@ -16,13 +16,15 @@ async def profile():
     params = request.args
     player_id = None
     try:
-        if "login_state" in request.cookies:
+        if "id" in params:
+            player_id = int(params["id"])
+        elif "uid" in params:
+            player_id = int(params["uid"])
+        elif "login_state" in request.cookies:
             player_id = int(request.cookies["login_state"].split("-")[1])
-        if "id" in params or "uid" in params:
-            player_id = int(params.get("id")) or int(params.get("uid"))
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, IndexError):
         return await render_template("error.jinja", error_message="Invalid player ID")
-    
+
     if player_id is None:
         return await render_template(
             "error.jinja", error_message="No player ID provided"
@@ -45,14 +47,16 @@ async def profile():
             try:
                 bmap = await Beatmap.from_md5(score["maphash"])
                 score["map"] = bmap.full
+                score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
             except:
                 score["map"] = score["maphash"]
+                score["link"] = ""
             score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
             score["acc"] = f"{score['acc']:.2f}%"
             score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
 
-    except BaseException:
+    except Exception:
         recent_scores = []
 
     try:
@@ -66,13 +70,15 @@ async def profile():
             try:
                 bmap = await Beatmap.from_md5(score["maphash"])
                 score["map"] = bmap.full
+                score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
             except:
                 score["map"] = score["maphash"]
+                score["link"] = ""
             score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
             score["acc"] = f"{score['acc']:.2f}%"
             score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
-    except BaseException:
+    except Exception:
         top_scores = []
 
     level = 0
