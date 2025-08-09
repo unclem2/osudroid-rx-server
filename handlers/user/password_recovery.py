@@ -44,8 +44,8 @@ async def password_recovery():
 
         email = os.getenv("EMAIL")
         password = os.getenv("EMAIL_PASSWORD")
-        smtp_server = glob.config.smtp_server
-        smtp_port = glob.config.smtp_port
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587  # smtp port, 587 for tls, 25 no tls, also 465 can be used
 
         message = MIMEMultipart()
         message["From"] = email

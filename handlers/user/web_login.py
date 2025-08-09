@@ -69,7 +69,7 @@ async def web_login():
         response = await make_response(response)
         response.set_cookie(
             "login_state",
-            f'{username}-{player.id}-{utils.make_md5(f"{username}-{player.id}-{os.getenv("KEY")}")}',
+            f'{username}-{player.id}-{utils.make_md5(f"{username}-{player.id}-{glob.config.login_key}")}',
             max_age=60 * 60 * 24 * 30 * 12,
         )  # Cookie expires in 1 year
 

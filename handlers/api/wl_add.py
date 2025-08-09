@@ -10,7 +10,7 @@ bp = Blueprint("wl_add", __name__)
 @bp.route("/", methods=["GET"])
 async def whitelist_add():
     data = request.args
-    if data.get("key", None) != os.getenv("WL_KEY"):
+    if data.get("key", None) != glob.config.wl_key:
         return {"status": "error", "message": "Key not specified or incorrect."}
     if data.get("md5") is not None:
         map = await Beatmap.from_md5(data.get("md5"))

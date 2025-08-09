@@ -1,6 +1,6 @@
+from glob import glob
 from quart import Blueprint, request, render_template
 import utils
-import os
 
 
 bp = Blueprint("user_settings", __name__)
@@ -16,7 +16,7 @@ async def settings():
         req = await request.form
         username, player_id, auth_hash = login_state.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{os.getenv('KEY')}", auth_hash)
+            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
             == False
         ):
             return await render_template(
