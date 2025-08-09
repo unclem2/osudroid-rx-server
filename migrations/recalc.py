@@ -11,6 +11,7 @@ import logging
 
 glob.db = PostgresDB()
 
+
 async def recalc_stats():
     players = await glob.db.fetchall("SELECT id FROM users")
     for player in players:
@@ -36,11 +37,13 @@ async def recalc_scores():
             grouped_scores.setdefault(score["maphash"], []).append(score)
 
         for maphash, user_map_scores in grouped_scores.items():
-            print(f"[{total_recalculated}/{left}]{player.id} - processing map {maphash}")
+            print(
+                f"[{total_recalculated}/{left}]{player.id} - processing map {maphash}"
+            )
 
             for score_data in user_map_scores:
                 s = Score()
-                
+
                 s.id = score_data["id"]
                 if s.id == 11002:
                     pass
@@ -83,8 +86,6 @@ async def recalc_scores():
 
         await player.update_stats()
         print(f"{player.id} - updated stats")
-
-
 
 
 async def init_players():
