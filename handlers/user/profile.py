@@ -29,8 +29,8 @@ async def profile():
         return await render_template(
             "error.jinja", error_message="No player ID provided"
         )
-    
-    p:Player = glob.players.get(id=player_id)
+
+    p: Player = glob.players.get(id=player_id)
     if not p:
         return await render_template("error.jinja", error_message="Player not found")
 
@@ -51,7 +51,9 @@ async def profile():
             except:
                 score["map"] = score["maphash"]
                 score["link"] = ""
-            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+            score["date"] = time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
+            )
             score["acc"] = f"{score['acc']:.2f}%"
             score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
@@ -74,7 +76,9 @@ async def profile():
             except:
                 score["map"] = score["maphash"]
                 score["link"] = ""
-            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+            score["date"] = time.strftime(
+                "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
+            )
             score["acc"] = f"{score['acc']:.2f}%"
             score["pp"] = f"{round(score['pp'])}pp"
             score["mods"] = f"{Mods(score['mods']).convert_std}"
