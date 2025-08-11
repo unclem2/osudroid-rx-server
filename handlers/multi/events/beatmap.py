@@ -13,10 +13,11 @@ class BeatmapEvents:
             )
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
-            try:
-                room_info.map = await Beatmap.from_md5(args[0]["md5"])
+            beatmap = await Beatmap.from_md5(args[0]["md5"])
+            if beatmap is not None:
+                room_info.map = beatmap
                 room_info.map.md5 = args[0]["md5"]
-            except:
+            else:
                 room_info.map = Beatmap()
                 room_info.map.title = args[0].get("title", "")
                 room_info.map.artist = args[0].get("artist", "")
@@ -30,10 +31,8 @@ class BeatmapEvents:
             return_data["artist"] = room_info.map.artist
             return_data["version"] = room_info.map.version
             return_data["creator"] = room_info.map.creator
-            try:
+            if hasattr(room_info.map, "set_id"):
                 return_data["beatmapSetId"] = room_info.map.set_id
-            except:
-                pass
 
             await self.emit_event(
                 "beatmapChanged", data=return_data, namespace=self.namespace

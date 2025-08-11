@@ -31,15 +31,12 @@ async def init_players():
 async def update_player_stats():
     
     while True:
-        start_time = time.perf_counter()
         try:
             for player in glob.players:
                 await player.update_stats()
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-        
-        elapsed_time = time.perf_counter() - start_time
-        logging.info(f"Player stats updated in {elapsed_time:.2f} seconds")
+
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
@@ -48,7 +45,7 @@ async def update_player_stats():
 async def update_map_status():
     while True:
         qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
-        for qualified_map in qualified_maps:
+        for qualified_map in qualified_maps if qualified_map else []:
             map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
             logging.info("Updated map %d to %s", map.id, map.status)
             # await utils.send_webhook(
