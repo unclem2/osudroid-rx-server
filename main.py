@@ -3,8 +3,9 @@ import logging
 import asyncio
 import coloredlogs
 
-from quart import Quart, jsonify, render_template, send_from_directory
+from quart import Quart, jsonify, render_template, send_from_directory, g, request
 from socketio import ASGIApp
+from quart_schema import QuartSchema
 
 # Other imports
 from handlers.multi import sio
@@ -18,6 +19,7 @@ from objects.beatmap import Beatmap
 import hypercorn
 import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
+import time
 
 
 async def init_players():
@@ -26,20 +28,22 @@ async def init_players():
         player = await Player.from_sql(player_id["id"])
         glob.players.add(player)
 
-
 async def update_player_stats():
+    
     while True:
+        start_time = time.perf_counter()
         try:
             for player in glob.players:
                 await player.update_stats()
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-
+        
+        elapsed_time = time.perf_counter() - start_time
+        logging.info(f"Player stats updated in {elapsed_time:.2f} seconds")
         try:
             await asyncio.sleep(glob.config.cron_delay * 60)
         except Exception as err:
             logging.error("Failed to complete task", exc_info=True)
-
 
 async def update_map_status():
     while True:
@@ -94,6 +98,18 @@ async def close():
     await glob.db.close()
 
 
+@app.before_request
+async def before_request():
+    g.start_time = time.perf_counter()
+    pass
+
+@app.after_request
+async def after_request(response):
+    duration = time.perf_counter() - g.start_time
+    logging.debug(f"request {request.method} {request.path} took {duration}s")
+    return response
+
+
 @app.errorhandler(500)
 async def server_fucked(err):
     return Failed(f"Server Error: {repr(err)}")
@@ -131,7 +147,7 @@ async def index():
 
 def main():
     hypercorn_config = hypercorn.Config()
-    coloredlogs.install(level=logging.INFO)
+    coloredlogs.install(level=logging.DEBUG)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)

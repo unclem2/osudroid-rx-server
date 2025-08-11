@@ -129,6 +129,8 @@ class PostgresDB:
             else:
                 result = await connection.fetchrow(query, *params)
             logging.debug(f"Fetching query: {query} with params: {params}")
+            if not result:
+                return None
             return (
                 [self.dict_factory(row) for row in result]
                 if _all

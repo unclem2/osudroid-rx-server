@@ -36,50 +36,46 @@ async def profile():
 
     player_stats = p.stats.as_json
 
-    try:
-        recent_scores = await glob.db.fetchall(
+
+    recent_scores = await glob.db.fetchall(
             'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
             '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
             "ORDER BY id DESC LIMIT $2",
             [p.id, 50],
         )
-        for score in recent_scores:
-            try:
-                bmap = await Beatmap.from_md5(score["maphash"])
-                score["map"] = bmap.full
-                score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
-            except:
-                score["map"] = score["maphash"]
-                score["link"] = ""
-            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
-            score["acc"] = f"{score['acc']:.2f}%"
-            score["pp"] = f"{round(score['pp'])}pp"
-            score["mods"] = f"{Mods(score['mods']).convert_std}"
+    
+    for score in recent_scores if recent_scores else []:
+        bmap = await Beatmap.from_md5(score["maphash"])
+        if bmap is not None:
+            score["map"] = bmap.full
+            score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
+        else:
+            score["map"] = score["maphash"]
+            score["link"] = ""
+        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+        score["acc"] = f"{score['acc']:.2f}%"
+        score["pp"] = f"{round(score['pp'])}pp"
+        score["mods"] = f"{Mods(score['mods']).convert_std}"
 
-    except Exception:
-        recent_scores = []
-
-    try:
-        top_scores = await glob.db.fetchall(
+    
+    top_scores = await glob.db.fetchall(
             'SELECT id, status, maphash, score, combo, rank, acc, "hit300", "hitgeki", '
             '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
             "ORDER BY pp DESC LIMIT $2",
             [p.id, 50],
         )
-        for score in top_scores:
-            try:
-                bmap = await Beatmap.from_md5(score["maphash"])
-                score["map"] = bmap.full
-                score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
-            except:
-                score["map"] = score["maphash"]
-                score["link"] = ""
-            score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
-            score["acc"] = f"{score['acc']:.2f}%"
-            score["pp"] = f"{round(score['pp'])}pp"
-            score["mods"] = f"{Mods(score['mods']).convert_std}"
-    except Exception:
-        top_scores = []
+    for score in top_scores:
+        bmap = await Beatmap.from_md5(score["maphash"])
+        if bmap is not None:
+            score["map"] = bmap.full
+            score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
+        else:
+            score["map"] = score["maphash"]
+            score["link"] = ""
+        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+        score["acc"] = f"{score['acc']:.2f}%"
+        score["pp"] = f"{round(score['pp'])}pp"
+        score["mods"] = f"{Mods(score['mods']).convert_std}"
 
     level = 0
 

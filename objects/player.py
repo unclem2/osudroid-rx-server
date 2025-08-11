@@ -154,7 +154,7 @@ class Player:
         # Fetch top ranked scores (status=2 and approved maps)
         top_scores = await glob.db.fetchall(
             """
-            SELECT *
+            SELECT acc, pp, score
             FROM scores s
             WHERE s.playerID = $1
                 AND s.status = 2
@@ -166,7 +166,7 @@ class Player:
 
         # Fetch all scores (total plays)
         all_scores = await glob.db.fetchall(
-            "SELECT * FROM scores WHERE playerID = $1", [int(self.id)]
+            "SELECT acc, pp, score FROM scores WHERE playerID = $1", [int(self.id)]
         )
 
 
@@ -196,9 +196,6 @@ class Player:
             weight = 0.95**i
             weighted_pp = row["pp"] * weight
             total_pp += weighted_pp
-            logging.debug(
-                f'Score: {row["pp"]}, Weight: {weight}, Weighted PP: {weighted_pp}'
-            )
         stats.pp = round(total_pp)
 
         stats.rscore = sum(row["score"] for row in top_scores)

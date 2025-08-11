@@ -3,6 +3,7 @@ from objects.beatmap import Beatmap
 from objects.score import Score
 import utils.pp
 import utils
+from quart_schema import validate_request, validate_response
 
 bp = Blueprint("calculate", __name__)
 
@@ -13,16 +14,16 @@ async def calculate():
     score = Score()
 
     if md5 := data.get("md5"):
-        try:
-            score.bmap = await Beatmap.from_md5(md5)
-            score.bmap.md5 = md5
-        except AttributeError:
-            return {"error": "Specify beatmap id or md5 hash"}, 400
+        score.bmap = await Beatmap.from_md5(md5)
+        if score.bmap is None:
+            return {"error": "Beatmap not found"}, 404
+        score.bmap.md5 = md5
+
     elif bid := data.get("bid"):
         if bid.isdecimal():
             score.bmap = await Beatmap.from_bid_osuapi(int(bid))
         else:
-            return {"error": "Invalid beatmap id. It must be an integer."}, 400
+            return {"error": "Invalid beatmap id."}, 400
     else:
         return {"error": "Specify beatmap id or md5 hash"}, 400
 

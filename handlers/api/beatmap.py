@@ -9,12 +9,13 @@ bp = Blueprint("beatmap", __name__)
 async def beatmap():
     data = request.args
     md5 = data.get("md5")
-    try:
-        map = await Beatmap.from_md5(md5)
-        if map is None:
-            return {"md5": "", "ranked": -1}
-        await map.download()
-    except:
-        return {"md5": "", "ranked": -1}
+    if not md5:
+        return {"error": "Missing md5 parameter"}, 400
 
-    return map.as_json
+    beatmap = await Beatmap.from_md5(md5)
+    if beatmap is None:
+        return {"md5": "", "ranked": -1}
+    await beatmap.download()
+
+
+    return beatmap.as_json

@@ -31,10 +31,11 @@ async def get_scores():
     scores = await glob.db.fetchall(query, [id])
 
     for score in scores:
-        try:
-            score["beatmap"] = await Beatmap.from_md5(score["maphash"])
-            score["beatmap"] = score["beatmap"].as_json
-        except:
+        score["beatmap"] = await Beatmap.from_md5(score["maphash"])
+        if score["beatmap"] is None:
             score["beatmap"] = ""
+            continue
+        score["beatmap"] = score["beatmap"].as_json
+
 
     return jsonify(scores)

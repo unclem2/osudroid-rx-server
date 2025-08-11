@@ -159,10 +159,7 @@ class Beatmap:
             return
 
         # Try to get beatmap from database
-        try:
-            beatmap = await cls.from_md5_sql(md5)
-        except:
-            beatmap = None
+        beatmap = await cls.from_md5_sql(md5)
 
         # If not found in database, try to get it from osuapi
         if beatmap is None:
