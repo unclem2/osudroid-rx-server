@@ -38,7 +38,7 @@ async def profile():
 
 
     recent_scores = await glob.db.fetchall(
-            'SELECT id, status, "md5", score, combo, rank, acc, "hit300", "hitgeki", '
+            'SELECT id, status, "md5", score, combo, grade, acc, "hit300", "hitgeki", '
             '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
             "ORDER BY id DESC LIMIT $2",
             [p.id, 50],
@@ -59,7 +59,7 @@ async def profile():
 
     
     top_scores = await glob.db.fetchall(
-            'SELECT id, status, md5, score, combo, rank, acc, "hit300", "hitgeki", '
+            'SELECT id, status, md5, score, combo, grade, acc, "hit300", "hitgeki", '
             '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND md5 IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
             "ORDER BY pp DESC LIMIT $2",
             [p.id, 50],
