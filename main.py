@@ -138,7 +138,7 @@ async def index():
 
 def main():
     hypercorn_config = hypercorn.Config()
-    coloredlogs.install(level=logging.DEBUG)
+    coloredlogs.install(level=logging.INFO)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
