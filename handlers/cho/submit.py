@@ -128,7 +128,7 @@ async def submit_play():
         await score.player.update_stats()
         await utils.send_webhook(
             title="New score was submitted",
-            content=f"{score.player.username}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp.calc_pp, 2)}",
+            content=f"{score.player.username}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.global_placement} | {round(score.pp.calc_pp, 2)}",
             url=glob.config.submit_hook,
             isEmbed=True,
         )

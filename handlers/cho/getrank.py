@@ -31,7 +31,7 @@ async def leaderboard():
             ),
             [params["hash"]],
         )
-    for play in plays:
+    for play in plays if plays else []:
         player = glob.players.get(id=int(play["playerid"]))
 
         if os.path.isfile(f"data/avatar/{player.id}.png"):
