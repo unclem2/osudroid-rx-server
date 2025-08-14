@@ -11,6 +11,7 @@ import utils
 
 bp = Blueprint("wl_remove", __name__)
 
+
 class WhitelistRemoveRequest(BaseModel):
     key: str
     md5: Optional[str] = None
@@ -19,14 +20,10 @@ class WhitelistRemoveRequest(BaseModel):
     @model_validator(mode="before")
     def validate(cls, values):
         if values.get("key") is None:
-            raise PydanticCustomError(
-                "validation_error",
-                "Key must be provided."
-            )
+            raise PydanticCustomError("validation_error", "Key must be provided.")
         if values.get("md5") is None and values.get("bid") is None:
             raise PydanticCustomError(
-                "validation_error",
-                "Either md5 or bid must be provided."
+                "validation_error", "Either md5 or bid must be provided."
             )
         return values
 
@@ -37,7 +34,7 @@ class WhitelistRemoveRequest(BaseModel):
 @validate_response(ApiResponse[str], 400)
 @validate_response(ApiResponse[str], 403)
 async def whitelist_remove(query_args: WhitelistRemoveRequest) -> ApiResponse[str]:
-    """ 
+    """
     Remove a beatmap from the whitelist.
     """
     if query_args.key != glob.config.wl_key:
