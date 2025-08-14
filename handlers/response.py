@@ -15,10 +15,12 @@ def Failed(*args):
 def Failure(*args):
     return "FAILURE\n" + args_join(args)
 
+
 from typing import TypeVar, Generic
 from pydantic import BaseModel
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class ApiResponse(BaseModel, Generic[T]):
     status: str
@@ -39,11 +41,11 @@ class ApiResponse(BaseModel, Generic[T]):
     @classmethod
     def internal_error(cls, message: T) -> "ApiResponse[T]":
         return cls[T](status="internal_error", data=message), 500
-    
+
     @classmethod
     def forbidden(cls, message: T) -> "ApiResponse[T]":
         return cls[T](status="forbidden", data=message), 403
-    
+
     @classmethod
     def custom(cls, status: str, data: T, code: int) -> "ApiResponse[T]":
         return cls[T](status=status, data=data), code

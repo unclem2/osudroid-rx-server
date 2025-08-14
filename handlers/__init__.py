@@ -33,7 +33,7 @@ def load_blueprints():
                         for args in closure:
                             if callable(args.cell_contents):
                                 args.cell_contents = hide(args.cell_contents)
-                                    
+
                 blueprint.prefix = path.replace(base_dir, "").replace("cho", "api")
                 if hasattr(module, "php_file"):
                     blueprint.prefix += ".php"
