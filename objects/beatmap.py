@@ -380,8 +380,8 @@ class Beatmap:
         if not scores:
             return
         for score in scores:
+            score["md5"] = self.md5
             score_obj = await Score.from_sql(0, score)
-            score_obj.md5 = self.md5
             score_obj.global_placement, score_obj.local_placement = await score_obj.calc_lb_placement()
             await glob.db.execute(
                 "UPDATE scores SET global_placement = $1, local_placement = $2 WHERE id = $3",
