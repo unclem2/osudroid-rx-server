@@ -1,62 +1,91 @@
-from quart import Blueprint, request, jsonify
+from quart import Blueprint, request
 from objects.beatmap import Beatmap
 from objects.score import Score
 import utils.pp
 import utils
-from quart_schema import validate_request, validate_response
+from typing import Optional
+from quart_schema import RequestSchemaValidationError, validate_request, validate_response, validate_querystring
+from pydantic import BaseModel, model_validator
+from pydantic_core import PydanticCustomError
+from .models.score import ScoreModel
+from handlers.response import ApiResponse
+
 
 bp = Blueprint("calculate", __name__)
 
+class CalculateRequest(BaseModel):
+    md5: Optional[str] = None
+    bid: Optional[int] = None
+    acc: Optional[float] = 100
+    miss: Optional[int] = 0
+    combo: Optional[int] = None
+    mods: Optional[str] = ""
 
-@bp.route("/", methods=["GET", "POST"])
-async def calculate():
-    data = request.args
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate(cls, values):
+        if not values.get("md5") and not values.get("bid"):
+            raise PydanticCustomError(
+                "validation_error",
+                "Either 'md5' or 'bid' must be provided to retrieve a beatmap."
+            )
+        return values
+
+
+@bp.route("/", methods=["GET"])
+@validate_querystring(CalculateRequest)
+@validate_response(ApiResponse[ScoreModel], 200)
+@validate_response(ApiResponse[str], 404)
+@validate_response(ApiResponse[str], 500)
+async def calculate_get(query_args: CalculateRequest) -> ApiResponse[ScoreModel]:
+    """
+    Calculate performance points(GET).
+    """
+    return await calculate(query_args)
+
+
+@bp.route("/", methods=["POST"])
+@validate_request(CalculateRequest)
+@validate_response(ApiResponse[ScoreModel], 200)
+@validate_response(ApiResponse[str], 404)
+@validate_response(ApiResponse[str], 500)
+async def calculate_post(data: CalculateRequest) -> ApiResponse[ScoreModel]:
+    """
+    Calculate performance points(POST).
+    """
+    return await calculate(data)
+
+
+async def calculate(data: CalculateRequest):
     score = Score()
 
-    if md5 := data.get("md5"):
-        score.bmap = await Beatmap.from_md5(md5)
-        if score.bmap is None:
-            return {"error": "Beatmap not found"}, 404
-        score.bmap.md5 = md5
+    if data.md5:
+        bmap = await Beatmap.from_md5(data.md5)
+    if data.bid:
+        bmap = await Beatmap.from_bid_osuapi(data.bid)
 
-    elif bid := data.get("bid"):
-        if bid.isdecimal():
-            score.bmap = await Beatmap.from_bid_osuapi(int(bid))
-        else:
-            return {"error": "Invalid beatmap id."}, 400
-    else:
-        return {"error": "Specify beatmap id or md5 hash"}, 400
+    if bmap is None:
+        return ApiResponse.not_found("Beatmap not found")
+    score.bmap = bmap
+    score.md5 = score.bmap.md5
 
-    if score.bmap is None:
-        return {"error": "Beatmap not found"}, 404
-    
-    score.map_hash = score.bmap.md5
+    if data.acc is not None:
+        score.acc = data.acc
+    if data.miss is not None:
+        score.hmiss = data.miss
+    if data.combo is not None:
+        score.max_combo = data.combo
+    if data.mods is not None:
+        score.mods = data.mods
 
-    acc = 100
-    if acc := data.get("acc"):
-        if acc.isdecimal():
-            score.acc = float(acc)
-          
-    miss = 0
-    if miss := data.get("miss"):
-        if miss.isdecimal():
-            score.hmiss = int(miss)
-
-    score.max_combo = score.bmap.max_combo
-    if combo := data.get("combo"):
-        if combo.isdecimal():
-            score.max_combo = int(combo)
-    score.mods = ""
-    if mods := data.get("mods"):
-        score.mods = mods
     score.pp  = await utils.pp.PPCalculator.from_score(score)
     if score.pp is False:
-        return {"error": "Failed to calculate performance points."}, 500
+        return ApiResponse.internal_error("Failed to calculate performance points.")
     await score.pp.calc(api=True)
 
-    # Prepare result dictionary
     result = {
-        "beatmap": score.bmap.as_json,
+        "bmap": score.bmap.as_json,
         "pp": score.pp.calc_pp,
         "acc": score.acc,
         "hmiss": score.hmiss,
@@ -64,5 +93,16 @@ async def calculate():
         "mods": score.mods,
         "difficulty": score.pp.difficulty
     }
-    result = jsonify(result)
-    return result
+    return ApiResponse.ok(ScoreModel(**result))
+
+@bp.errorhandler(RequestSchemaValidationError)
+async def handle_validation_error(error: RequestSchemaValidationError):
+    """
+    Handle validation errors for request schema.
+    """
+    error_message = error.validation_error.errors()[0]
+    return ApiResponse.custom(
+        status=error_message["type"],
+        data=error_message["msg"],
+        code=400
+    )

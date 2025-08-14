@@ -49,7 +49,7 @@ async def set_avatar():
             )
 
         # Retrieve player object
-        p = glob.players.get(name=username)
+        p = glob.players.get(username=username)
         if not p or p.id != player_id:
             return await render_template(
                 "error.jinja", error_message="Player not found"

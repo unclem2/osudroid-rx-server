@@ -70,7 +70,7 @@ class PlayerMulti:
     def player(self, id, sid):
         player = glob.players.get(id=int(id))
         self.uid = player.id
-        self.username = player.name
+        self.username = player.username
         self.status = PlayerStatus.IDLE
         self.team = None
         self.mods = Mods()

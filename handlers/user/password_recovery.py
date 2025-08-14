@@ -31,7 +31,7 @@ async def password_recovery():
                 "error.jinja", error_message="Username not specified"
             )
 
-        lost_user = glob.players.get(name=data.get("username"))
+        lost_user = glob.players.get(username=data.get("username"))
         if lost_user is None:
             return await render_template("error.jinja", error_message="User not found")
 

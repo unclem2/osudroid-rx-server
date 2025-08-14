@@ -43,11 +43,11 @@ class PostgresDB:
                     id SERIAL PRIMARY KEY,
                     status BIGINT,
                     mapID BIGINT,
-                    mapHash TEXT NOT NULL,
+                    md5 TEXT NOT NULL,
                     playerID BIGINT NOT NULL,
                     score BIGINT NOT NULL,
                     combo BIGINT NOT NULL,
-                    rank TEXT NOT NULL,
+                    grade TEXT NOT NULL,
                     acc REAL NOT NULL,
                     hit300 BIGINT NOT NULL,
                     hitgeki BIGINT NOT NULL,
@@ -57,7 +57,9 @@ class PostgresDB:
                     hitmiss BIGINT NOT NULL,
                     mods TEXT,
                     pp REAL DEFAULT 0,
-                    date BIGINT DEFAULT 0
+                    date BIGINT DEFAULT 0,
+                    local_placement INTEGER DEFAULT 0 NOT NULL,
+                    global_placement INTEGER DEFAULT 0
                 );
 
                 CREATE TABLE IF NOT EXISTS stats (

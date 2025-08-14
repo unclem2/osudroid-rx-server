@@ -1,15 +1,17 @@
-from quart import Blueprint
-from quart_schema import validate_response, validate_querystring, RequestSchemaValidationError
-from pydantic import BaseModel, model_validator
-from pydantic_core import PydanticCustomError
-from typing import Optional
+from handlers.api.models.score import ScoreModel
+from objects import glob
 from objects.beatmap import Beatmap
 from handlers.response import ApiResponse
+from quart_schema import validate_querystring, validate_response, RequestSchemaValidationError
+from pydantic import BaseModel, model_validator
+from pydantic_core import PydanticCustomError
 from .models.beatmap import BeatmapModel
+from typing import List, Optional
+from quart import Blueprint
 
-bp = Blueprint("beatmap", __name__)
+bp = Blueprint("beatmap_leaderboard", __name__)
 
-class BeatmapRequest(BaseModel):
+class BeatmapLeaderboardRequest(BaseModel):
     md5: Optional[str] = None
     bid: Optional[int] = None
 
@@ -22,23 +24,36 @@ class BeatmapRequest(BaseModel):
                 "Either 'md5' or 'bid' must be provided to retrieve a beatmap."
             )
         return values
+    
 
 @bp.route("/", methods=["GET"])
-@validate_querystring(BeatmapRequest)
+@validate_querystring(BeatmapLeaderboardRequest)
+@validate_response(ApiResponse[List[ScoreModel]], 200)
 @validate_response(ApiResponse[str], 400)
-@validate_response(ApiResponse[BeatmapModel], 200)
-async def beatmap(query_args: BeatmapRequest) -> ApiResponse[BeatmapModel]:
+async def beatmap_leaderboard(query_args: BeatmapLeaderboardRequest) -> ApiResponse[List[ScoreModel]]:
     """
-    Get beatmap.
+    Get beatmap leaderboard.
     """
     if query_args.md5:
         beatmap = await Beatmap.from_md5(query_args.md5)
     else:
         beatmap = await Beatmap.from_bid_osuapi(query_args.bid)
+    
     if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
-    await beatmap.download()
-    return ApiResponse.ok(BeatmapModel(**beatmap.as_json))
+    
+    await beatmap.recalc_lb_placements()
+
+    beatmap_lb = await glob.db.fetchall(
+        """SELECT * FROM scores WHERE md5 = $1 AND global_placement IS NOT NULL
+           ORDER BY global_placement ASC""",
+        [beatmap.md5]
+    )
+    if not beatmap_lb:
+        return ApiResponse.not_found("No leaderboard entries found for this beatmap")
+    
+    leaderboard = [ScoreModel(**score) for score in beatmap_lb]
+    return ApiResponse.ok(leaderboard)
 
 @bp.errorhandler(RequestSchemaValidationError)
 async def handle_error(error: RequestSchemaValidationError):

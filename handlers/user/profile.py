@@ -38,19 +38,19 @@ async def profile():
 
 
     recent_scores = await glob.db.fetchall(
-            'SELECT id, status, "maphash", score, combo, rank, acc, "hit300", "hitgeki", '
+            'SELECT id, status, "md5", score, combo, rank, acc, "hit300", "hitgeki", '
             '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
             "ORDER BY id DESC LIMIT $2",
             [p.id, 50],
         )
     
     for score in recent_scores if recent_scores else []:
-        bmap = await Beatmap.from_md5(score["maphash"])
+        bmap = await Beatmap.from_md5(score["md5"])
         if bmap is not None:
             score["map"] = bmap.full
             score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
         else:
-            score["map"] = score["maphash"]
+            score["map"] = score["md5"]
             score["link"] = ""
         score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
         score["acc"] = f"{score['acc']:.2f}%"
@@ -59,18 +59,18 @@ async def profile():
 
     
     top_scores = await glob.db.fetchall(
-            'SELECT id, status, maphash, score, combo, rank, acc, "hit300", "hitgeki", '
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND maphash IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
+            'SELECT id, status, md5, score, combo, rank, acc, "hit300", "hitgeki", '
+            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND md5 IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
             "ORDER BY pp DESC LIMIT $2",
             [p.id, 50],
         )
     for score in top_scores:
-        bmap = await Beatmap.from_md5(score["maphash"])
+        bmap = await Beatmap.from_md5(score["md5"])
         if bmap is not None:
             score["map"] = bmap.full
             score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
         else:
-            score["map"] = score["maphash"]
+            score["map"] = score["md5"]
             score["link"] = ""
         score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
         score["acc"] = f"{score['acc']:.2f}%"
@@ -91,20 +91,20 @@ async def profile():
     while True:
         cur = level_formula(i)
         nxt = level_formula(i + 1)
-        if cur <= int(player_stats["ranked_score"]) and nxt >= int(
-            player_stats["ranked_score"]
+        if cur <= int(player_stats["rscore"]) and nxt >= int(
+            player_stats["rscore"]
         ):
             level = i
             break
         i += 1
-        if cur > int(player_stats["ranked_score"]) and nxt > int(
-            player_stats["ranked_score"]
+        if cur > int(player_stats["rscore"]) and nxt > int(
+            player_stats["rscore"]
         ):
             level = i
             break
 
-    player_stats["accuracy"] = f"{player_stats['accuracy']:.2f}%"
-    player_stats["ranked_score"] = f"{int(player_stats['ranked_score']):,}"
+    player_stats["acc"] = f"{player_stats['acc']:.2f}%"
+    player_stats["rscore"] = f"{int(player_stats['rscore']):,}"
     if os.path.isfile(f"data/avatar/{player_id}.png"):
         avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
     else:

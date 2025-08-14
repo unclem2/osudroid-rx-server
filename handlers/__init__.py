@@ -2,6 +2,7 @@ import os
 import importlib
 import logging
 import coloredlogs
+from quart_schema import hide
 
 coloredlogs.install(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
@@ -23,7 +24,16 @@ def load_blueprints():
                     continue
 
                 blueprint = module.bp
-
+                # im sorry
+                if "multi" in root or "cho" in root or "user" in root:
+                    for func in blueprint.deferred_functions:
+                        if not hasattr(func, "__closure__"):
+                            continue
+                        closure = func.__closure__
+                        for args in closure:
+                            if callable(args.cell_contents):
+                                args.cell_contents = hide(args.cell_contents)
+                                    
                 blueprint.prefix = path.replace(base_dir, "").replace("cho", "api")
                 if hasattr(module, "php_file"):
                     blueprint.prefix += ".php"

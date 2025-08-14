@@ -1,28 +1,51 @@
+from pydantic_core import PydanticCustomError
 from quart import Blueprint, request
 from objects import glob
+from .models.player import PlayerModel
+from objects.player import Player
+from handlers.response import ApiResponse
+from pydantic import BaseModel, model_validator
+from typing import Optional
+from quart_schema import validate_response, validate_querystring, RequestSchemaValidationError
+
 
 bp = Blueprint("get_user", __name__)
 
+class UserRequest(BaseModel):
+    id: Optional[int] = None
+    username: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_args(cls, values):
+        if not values.get("id") and not values.get("username"):
+            raise PydanticCustomError("validation_error", "Either id or username must be provided.")
+        if values.get("username") is not None and len(values["username"]) < 2:
+            raise PydanticCustomError("validation_error", "Invalid username.")
+        return values
+
 
 @bp.route("/")
-async def get_user():
-    args = request.args
-
-    if "id" not in args and "name" not in args:
-        return {"error": "Specify id or name"}, 400
-
-    if "id" in args:
-        if not args["id"].isdecimal():
-            return {"error": "Invalid id."}, 400
-
-        player = glob.players.get(id=int(args["id"]))
+@validate_querystring(UserRequest)
+@validate_response(ApiResponse[PlayerModel], 200)
+async def get_user(query_args: UserRequest) -> ApiResponse[PlayerModel]:
+    """
+    Get user.
+    """
+    if query_args.id is not None:
+        player = glob.players.get(id=query_args.id)
     else:
-        if len(args["name"]) < 2:
-            return {"error": "Invalid name."}, 400
-
-        player = glob.players.get(name=args["name"])
+        player: Player = glob.players.get(username=query_args.username)
 
     if not player:
-        return {"error": "User not found"}, 404
+        return ApiResponse.not_found("User not found")
 
-    return player.as_json
+    return ApiResponse.ok(PlayerModel(**player.as_json))
+
+@bp.errorhandler(RequestSchemaValidationError)
+async def handle_validation_error(error: RequestSchemaValidationError):
+    """
+    Handle validation errors for request schema.
+    """
+    error_message = error.validation_error.errors()[0]["msg"]
+    return ApiResponse.bad_request(str(error_message))

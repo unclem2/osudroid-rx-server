@@ -20,6 +20,7 @@ import hypercorn
 import hypercorn.asyncio
 from hypercorn.middleware import HTTPToHTTPSRedirectMiddleware
 import time
+from utils.tasks import TaskManager
 
 
 async def init_players():
@@ -29,40 +30,28 @@ async def init_players():
         glob.players.add(player)
 
 async def update_player_stats():
-    
-    while True:
-        try:
-            for player in glob.players:
-                await player.update_stats()
-        except Exception as err:
-            logging.error("Failed to complete task", exc_info=True)
-
-        try:
-            await asyncio.sleep(glob.config.cron_delay * 60)
-        except Exception as err:
-            logging.error("Failed to complete task", exc_info=True)
+    try:
+        for player in glob.players:
+            await player.update_stats()
+    except Exception as err:
+        logging.error("Failed to complete task", exc_info=True)
 
 async def update_map_status():
-    while True:
-        qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
-        for qualified_map in qualified_maps if qualified_map else []:
-            map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
-            logging.info("Updated map %d to %s", map.id, map.status)
-            # await utils.send_webhook(
-            #     title="Updated map",
-            #     content=f"Updated map {map.id} to {map.status}",
-            #     url=glob.config.discord_hook,
-            #     isEmbed=True,
-            # )
-            # await asyncio.sleep(5)
-        try:
-            await asyncio.sleep(glob.config.cron_delay * 3600)
-        except Exception as err:
-            logging.error("Failed to complete task: %r", err)
-
+    qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
+    for qualified_map in qualified_maps if qualified_maps else []:
+        map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
+        logging.info("Updated map %d to %s", map.id, map.status)
+        await utils.send_webhook(
+            title="Updated map",
+            content=f"Updated map {map.id} to {map.status}",
+            url=glob.config.wl_hook,
+            isEmbed=True,
+        )
+        await asyncio.sleep(5)
 
 def make_app():
     quart_app = Quart(__name__)
+    QuartSchema(quart_app)
     routes = handlers.load_blueprints()
     for route in routes:
         quart_app.register_blueprint(route, url_prefix=route.prefix)
@@ -80,9 +69,14 @@ def handle_ex(loop, context):
 async def init():
     utils.check_folder()
     await glob.db.connect()
+    glob.task_manager = TaskManager()
     await init_players()
-    asyncio.create_task(update_player_stats())
-    asyncio.create_task(update_map_status())
+    glob.task_manager.add_periodic_task(
+        update_player_stats, glob.config.cron_delay * 60
+    )
+    glob.task_manager.add_periodic_task(
+        update_map_status, glob.config.cron_delay * 3600
+    )
     loop = asyncio.get_running_loop()
     loop.set_exception_handler(handle_ex)
 

@@ -31,7 +31,7 @@ async def web_login():
 
         # Retrieve player information
         ph = PasswordHasher()
-        player = glob.players.get(name=username)
+        player = glob.players.get(username=username)
         if not player:
             return await render_template(
                 "error.jinja", error_message="Player not found"

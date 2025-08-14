@@ -49,8 +49,8 @@ class PPCalculator:
         if not glob.config.pp:
             return False
 
-        if not (bmap := await Beatmap.from_md5(score.map_hash)):
-            logging.error(f"Failed to get map: {score.map_hash}")
+        if not (bmap := await Beatmap.from_md5(score.md5)):
+            logging.error(f"Failed to get map: {score.md5}")
             return False
 
         res = await bmap.download()

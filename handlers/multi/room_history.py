@@ -20,7 +20,7 @@ async def room_history():
                 and i["direction"] == "out"
                 and i["data"] != {}
             ):
-                room_match["map_hash"] = i["data"]["md5"]
+                room_match["md5"] = i["data"]["md5"]
                 room_match[
                     "map_name"
                 ] = f"{i['data']['artist']} - {i['data']['title']} ({i['data']['creator']}) [{i['data']['version']}]"

@@ -28,13 +28,13 @@ class Score:
     def __init__(self):
         self.id: int = 0
         self.bmap: Beatmap = None
-        self.map_hash: str = ""
+        self.md5: str = ""
         self.player: Player = None
 
         self.pp: PPCalculator = None
         self.score: float = 0
         self.max_combo: int = 0
-        self.mods: int = 0
+        self.mods: str = ""
 
         self.acc: float = 0
 
@@ -49,46 +49,54 @@ class Score:
 
         self.grade: str = ""
 
-        self.rank: str = ""
+        self.local_placement: int = 0
+        self.global_placement: int = 0
         self.fc: bool = None
         self.status: SubmissionStatus = SubmissionStatus.SUBMITTED
-        self.date: str = ""
+        self.date: int = 0
 
         self.prev_best: Score = None
 
     @classmethod
-    async def from_sql(cls, score_id: int):
-        res = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [score_id])
+    async def from_sql(cls, score_id: int, res=None):
+        if res is None:
+            res = await glob.db.fetch("SELECT * FROM scores WHERE id = $1", [score_id])
         if not res:
             return
 
         s = cls()
 
-        s.id = res["id"]
-        s.bmap = await Beatmap.from_md5(res["maphash"])
-        s.player = glob.players.get(id=int(res["playerid"]))
-        s.status = SubmissionStatus(res["status"])
-        s.map_hash = res["maphash"]
+        s.id = res.get("id", 0)
+        s.bmap = await Beatmap.from_md5(res.get("md5", "")) if res.get("md5") else None
+        s.player = glob.players.get(id=int(res.get("playerid", 0))) if res.get("playerid") else None
+        s.status = SubmissionStatus(res.get("status", SubmissionStatus.SUBMITTED))
+        s.md5 = res.get("md5", "")
 
-        s.score = res["score"]
-        s.max_combo = res["combo"]
-        s.mods = res["mods"]
-        s.acc = res["acc"]
-        s.grade = res["rank"]
+        s.score = res.get("score", 0)
+        s.max_combo = res.get("combo", 0)
+        s.mods = res.get("mods", 0)
+        s.acc = res.get("acc", 0.0)
+        s.grade = res.get("grade", "")
 
-        s.h300 = res["hit300"]
-        s.h100 = res["hit100"]
-        s.h50 = res["hit50"]
-        s.hmiss = res["hitmiss"]
-        s.hgeki = res["hitgeki"]
-        s.hkatsu = res["hitkatsu"]
+        s.h300 = res.get("hit300", 0)
+        s.h100 = res.get("hit100", 0)
+        s.h50 = res.get("hit50", 0)
+        s.hmiss = res.get("hitmiss", 0)
+        s.hgeki = res.get("hitgeki", 0)
+        s.hkatsu = res.get("hitkatsu", 0)
         
-        s.date = res["date"]
+        s.date = int(res.get("date", 0))
         s.pp = await PPCalculator.from_score(s)
-        s.pp.calc_pp = int(round(res["pp"]))
+        if s.bmap and s.pp is not False:
+            s.pp.calc_pp = float(res.get("pp", 0))
+        else:
+            s.pp = PPCalculator()
+            s.pp.calc_pp = float(res.get("pp", 0))
+            s.status = SubmissionStatus.FAILED
 
-        if s.map_hash:
-            s.rank = await s.calc_lb_placement()
+        if s.md5:
+            s.global_placement = res.get("global_placement", 0)
+            s.local_placement = res.get("local_placement", 0)
 
         return s
 
@@ -98,7 +106,7 @@ class Score:
 
         s = cls()
         pname = data[13] if glob.config.legacy else data[15]
-        s.player = glob.players.get(name=pname)
+        s.player = glob.players.get(username=pname)
 
         if not s.player:
             # refer to gulag score.py
@@ -109,10 +117,10 @@ class Score:
                 "Failed to get the map user played. Maybe the server restarted?"
             )
 
-        s.map_hash = s.player.stats.playing
+        s.md5 = s.player.stats.playing
 
-        if s.map_hash:
-            s.bmap = await Beatmap.from_md5(s.map_hash)
+        if s.md5:
+            s.bmap = await Beatmap.from_md5(s.md5)
             
         s.mods = data[0]
         (s.score, s.max_combo) = map(int, data[1:3])
@@ -135,7 +143,7 @@ class Score:
         if s.bmap and s.pp is not False:
             await s.pp.calc()
             await s.calc_status()
-            s.rank = await s.calc_lb_placement()
+            s.global_placement, s.local_placement = await s.calc_lb_placement()
         else:
             s.pp = PPCalculator()
             s.pp.calc_pp = 0.0
@@ -147,10 +155,10 @@ class Score:
     def as_json(self):
         return {
             "id": self.id,
-            "bmap": self.bmap.as_json,
-            "map_hash": self.map_hash,
-            "player": self.player.name if self.player else "",
-            "pp": self.pp,
+            "bmap": self.bmap.as_json if self.bmap else None,
+            "md5": self.md5,
+            "player": self.player.as_json if self.player else "",
+            "pp": self.pp.calc_pp if self.pp else 0.0,
             "score": self.score,
             "max_combo": self.max_combo,
             "mods": self.mods,
@@ -162,28 +170,34 @@ class Score:
             "hgeki": self.hgeki,
             "hkatsu": self.hkatsu,
             "grade": self.grade,
-            "rank": self.rank,
+            "local_placement": self.local_placement,
+            "global_placement": self.global_placement,
             "fc": self.fc,
             "status": self.status,
             "date": self.date,
         }
 
     async def calc_lb_placement(self):
-        res = await glob.db.fetch(
-            "SELECT count(*) as c FROM scores WHERE mapHash = $1 AND pp > $2 AND status = 2",
-            [self.map_hash, self.pp.calc_pp],
+        global_p = await glob.db.fetch(
+            "SELECT count(*) as c FROM scores WHERE md5 = $1 AND pp > $2 AND status = 2",
+            [self.md5, self.pp.calc_pp],
         )
-        return int(res["c"]) + 1 if res else 1
+        global_rank = int(global_p["c"]) + 1 if global_p else 1
+
+        local_p = await glob.db.fetch(
+            "SELECT count(*) as c FROM scores WHERE md5 = $1 AND playerID = $2 AND pp > $3",
+            [self.md5, self.player.id, self.pp.calc_pp],
+        )
+        local_rank = int(local_p["c"]) + 1 if local_p else 1
+        return global_rank, local_rank
 
     async def calc_status(self):
-        # res = await glob.db.userScore(id=self.player.id, mapHash=self.mapHash)
-        try:
-            res = await glob.db.fetch(
-                "SELECT * FROM scores WHERE playerID = $1 AND mapHash = $2 AND status= $3",
-                [self.player.id, self.map_hash, 2],
-            )
-        except:
-            res = None
+
+        res = await glob.db.fetch(
+            "SELECT * FROM scores WHERE playerID = $1 AND md5 = $2 AND status= $3",
+            [self.player.id, self.md5, 2],
+        )
+
         if res:
             self.prev_best = await Score.from_sql(res["id"])
 
@@ -192,9 +206,6 @@ class Score:
                 self.prev_best.status = SubmissionStatus.SUBMITTED
                 await glob.db.execute(
                     "UPDATE scores SET status = $1 WHERE id = $2", [1, res["id"]]
-                )
-                print(
-                    f"score {self.id} status changed from 2 to 1, prev best on map {res['pp']} new best on map {self.pp.calc_pp}"
                 )
         else:
             self.status = SubmissionStatus.BEST

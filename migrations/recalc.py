@@ -33,10 +33,10 @@ async def recalc_scores():
 
         grouped_scores = {}
         for score in scores:
-            grouped_scores.setdefault(score["maphash"], []).append(score)
+            grouped_scores.setdefault(score["md5"], []).append(score)
 
-        for maphash, user_map_scores in grouped_scores.items():
-            print(f"[{total_recalculated}/{left}]{player.id} - processing map {maphash}")
+        for md5, user_map_scores in grouped_scores.items():
+            print(f"[{total_recalculated}/{left}]{player.id} - processing map {md5}")
 
             for score_data in user_map_scores:
                 s = Score()
@@ -44,8 +44,8 @@ async def recalc_scores():
                 s.id = score_data["id"]
                 if s.id == 11002:
                     pass
-                s.bmap = await Beatmap.from_md5(maphash)
-                s.map_hash = maphash
+                s.bmap = await Beatmap.from_md5(md5)
+                s.md5 = md5
                 s.player = player
                 s.h300 = score_data["hit300"]
                 s.h100 = score_data["hit100"]

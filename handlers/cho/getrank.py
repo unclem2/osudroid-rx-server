@@ -18,7 +18,7 @@ async def leaderboard():
     res = []
     if glob.config.legacy:
         plays = await glob.db.fetchall(
-            "SELECT * FROM scores WHERE maphash = $1 AND status = 2 ORDER BY {order_by} DESC".format(
+            "SELECT * FROM scores WHERE md5 = $1 AND status = 2 ORDER BY {order_by} DESC".format(
                 order_by="pp" if glob.config.pp_leaderboard else "score"
             ),
             [params["hash"]],
@@ -26,7 +26,7 @@ async def leaderboard():
     else:
         order = params["type"]
         plays = await glob.db.fetchall(
-            "SELECT * FROM scores WHERE maphash = $1 AND status = 2 ORDER BY {order_by} DESC".format(
+            "SELECT * FROM scores WHERE md5 = $1 AND status = 2 ORDER BY {order_by} DESC".format(
                 order_by=order
             ),
             [params["hash"]],
@@ -40,9 +40,9 @@ async def leaderboard():
             avatar = f"https://s.gravatar.com/avatar/{player.email_hash}"
 
         res += [
-            "{play_id} {name} {score} {pp} {combo} {rank} {mods} {acc} {avatar}".format(
+            "{play_id} {username} {score} {pp} {combo} {grade} {mods} {acc} {avatar}".format(
                 play_id=play["id"],
-                name=player.name,
+                username=player.username,
                 score=(
                     round(play["pp"]) if glob.config.pp_leaderboard else play["score"]
                 )
@@ -50,7 +50,7 @@ async def leaderboard():
                 else play["score"],
                 pp=round(play["pp"]) if glob.config.legacy == False else "",
                 combo=play["combo"],
-                rank=play["rank"],
+                grade=play["grade"],
                 mods=play["mods"],
                 acc=int(play["acc"] * 1000)
                 if glob.config.legacy == True

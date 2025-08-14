@@ -60,12 +60,12 @@ class Stats:
             "score_rank": self.score_rank,
             "country_pp_rank": self.country_pp_rank,
             "country_score_rank": self.country_score_rank,
-            "total_score": self.tscore,
-            "ranked_score": self.rscore,
-            "accuracy": self.acc,
+            "tscore": self.tscore,
+            "rscore": self.rscore,
+            "acc": self.acc,
             "plays": self.plays,
             "pp": self.pp,
-            "is_playing": self.playing,
+            "playing": self.playing,
         }
 
 
@@ -75,8 +75,8 @@ class Player:
     Attributes:
         id (str): Unique identifier for the player.
         prefix (str): Prefix for the player's name.
-        name (str): Username of the player.
-        name_safe (str): Safe version of the username.
+        username (str): Username of the player.
+        username_safe (str): Safe version of the username.
         email_hash (str): MD5 hash of the player's email.
         uuid (str): Unique UUID for the player.
         last_online (float): Timestamp of the last time the player was online.
@@ -87,8 +87,8 @@ class Player:
   
         self.id: str = kwargs.get("id")
         self.prefix: str = kwargs.get("prefix", "")
-        self.name: str = kwargs.get("username")
-        self.name_safe: str = utils.make_safe(self.name) if self.name else None
+        self.username: str = kwargs.get("username")
+        self.username_safe: str = utils.make_safe(self.username) if self.username else None
         self.email_hash: str = kwargs.get("email_hash", "0")
         self.uuid: str = kwargs.get("uuid", None)
         self.last_online: float = 0
@@ -99,7 +99,7 @@ class Player:
         """
         Returns a string representation of the Player object.
         """
-        return f"<{self.id} - {self.name}>"
+        return f"<{self.id} - {self.username}>"
 
     @property
     def online(self) -> bool:
@@ -119,7 +119,7 @@ class Player:
             "id": self.id,
             "country": self.country,
             "prefix": self.prefix,
-            "name": self.name,
+            "username": self.username,
             "online": self.online,
             "stats": self.stats.as_json,
         }
@@ -158,7 +158,7 @@ class Player:
             FROM scores s
             WHERE s.playerID = $1
                 AND s.status = 2
-                AND s.maphash IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
+                AND s.md5 IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
             ORDER BY s.pp DESC
         """,
             [int(self.id)],
@@ -254,4 +254,49 @@ class Player:
                 self.id,
             ],
         )
+
+    async def get_scores(self, limit: int = -1):
+        """
+        Fetches the player's scores from the database.
+        Args:
+            limit (int): The maximum number of scores to fetch. Default is -1 (no limit).
+        Returns:
+            List[Score]: A list of Score objects representing the player's scores.
+        """
+        from objects.score import Score
+        query = "SELECT * FROM scores WHERE playerid = $1"
+        if limit != -1:
+            query += f" LIMIT {limit}"
+        scores_data = await glob.db.fetchall(query, [int(self.id)])
+        scores = []
+        for row in scores_data:
+            scores.append(await Score.from_sql(0, res=row))
+
+        return scores
+    
+    async def get_scores(self, limit: int = -1):
+        """
+        Fetches the player's scores from the database.
+        Args:
+            limit (int): The maximum number of scores to fetch. Default is -1 (no limit).
+        Returns:
+            List[Score]: A list of Score objects representing the player's scores.
+        """
+        from objects.score import Score
+        query = """
+            SELECT *
+            FROM scores s
+            WHERE s.playerID = $1
+                AND s.status = 2
+                AND s.md5 IN (SELECT md5 FROM maps WHERE status IN (1, 2, 4, 5))
+            ORDER BY s.pp DESC
+        """
+        if limit != -1:
+            query += f" LIMIT {limit}"
+        scores_data = await glob.db.fetchall(query, [int(self.id)])
+        scores = []
+        for row in scores_data:
+            scores.append(await Score.from_sql(0, res=row))
+
+        return scores
 

@@ -50,11 +50,11 @@ class BaseCollection:
 
 class PlayerList(BaseCollection):
     name = "PlayerList"
-    attrs = ["id", "name"]
+    attrs = ["id", "username"]
 
     def fix_attr(self, attr: str, val: str):
-        if attr == "name":
-            attr = "name_safe"
+        if attr == "username":
+            attr = "username_safe"
             val = utils.make_safe(val)
 
         return attr, val

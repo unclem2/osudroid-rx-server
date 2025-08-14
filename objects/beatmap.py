@@ -3,7 +3,6 @@ import logging
 from enum import IntEnum, unique
 from datetime import datetime
 from pathlib import Path
-import json
 from objects import glob
 from typing import Optional
 
@@ -37,7 +36,6 @@ class RankedStatus(IntEnum):
 
     def __str__(self):
         return self.name
-
 
 class Beatmap:
     """
@@ -168,10 +166,12 @@ class Beatmap:
                 return
 
             if not (beatmap := await cls.from_md5_osuapi(md5)):
+                glob.cache["unsubmitted"].append(md5)
                 return
 
         # Put the beatmap in the cache
         glob.cache["beatmaps"][md5] = beatmap
+        beatmap.md5 = md5
         return beatmap
 
     @classmethod
@@ -362,3 +362,28 @@ class Beatmap:
                 self.star,
             ],
         )
+    
+    async def recalc_lb_placements(self) -> None:
+        """
+        Recalculates the local and global placements for the beatmap.
+        This is useful when the beatmap's scores change and placements need to be updated.
+        """
+        from objects.score import Score
+        scores = await glob.db.fetchall(
+            """
+            SELECT id, score, local_placement, global_placement, pp, playerid
+            FROM scores
+            WHERE md5 = $1
+            """,
+            [self.md5],
+        )
+        if not scores:
+            return
+        for score in scores:
+            score_obj = await Score.from_sql(0, score)
+            score_obj.md5 = self.md5
+            score_obj.global_placement, score_obj.local_placement = await score_obj.calc_lb_placement()
+            await glob.db.execute(
+                "UPDATE scores SET global_placement = $1, local_placement = $2 WHERE id = $3",
+                [score_obj.global_placement if score_obj.local_placement == 1 else 0, score_obj.local_placement, score_obj.id],
+            )

@@ -156,7 +156,7 @@
   <div class="profile-header">
     <img src="{{ avatar_url }}" alt="Avatar" class="profile-photo">
     <div class="header-info">
-      <p class="username">{{ player.name }}</p>
+      <p class="username">{{ player.username }}</p>
       <p class="country-rank">
         <img class="country-flag"
              src="https://flagsapi.com/{{ player.country }}/flat/64.png"
@@ -168,7 +168,7 @@
     <div class = "stat"><div class="label">Global Rank</div><div class="value">#{{ player_stats.pp_rank }} / #{{ player_stats.score_rank }}</div></div>
     <div class="stat"><div class="label">Country Rank</div><div class="value">#{{ player_stats.country_pp_rank }} / #{{ player_stats.country_score_rank }}</div></div>
     <div class="stat"><div class="label">pp</div><div class="value">{{ player_stats.pp }}</div></div>
-    <div class="stat"><div class="label">Accuracy</div><div class="value">{{ player_stats.accuracy }}</div></div>
+    <div class="stat"><div class="label">Accuracy</div><div class="value">{{ player_stats.acc }}</div></div>
     <div class="stat"><div class="label">Playcount</div><div class="value">{{ player_stats.plays }}</div></div>
     <div class="stat"><div class="label">Level</div><div class="value">{{ level }}</div></div>
   </div>

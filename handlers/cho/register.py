@@ -22,7 +22,7 @@ async def register():
                 return Failed("Not enough argument.")
 
         # check username
-        if glob.players.get(name=params["username"]):
+        if glob.players.get(username=params["username"]):
             return Failed("Username already exists.")
 
         if len(params["username"]) < 2:

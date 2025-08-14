@@ -48,24 +48,24 @@ async def submit_play():
                     glob.players.remove(player)
     except Exception as e:
         logging.error(f"Failed to get country from ip: {e}")
-    if map_hash := params.get("hash", None):
-        logging.info(f"Changed {player} playing to {map_hash}")
-        player.stats.playing = map_hash
+    if md5 := params.get("hash", None):
+        logging.info(f"Changed {player} playing to {md5}")
+        player.stats.playing = md5
         if glob.config.legacy == True:
             return Success(1, player.id)
 
     if play_data := params.get("data"):
-        score = await Score.from_submission(play_data)
+        score: Score = await Score.from_submission(play_data)
         if not score:
             return Failed("Failed to read score data.")
 
         if score.status == SubmissionStatus.BEST:
             await glob.db.execute(
-                "UPDATE scores SET status = 1 WHERE status = 2 AND mapHash = $1 AND playerID = $2",
-                [score.map_hash, score.player.id],
+                "UPDATE scores SET status = 1 WHERE status = 2 AND md5 = $1 AND playerID = $2",
+                [score.md5, score.player.id],
             )
 
-        if score.map_hash == None:
+        if score.md5 == None:
             return Failed("Server cannot find your recent play, maybe it restarted?")
 
         if not score.player:
@@ -79,7 +79,7 @@ async def submit_play():
 
         vals = [
             score.status,
-            score.map_hash,
+            score.md5,
             score.player.id,
             score.score,
             score.max_combo,
@@ -95,11 +95,13 @@ async def submit_play():
             score.pp.calc_pp,
             score.bmap.id,
             score.date,
+            score.local_placement,
+            score.global_placement if score.local_placement == 1 else 0,
         ]
         score.id = await glob.db.execute(
             """
-            INSERT INTO scores (status, mapHash, playerID, score, combo, rank, acc, hit300, hitgeki, hit100, hitkatsu, hit50, hitmiss, mods, pp, mapid, date)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            INSERT INTO scores (status, md5, playerID, score, combo, grade, acc, hit300, hitgeki, hit100, hitkatsu, hit50, hitmiss, mods, pp, mapid, date, local_placement, global_placement)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         """,
             vals,
         )
@@ -126,7 +128,7 @@ async def submit_play():
         await score.player.update_stats()
         await utils.send_webhook(
             title="New score was submitted",
-            content=f"{score.player.name}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp.calc_pp, 2)}",
+            content=f"{score.player.username}  | {score.bmap.full} {score.mods} {round(score.acc, 2)}% {score.max_combo}x/{score.bmap.max_combo}x {score.hmiss}x #{score.rank} | {round(score.pp.calc_pp, 2)}",
             url=glob.config.submit_hook,
             isEmbed=True,
         )
@@ -136,7 +138,7 @@ async def submit_play():
                     rank=int(stats.pp_rank if glob.config.pp else stats.score_rank),
                     legacy_metric=int(stats.pp if glob.config.pp else stats.rscore),
                     acc=stats.droid_acc,
-                    map_rank=score.rank,
+                    map_rank=score.global_placement,
                     score_id=score.id if upload_replay else "",
                 )
             )
@@ -163,7 +165,7 @@ async def submit_play():
                     rank=int(stats.pp_rank if glob.config.pp else stats.score_rank),
                     score=stats.rscore,
                     acc=stats.droid_acc,
-                    map_rank=score.rank,
+                    map_rank=score.global_placement,
                     pp=stats.pp,
                 )
             )

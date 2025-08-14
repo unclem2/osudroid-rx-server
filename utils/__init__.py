@@ -14,8 +14,8 @@ def make_md5(n: str):
     return hashlib.md5(n.encode()).hexdigest()
 
 
-def make_uuid(name: str = ""):
-    return name + str(uuid.uuid4()).replace("-", "")
+def make_uuid(username: str = ""):
+    return username + str(uuid.uuid4()).replace("-", "")
 
 
 def check_folder():
