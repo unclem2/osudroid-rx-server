@@ -23,7 +23,7 @@ class RecentRequest(BaseModel):
                 "validation_error",
                 "ID must be provided to retrieve recent scores."
             )
-        if int(values.get("offset")) < 0:
+        if int(values.get("offset"), 0) < 0:
             raise PydanticCustomError(
                 "validation_error",
                 "Offset must be greater than or equal to 0."

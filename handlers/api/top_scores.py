@@ -23,7 +23,7 @@ class TopScoresRequest(BaseModel):
                 "validation_error",
                 "UID must be provided to retrieve scores."
             )
-        if int(values.get("limit")) < 0 and int(values.get("limit")) > 100:
+        if int(values.get("limit"), 0) < 1 and int(values.get("limit"), 0) > 100:
             raise PydanticCustomError(
                 "validation_error",
                 "Limit must be lower than 100."
