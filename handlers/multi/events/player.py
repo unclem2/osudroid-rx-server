@@ -10,10 +10,10 @@ class PlayerEvents:
         if player is None:
             return
         
-        player.mods = ModList.from_dict(json.loads(args[0]))
+        player.mods = ModList.from_dict(args[0])
         await self.emit_event(
             "playerModsChanged",
-            (str(player.uid), player.mods.as_json),
+            (str(player.uid), player.mods.as_calculatable_mods),
             namespace=self.namespace,
         )
 
@@ -61,7 +61,7 @@ class PlayerEvents:
 
     async def on_hostChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
-        room_info.host = PlayerMulti().player(int(args[0]), sid=sid)
+        room_info.host = PlayerMulti.player(int(args[0]), sid=sid)
         await self.emit_event(
             event="hostChanged", data=str(room_info.host.uid), namespace=self.namespace
         )

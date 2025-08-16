@@ -8,7 +8,7 @@ class RoomEvents:
         mods_data = args[0]
         room_info.mods = ModList.from_dict(mods_data)
 
-        await self.emit_event("roomModsChanged", room_info.mods.as_json, namespace=self.namespace)
+        await self.emit_event("roomModsChanged", room_info.mods.as_calculatable_mods, namespace=self.namespace)
 
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info: Room = glob.rooms.get(id=self.room_id)

@@ -61,4 +61,7 @@ class PlayerList(BaseCollection):
 class RoomList(BaseCollection):
     name = "RoomList"
     attrs = ["id", "name"]
+    
+    def fix_attr(self, attr, val):
+        return attr, val
 

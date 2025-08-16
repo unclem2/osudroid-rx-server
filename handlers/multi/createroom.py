@@ -24,7 +24,7 @@ async def create_room():
     room.id = room_id
     room.name = data["name"]
     room.max_players = data["maxPlayers"]
-    room.host = PlayerMulti().player(int(data["host"]["uid"]), sid="")
+    room.host = PlayerMulti.player(int(data["host"]["uid"]), sid="")
     beatmap_md5 = data["beatmap"]["md5"]
     beatmap_obj = await Beatmap.from_md5(beatmap_md5)
     if beatmap_obj is not None:
@@ -40,7 +40,7 @@ async def create_room():
         room.map.md5 = beatmap_md5
     if "password" in data:
         room.password = data["password"]
-        room.isLocked = True
+        room.is_locked = True
     glob.rooms.add(room)
 
     response = {"id": room.id}
