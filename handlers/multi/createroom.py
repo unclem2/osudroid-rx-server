@@ -23,12 +23,13 @@ async def create_room():
     room = Room()
     room.id = room_id
     room.name = data["name"]
-    room.maxPlayers = data["maxPlayers"]
+    room.max_players = data["maxPlayers"]
     room.host = PlayerMulti().player(int(data["host"]["uid"]), sid="")
     beatmap_md5 = data["beatmap"]["md5"]
-    room.map = await Beatmap.from_md5(beatmap_md5)
-    if room.map is not None:
-        room.map.md5 = beatmap_md5
+    beatmap_obj = await Beatmap.from_md5(beatmap_md5)
+    if beatmap_obj is not None:
+        beatmap_obj.md5 = beatmap_md5
+        room.map = beatmap_obj
     else:
         beatmap = data.get("beatmap", {})
         room.map = Beatmap()
@@ -40,7 +41,7 @@ async def create_room():
     if "password" in data:
         room.password = data["password"]
         room.isLocked = True
-    glob.rooms[room_id] = room
+    glob.rooms.add(room)
 
     response = {"id": room.id}
     sio.register_namespace(MultiNamespace(f"/multi/{room.id}"))

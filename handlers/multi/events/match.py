@@ -1,10 +1,10 @@
-from objects.room import PlayerStatus, RoomStatus, Match, WinCondition
+from objects.room import PlayerStatus, RoomStatus, Match, WinCondition, Room
 from objects import glob
 
 
 class MatchEvents:
     async def on_playBeatmap(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(id=self.room_id)
         room_info.status = RoomStatus.PLAYING
         await self.emit_event(
             "roomStatusChanged", data=room_info.status, namespace=self.namespace
@@ -19,32 +19,37 @@ class MatchEvents:
             room_info.match.players.append(player)
 
     async def on_beatmapLoadComplete(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
-        for player in room_info.match.players:
-            if player.sid == sid:
-                room_info.match.beatmap_load_status[player.uid] = {"loaded": True}
+        room_info: Room = glob.rooms.get(id=self.room_id)
+        player = room_info.get_player(sid=sid)
+        if player is None:
+            return
+        room_info.match.beatmap_load_status[player.uid] = True
         if len(room_info.match.beatmap_load_status) == len(room_info.match.players):
             await self.emit_event(
                 "allPlayersBeatmapLoadComplete", namespace=self.namespace
             )
 
     async def on_skipRequested(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(id=self.room_id)
 
-        for player in room_info.match.players:
-            if player.sid == sid:
-                room_info.match.skip_requests[player.uid] = {"skipped": True}
+        player = room_info.get_player(sid=sid)
+        if player is None:
+            return
+        room_info.match.skip_requests[player.uid] = True
 
         if len(room_info.match.skip_requests) == len(room_info.match.players):
             await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
 
     async def on_liveScoreData(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(id=self.room_id)
         live_score_data = []
 
         for player in room_info.players:
-            if player.sid == sid:
-                room_info.match.live_score_data[player.uid] = args[0]
+            player = room_info.get_player(sid=sid)
+            if player is None:
+                continue
+
+            room_info.match.live_score_data[player.uid] = args[0]
 
             if len(room_info.match.live_score_data) == len(room_info.match.players):
                 live_score_data.append(
@@ -61,21 +66,17 @@ class MatchEvents:
                     }
                 )
 
-            if room_info.winCondition == WinCondition.SCOREV1:
+            if room_info.win_condition == WinCondition.SCOREV1 or room_info.win_condition == WinCondition.SCOREV2:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )
-            elif room_info.winCondition == WinCondition.ACC:
+            elif room_info.win_condition == WinCondition.ACC:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["accuracy"], reverse=True
                 )
-            elif room_info.winCondition == WinCondition.COMBO:
+            elif room_info.win_condition == WinCondition.COMBO:
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["combo"], reverse=True
-                )
-            elif room_info.winCondition == WinCondition.SCOREV2:
-                live_score_data = sorted(
-                    live_score_data, key=lambda x: x["score"], reverse=True
                 )
 
         await self.emit_event(
@@ -83,10 +84,11 @@ class MatchEvents:
         )
 
     async def on_scoreSubmission(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
-        for player in room_info.match.players:
-            if player.sid == sid:
-                room_info.match.submitted_scores[player.uid] = args[0]
+        room_info: Room = glob.rooms.get(id=self.room_id)
+        player = room_info.get_player(sid=sid)
+        if player is None:
+            return
+        room_info.match.submitted_scores[player.uid] = args[0]
 
         if len(room_info.match.submitted_scores) == len(room_info.match.players):
             data = []
@@ -96,13 +98,13 @@ class MatchEvents:
                 except:
                     pass
 
-            if room_info.winCondition == WinCondition.SCOREV1:
+            if room_info.win_condition == WinCondition.SCOREV1:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
-            elif room_info.winCondition == WinCondition.ACC:
+            elif room_info.win_condition == WinCondition.ACC:
                 data = sorted(data, key=lambda x: x["accuracy"], reverse=True)
-            elif room_info.winCondition == WinCondition.COMBO:
+            elif room_info.win_condition == WinCondition.COMBO:
                 data = sorted(data, key=lambda x: x["combo"], reverse=True)
-            elif room_info.winCondition == WinCondition.SCOREV2:
+            elif room_info.win_condition == WinCondition.SCOREV2:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
 
             await self.emit_event(

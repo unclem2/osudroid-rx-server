@@ -6,18 +6,18 @@ bp = Blueprint("getrooms", __name__)
 
 @bp.route("/")
 async def get_rooms():
-    room = []
-    for room_id, room_info in glob.rooms.items():
+    room_list = []
+    for room_info in glob.rooms:
         players = ",".join([player.username for player in room_info.players])
 
-        room.append(
+        room_list.append(
             {
                 "id": room_info.id,
                 "name": room_info.name,
                 "isLocked": room_info.isLocked,
-                "gameplaySettings": room_info.gameplaySettings.as_json(),
+                "gameplaySettings": room_info.gameplaySettings.as_json,
                 "maxPlayers": room_info.maxPlayers,
-                "mods": room_info.mods.as_json(),
+                "mods": room_info.mods.as_json,
                 "playerNames": players,
                 "playerCount": len(room_info.players),
                 "status": room_info.status,
@@ -26,4 +26,4 @@ async def get_rooms():
             }
         )
 
-    return jsonify(room)
+    return jsonify(room_list)

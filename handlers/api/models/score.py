@@ -9,7 +9,7 @@ class ScoreModel(BaseModel):
     md5: str = ""
     player: PlayerModel | None = None
     pp: float
-    score: float = 0
+    score: int = 0
     max_combo: int = 0
     mods: str = ""
     acc: float = 0

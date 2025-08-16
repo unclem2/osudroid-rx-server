@@ -5,6 +5,8 @@ from typing import Dict, Union
 import json
 import os
 import time
+import osudroid_api_wrapper as od
+from typing import Optional
 
 
 class RoomStatus(IntEnum):
@@ -12,41 +14,34 @@ class RoomStatus(IntEnum):
     CHANGING_BEATMAP = 1
     PLAYING = 2
 
-
 class PlayerStatus(IntEnum):
     IDLE = 0
     READY = 1
     NOMAP = 2
     PLAYING = 3
 
-
 class PlayerTeam(IntEnum):
     RED = 0
     BLUE = 1
 
+class WinCondition:
+    SCOREV1 = 0
+    ACC = 1
+    COMBO = 2
+    SCOREV2 = 3
 
-class Mods:
+class RoomSettings:
     def __init__(self):
-        self.mods: str = ""
-        self.speedMultiplier: float = 1.0
-        self.flFollowDelay: float = 0.12
-        self.customAR: int = 0
-        self.customOD: int = 0
-        self.customCS: int = 0
-        self.customHP: int = 0
+        self.is_remove_sliderlock: bool = False
+        self.is_freemod: bool = False
 
-    def as_json(self) -> Dict[str, Union[str, float, int]]:
-        attributes = {
-            "mods": self.mods,
-            "speedMultiplier": self.speedMultiplier,
-            "flFollowDelay": self.flFollowDelay,
-            "customAR": self.customAR,
-            "customOD": self.customOD,
-            "customCS": self.customCS,
-            "customHP": self.customHP,
+    @property
+    def as_json(self) -> dict[str, bool]:
+        return {
+            "isRemoveSliderLock": self.is_remove_sliderlock,
+            "isFreeMod": self.is_freemod,
         }
-        filtered_attributes = {k: v for k, v in attributes.items() if v}
-        return filtered_attributes
+
 
 
 class PlayerMulti:
@@ -55,66 +50,50 @@ class PlayerMulti:
         self.username: str = ""
         self.status: PlayerStatus = PlayerStatus.IDLE
         self.team: int = 0
-        self.mods: Mods = Mods()
+        self.mods: od.ModList = od.ModList()
         self.sid: str = ""
 
+    @property
     def as_json(self) -> Dict[str, str]:
         return {
             "uid": self.uid,
             "username": self.username,
             "status": self.status,
             "team": self.team,
-            "mods": self.mods.as_json(),
+            "mods": self.mods.as_json,
         }
 
-    def player(self, id, sid):
+    @classmethod
+    def player(cls, id, sid):
         player = glob.players.get(id=int(id))
-        self.uid = player.id
-        self.username = player.username
-        self.status = PlayerStatus.IDLE
-        self.team = None
-        self.mods = Mods()
-        self.sid = sid
+        instance = cls()
+        instance.uid = player.id
+        instance.username = player.username
+        instance.status = PlayerStatus.IDLE
+        instance.team = None
+        instance.mods = od.ModList()
+        instance.sid = sid
 
-        return self
+        return instance
 
-
-class RoomSettings:
-    def __init__(self):
-        self.isRemoveSliderLock: bool = False
-        self.isFreeMod: bool = False
-        self.allowForceDifficultyStatistics: bool = False
-
-    def as_json(self) -> dict[str, bool]:
-        return {
-            "isRemoveSliderLock": self.isRemoveSliderLock,
-            "isFreeMod": self.isFreeMod,
-            "allowForceDifficultyStatistics": self.allowForceDifficultyStatistics,
-        }
-
-
-class WinCondition:
-    SCOREV1 = 0
-    ACC = 1
-    COMBO = 2
-    SCOREV2 = 3
 
 
 class Match:
     def __init__(self):
-        self.beatmap_load_status: dict = {}
-        self.skip_requests: dict = {}
+        self.beatmap_load_status: dict[int, bool] = {}
+        self.skip_requests: dict[int, bool]
         self.live_score_data: dict = {}
         self.submitted_scores: dict = {}
-        self.players: list = []
+        self.players: list[PlayerMulti] = []
 
+    @property
     def as_json(self) -> dict[str, dict]:
         return {
             "beatmap_load_status": self.beatmap_load_status,
             "skip_requests": self.skip_requests,
             "live_score_data": self.live_score_data,
             "submitted_scores": self.submitted_scores,
-            "players": [player.as_json() for player in self.players],
+            "players": [player.as_json for player in self.players],
         }
 
 
@@ -124,32 +103,44 @@ class Room:
         self.name: str = ""
         self.map: Beatmap = None
         self.host: PlayerMulti = PlayerMulti()
-        self.isLocked: bool = False
-        self.gameplaySettings: RoomSettings = RoomSettings()
-        self.maxPlayers: int = 0
-        self.mods: Mods = Mods()
-        self.players: list = []
+        self.is_locked: bool = False
+        self.gameplay_settings: RoomSettings = RoomSettings()
+        self.max_players: int = 0
+        self.mods: od.ModList = od.ModList()
+        self.players: list[PlayerMulti] = []
         self.status: RoomStatus = RoomStatus.IDLE
-        self.teamMode: int = 0
-        self.winCondition: WinCondition = WinCondition.SCOREV1
+        self.team_mode: int = 0
+        self.win_condition: WinCondition = WinCondition.SCOREV1
         self.password: str = ""
         self.match = Match()
 
+    def get_player(self, uid: Optional[int] = None, sid: Optional[str] = None) -> Optional[PlayerMulti]:
+        if uid is not None:
+            for player in self.players:
+                if player.uid == uid:
+                    return player
+        elif sid is not None:
+            for player in self.players:
+                if player.sid == sid:
+                    return player
+        return None
+
+    @property
     def as_json(self) -> dict[str, Union[str, int, bool]]:
         return {
             "id": self.id,
             "name": self.name,
-            "map": self.map.as_json() if self.map else None,
-            "host": self.host.as_json(),
-            "isLocked": self.isLocked,
-            "gameplaySettings": self.gameplaySettings.as_json(),
-            "maxPlayers": self.maxPlayers,
-            "mods": self.mods.as_json(),
-            "players": [player.as_json() for player in self.players],
+            "map": self.map.as_json if self.map else None,
+            "host": self.host.as_json,
+            "isLocked": self.is_locked,
+            "gameplaySettings": self.gameplay_settings.as_json,
+            "maxPlayers": self.max_players,
+            "mods": self.mods.as_json,
+            "players": [player.as_json for player in self.players],
             "status": self.status,
-            "teamMode": self.teamMode,
-            "winCondition": self.winCondition,
-            "match": self.match.as_json(),
+            "teamMode": self.team_mode,
+            "winCondition": self.win_condition,
+            "match": self.match.as_json,
         }
 
 

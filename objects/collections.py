@@ -2,7 +2,6 @@ import logging
 
 import utils
 
-
 class BaseCollection:
     name: str = "BaseCollection"
     attrs: list = []
@@ -58,3 +57,8 @@ class PlayerList(BaseCollection):
             val = utils.make_safe(val)
 
         return attr, val
+
+class RoomList(BaseCollection):
+    name = "RoomList"
+    attrs = ["id", "name"]
+

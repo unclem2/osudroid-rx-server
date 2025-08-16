@@ -1,11 +1,11 @@
 from objects import glob
-from objects.room import RoomStatus
+from objects.room import RoomStatus, Room
 from objects.beatmap import Beatmap
 
 
 class BeatmapEvents:
     async def on_beatmapChanged(self, sid, *args):
-        room_info = glob.rooms.get(self.room_id)
+        room_info: Room = glob.rooms.get(id=self.room_id)
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
             await self.emit_event(

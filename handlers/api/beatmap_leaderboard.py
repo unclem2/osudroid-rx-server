@@ -36,7 +36,7 @@ async def beatmap_leaderboard(query_args: BeatmapLeaderboardRequest) -> ApiRespo
     """
     if query_args.md5:
         beatmap = await Beatmap.from_md5(query_args.md5)
-    else:
+    elif query_args.bid:
         beatmap = await Beatmap.from_bid_osuapi(query_args.bid)
     
     if beatmap is None:
