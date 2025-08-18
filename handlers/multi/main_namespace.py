@@ -25,7 +25,7 @@ class MultiNamespace(
     @property
     def room_id(self):
         return self.namespace.split("/")[-1]
-    
+
     @property
     def room(self):
         return glob.rooms.get(id=self.room_id)
@@ -46,7 +46,9 @@ class MultiNamespace(
         if to:
             await sio.emit(event, data, namespace=namespace, to=to, *args, **kwargs)
         elif skip_sid:
-            await sio.emit(event, data, namespace=namespace, skip_sid=skip_sid, *args, **kwargs)
+            await sio.emit(
+                event, data, namespace=namespace, skip_sid=skip_sid, *args, **kwargs
+            )
         else:
             await sio.emit(event, data, namespace=namespace, *args, **kwargs)
         write_event(self.room_id, event, 0, data, receiver=to)

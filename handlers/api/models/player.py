@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 
+
 class StatsModel(BaseModel):
     id: int = 0
     pp_rank: int = 0
@@ -13,6 +14,7 @@ class StatsModel(BaseModel):
     country_pp_rank: int = 0
     country_score_rank: int = 0
     playing: str | None = None
+
 
 class PlayerModel(BaseModel):
     id: int = 0

@@ -37,6 +37,7 @@ class RankedStatus(IntEnum):
     def __str__(self):
         return self.name
 
+
 class Beatmap:
     """
     Represents a beatmap object with various attributes and methods to interact with it.
@@ -362,13 +363,14 @@ class Beatmap:
                 self.star,
             ],
         )
-    
+
     async def recalc_lb_placements(self) -> None:
         """
         Recalculates the local and global placements for the beatmap.
         This is useful when the beatmap's scores change and placements need to be updated.
         """
         from objects.score import Score
+
         scores = await glob.db.fetchall(
             """
             SELECT id, score, local_placement, global_placement, pp, playerid
@@ -382,8 +384,15 @@ class Beatmap:
         for score in scores:
             score["md5"] = self.md5
             score_obj = await Score.from_sql(0, score)
-            score_obj.global_placement, score_obj.local_placement = await score_obj.calc_lb_placement()
+            (
+                score_obj.global_placement,
+                score_obj.local_placement,
+            ) = await score_obj.calc_lb_placement()
             await glob.db.execute(
                 "UPDATE scores SET global_placement = $1, local_placement = $2 WHERE id = $3",
-                [score_obj.global_placement if score_obj.local_placement == 1 else 0, score_obj.local_placement, score_obj.id],
+                [
+                    score_obj.global_placement if score_obj.local_placement == 1 else 0,
+                    score_obj.local_placement,
+                    score_obj.id,
+                ],
             )

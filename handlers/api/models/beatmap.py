@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 
+
 class BeatmapModel(BaseModel):
     id: int = 0
     set_id: int = 0

@@ -29,21 +29,20 @@ async def profile():
         return await render_template(
             "error.jinja", error_message="No player ID provided"
         )
-    
-    p:Player = glob.players.get(id=player_id)
+
+    p: Player = glob.players.get(id=player_id)
     if not p:
         return await render_template("error.jinja", error_message="Player not found")
 
     player_stats = p.stats.as_json
 
-
     recent_scores = await glob.db.fetchall(
-            'SELECT id, status, "md5", score, combo, grade, acc, "hit300", "hitgeki", '
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
-            "ORDER BY id DESC LIMIT $2",
-            [p.id, 50],
-        )
-    
+        'SELECT id, status, "md5", score, combo, grade, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
+        "ORDER BY id DESC LIMIT $2",
+        [p.id, 50],
+    )
+
     for score in recent_scores if recent_scores else []:
         bmap = await Beatmap.from_md5(score["md5"])
         if bmap is not None:
@@ -52,18 +51,19 @@ async def profile():
         else:
             score["map"] = score["md5"]
             score["link"] = ""
-        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+        score["date"] = time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
+        )
         score["acc"] = f"{score['acc']:.2f}%"
         score["pp"] = f"{round(score['pp'])}pp"
         score["mods"] = f"{Mods(score['mods']).convert_std}"
 
-    
     top_scores = await glob.db.fetchall(
-            'SELECT id, status, md5, score, combo, grade, acc, "hit300", "hitgeki", '
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND md5 IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
-            "ORDER BY pp DESC LIMIT $2",
-            [p.id, 50],
-        )
+        'SELECT id, status, md5, score, combo, grade, acc, "hit300", "hitgeki", '
+        '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND md5 IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
+        "ORDER BY pp DESC LIMIT $2",
+        [p.id, 50],
+    )
     for score in top_scores if top_scores else []:
         bmap = await Beatmap.from_md5(score["md5"])
         if bmap is not None:
@@ -72,7 +72,9 @@ async def profile():
         else:
             score["map"] = score["md5"]
             score["link"] = ""
-        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
+        score["date"] = time.strftime(
+            "%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000)
+        )
         score["acc"] = f"{score['acc']:.2f}%"
         score["pp"] = f"{round(score['pp'])}pp"
         score["mods"] = f"{Mods(score['mods']).convert_std}"
@@ -91,15 +93,11 @@ async def profile():
     while True:
         cur = level_formula(i)
         nxt = level_formula(i + 1)
-        if cur <= int(player_stats["rscore"]) and nxt >= int(
-            player_stats["rscore"]
-        ):
+        if cur <= int(player_stats["rscore"]) and nxt >= int(player_stats["rscore"]):
             level = i
             break
         i += 1
-        if cur > int(player_stats["rscore"]) and nxt > int(
-            player_stats["rscore"]
-        ):
+        if cur > int(player_stats["rscore"]) and nxt > int(player_stats["rscore"]):
             level = i
             break
 

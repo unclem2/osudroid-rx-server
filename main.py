@@ -29,12 +29,14 @@ async def init_players():
         player = await Player.from_sql(player_id["id"])
         glob.players.add(player)
 
+
 async def update_player_stats():
     try:
         for player in glob.players:
             await player.update_stats()
     except Exception as err:
         logging.error("Failed to complete task", exc_info=True)
+
 
 async def update_map_status():
     qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
@@ -48,6 +50,7 @@ async def update_map_status():
             isEmbed=True,
         )
         await asyncio.sleep(5)
+
 
 def make_app():
     quart_app = Quart(__name__)
@@ -93,6 +96,7 @@ async def close():
 async def before_request():
     g.start_time = time.perf_counter()
     pass
+
 
 @app.after_request
 async def after_request(response):
