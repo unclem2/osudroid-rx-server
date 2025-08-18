@@ -23,7 +23,9 @@ async def set_avatar():
     try:
         username, player_id, auth_hash = auth_cookie.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
+            utils.check_md5(
+                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+            )
             == False
         ):
             return await render_template(

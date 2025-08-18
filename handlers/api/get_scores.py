@@ -4,13 +4,18 @@ from objects import glob
 from objects.player import Player
 import utils
 from handlers.response import ApiResponse
-from quart_schema import RequestSchemaValidationError, validate_response, validate_querystring
+from quart_schema import (
+    RequestSchemaValidationError,
+    validate_response,
+    validate_querystring,
+)
 from typing import List
 from pydantic import BaseModel, model_validator
 from .models.score import ScoreModel
 from objects.score import Score
 
 bp = Blueprint("get_scores", __name__)
+
 
 class GetScoresRequest(BaseModel):
     id: int
@@ -20,16 +25,15 @@ class GetScoresRequest(BaseModel):
     def validate(cls, values):
         if values.get("id") is None:
             raise PydanticCustomError(
-                "validation_error",
-                "UID must be provided to retrieve scores."
+                "validation_error", "UID must be provided to retrieve scores."
             )
         if int(values.get("limit")) < -1:
             raise PydanticCustomError(
-                "validation_error",
-                "Limit must be greater than -1."
+                "validation_error", "Limit must be greater than -1."
             )
 
         return values
+
 
 @bp.route("/", methods=["GET"])
 @validate_querystring(GetScoresRequest)
@@ -43,6 +47,7 @@ async def get_scores(query_args: GetScoresRequest) -> ApiResponse[List[ScoreMode
     scores: List[Score] = await player.get_scores(limit=query_args.limit)
     return ApiResponse.ok([ScoreModel(**score.as_json) for score in scores])
 
+
 @bp.errorhandler(RequestSchemaValidationError)
 async def handle_validation_error(error: RequestSchemaValidationError):
     """
@@ -50,7 +55,5 @@ async def handle_validation_error(error: RequestSchemaValidationError):
     """
     error_message = error.validation_error.errors()[0]
     return ApiResponse.custom(
-        status=error_message["type"],
-        data=error_message["msg"],
-        code=400
+        status=error_message["type"], data=error_message["msg"], code=400
     )

@@ -64,9 +64,7 @@ class ConnectionEvents:
                     return
                 room_info.players.append(PlayerMulti.player(id=args[0]["uid"], sid=sid))
             case "1":
-                room_info.watchers.append(
-                    PlayerMulti.watcher(sid=sid)
-                )
+                room_info.watchers.append(PlayerMulti.watcher(sid=sid))
 
         resp = {
             "id": room_info.id,

@@ -10,7 +10,6 @@ class SpectatorEvents:
         if player is None:
             return
         for watcher in room_info.watchers:
-
             await self.emit_event(
                 "spectatorData",
                 data=(str(player.uid), placeholder),

@@ -11,6 +11,7 @@ class Stats:
     """
     Dataclass representing player statistics.
     """
+
     id: int
     pp_rank: int
     score_rank: int
@@ -24,7 +25,7 @@ class Stats:
     playing: str = None
 
     @property
-    def droid_acc(self) -> (int | float):
+    def droid_acc(self) -> int | float:
         """
         Returns the accuracy in a format suitable for client.
         For pre-1.8 state, it returns accuracy as an integer multiplied by 1000.
@@ -84,12 +85,14 @@ class Player:
         stats (Stats): Player's statistics.
         country (str): Country of the player.
     """
+
     def __init__(self, **kwargs):
-  
         self.id: str = kwargs.get("id")
         self.prefix: str = kwargs.get("prefix", "")
         self.username: str = kwargs.get("username")
-        self.username_safe: str = utils.make_safe(self.username) if self.username else None
+        self.username_safe: str = (
+            utils.make_safe(self.username) if self.username else None
+        )
         self.email_hash: str = kwargs.get("email_hash", "0")
         self.uuid: str = kwargs.get("uuid", None)
         self.last_online: float = 0
@@ -104,7 +107,7 @@ class Player:
 
     @property
     def online(self) -> bool:
-        """ 
+        """
         Checks if the player is online based on the last_online timestamp.
         Returns:
             bool: True if the player is online, False otherwise.
@@ -113,7 +116,7 @@ class Player:
 
     @property
     def as_json(self) -> dict:
-        """ 
+        """
         Returns the player data as a JSON serializable dictionary.
         """
         return {
@@ -169,7 +172,6 @@ class Player:
         all_scores = await glob.db.fetchall(
             "SELECT acc, pp, score FROM scores WHERE playerID = $1", [int(self.id)]
         )
-
 
         if not top_scores or not all_scores:
             logging.error(
@@ -265,6 +267,7 @@ class Player:
             List[Score]: A list of Score objects representing the player's scores.
         """
         from objects.score import Score
+
         query = "SELECT * FROM scores WHERE playerid = $1"
         if limit != -1:
             query += f" LIMIT {limit}"
@@ -274,7 +277,7 @@ class Player:
             scores.append(await Score.from_sql(0, res=row))
 
         return scores
-    
+
     async def top_scores(self, limit: int = -1) -> List["Score"] | None:
         """
         Fetches the player's top scores from the database.
@@ -284,6 +287,7 @@ class Player:
             List[Score]: A list of Score objects representing the player's top scores.
         """
         from objects.score import Score
+
         query = """
             SELECT *
             FROM scores s
@@ -300,4 +304,3 @@ class Player:
             scores.append(await Score.from_sql(0, res=row))
 
         return scores
-

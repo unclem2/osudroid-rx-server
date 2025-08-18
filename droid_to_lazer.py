@@ -11,7 +11,10 @@ import json
 
 glob.db = PostgresDB()
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 async def convert_db():
     await glob.db.connect()
@@ -19,7 +22,7 @@ async def convert_db():
     scores = sorted(scores, key=lambda x: len(x["mods"]), reverse=True)
     print(scores[0])
     # for i, score in enumerate(scores):
-        
+
     #     mods = score["mods"]
     #     if not mods:
     #         continue

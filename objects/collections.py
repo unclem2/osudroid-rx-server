@@ -2,6 +2,7 @@ import logging
 
 import utils
 
+
 class BaseCollection:
     name: str = "BaseCollection"
     attrs: list = []
@@ -58,10 +59,10 @@ class PlayerList(BaseCollection):
 
         return attr, val
 
+
 class RoomList(BaseCollection):
     name = "RoomList"
     attrs = ["id", "name"]
-    
+
     def fix_attr(self, attr, val):
         return attr, val
-
