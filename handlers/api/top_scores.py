@@ -40,7 +40,7 @@ async def get_scores(query_args: TopScoresRequest) -> ApiResponse[List[ScoreMode
     Get top scores for a specific user.
     """
     player: Player = glob.players.get(id=query_args.id)
-    scores: List[Score] = await player.get_scores(limit=query_args.limit)
+    scores: List[Score] = await player.top_scores(limit=query_args.limit)
     return ApiResponse.ok([ScoreModel(**score.as_json) for score in scores])
 
 @bp.errorhandler(RequestSchemaValidationError)

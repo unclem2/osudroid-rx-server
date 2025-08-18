@@ -1,4 +1,6 @@
-from objects.room import PlayerStatus, RoomStatus, Match, WinCondition, Room
+from objects.room.enums import RoomStatus, PlayerStatus, WinCondition
+from objects.room.match import Match
+from objects.room.room import Room
 from objects import glob
 
 
@@ -16,7 +18,7 @@ class MatchEvents:
                 (str(player.uid), int(PlayerStatus.PLAYING)),
                 namespace=self.namespace,
             )
-            room_info.match.players.append(player)
+            room_info.match.add_player(player)
 
     async def on_beatmapLoadComplete(self, sid, *args):
         room_info: Room = glob.rooms.get(id=self.room_id)
@@ -35,7 +37,7 @@ class MatchEvents:
         player = room_info.get_player(sid=sid)
         if player is None:
             return
-        room_info.match.skip_requests[player.uid] = True
+        room_info.match.skipped(player.uid)
 
         if len(room_info.match.skip_requests) == len(room_info.match.players):
             await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
@@ -66,7 +68,10 @@ class MatchEvents:
                     }
                 )
 
-            if room_info.win_condition == WinCondition.SCOREV1 or room_info.win_condition == WinCondition.SCOREV2:
+            if (
+                room_info.win_condition == WinCondition.SCOREV1
+                or room_info.win_condition == WinCondition.SCOREV2
+            ):
                 live_score_data = sorted(
                     live_score_data, key=lambda x: x["score"], reverse=True
                 )

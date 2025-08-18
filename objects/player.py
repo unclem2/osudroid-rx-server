@@ -3,6 +3,7 @@ import time
 from dataclasses import dataclass
 from objects import glob
 import utils
+from typing import List
 
 
 @dataclass
@@ -255,7 +256,7 @@ class Player:
             ],
         )
 
-    async def get_scores(self, limit: int = -1):
+    async def get_scores(self, limit: int = -1) -> List["Score"] | None:
         """
         Fetches the player's scores from the database.
         Args:
@@ -274,13 +275,13 @@ class Player:
 
         return scores
     
-    async def get_scores(self, limit: int = -1):
+    async def top_scores(self, limit: int = -1) -> List["Score"] | None:
         """
-        Fetches the player's scores from the database.
+        Fetches the player's top scores from the database.
         Args:
             limit (int): The maximum number of scores to fetch. Default is -1 (no limit).
         Returns:
-            List[Score]: A list of Score objects representing the player's scores.
+            List[Score]: A list of Score objects representing the player's top scores.
         """
         from objects.score import Score
         query = """

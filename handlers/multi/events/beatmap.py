@@ -1,5 +1,6 @@
 from objects import glob
-from objects.room import RoomStatus, Room
+from objects.room.enums import RoomStatus
+from objects.room.room import Room
 from objects.beatmap import Beatmap
 
 

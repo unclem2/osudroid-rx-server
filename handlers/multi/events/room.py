@@ -1,6 +1,9 @@
 from objects import glob
-from objects.room import PlayerMulti, PlayerStatus, Room, WinCondition, PlayerTeam
+from objects.room.enums import WinCondition, PlayerStatus, PlayerTeam
+from objects.room.player import PlayerMulti
+from objects.room.room import Room
 from osudroid_api_wrapper import ModList
+
 
 class RoomEvents:
     async def on_roomModsChanged(self, sid, *args):
@@ -8,7 +11,11 @@ class RoomEvents:
         mods_data = args[0]
         room_info.mods = ModList.from_dict(mods_data)
 
-        await self.emit_event("roomModsChanged", room_info.mods.as_calculatable_mods, namespace=self.namespace)
+        await self.emit_event(
+            "roomModsChanged",
+            room_info.mods.as_calculatable_mods,
+            namespace=self.namespace,
+        )
 
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info: Room = glob.rooms.get(id=self.room_id)
@@ -21,7 +28,6 @@ class RoomEvents:
         gameplay_settings.is_freemod = settings_data.get(
             "isFreeMod", gameplay_settings.is_freemod
         )
-
 
         await self.emit_event(
             "roomGameplaySettingsChanged",
@@ -59,7 +65,9 @@ class RoomEvents:
             room_info.win_condition = WinCondition.SCOREV2
 
         await self.emit_event(
-            "winConditionChanged", data=room_info.win_condition, namespace=self.namespace
+            "winConditionChanged",
+            data=room_info.win_condition,
+            namespace=self.namespace,
         )
 
     async def on_teamModeChanged(self, sid, *args):
@@ -86,7 +94,6 @@ class RoomEvents:
         player: PlayerMulti = room_info.get_player(sid=sid)
         if player is None:
             return
-        
 
         if args[0] == 0:
             player.team = PlayerTeam.RED

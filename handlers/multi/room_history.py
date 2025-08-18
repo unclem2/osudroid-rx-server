@@ -1,6 +1,6 @@
 from quart import Blueprint, request, jsonify, render_template
 from objects import glob
-from objects.room import read_room_log
+from objects.room.utils import read_room_log
 
 bp = Blueprint("room_history", __name__)
 
@@ -21,9 +21,9 @@ async def room_history():
                 and i["data"] != {}
             ):
                 room_match["md5"] = i["data"]["md5"]
-                room_match[
-                    "map_name"
-                ] = f"{i['data']['artist']} - {i['data']['title']} ({i['data']['creator']}) [{i['data']['version']}]"
+                room_match["map_name"] = (
+                    f"{i['data']['artist']} - {i['data']['title']} ({i['data']['creator']}) [{i['data']['version']}]"
+                )
             elif i["event"] == "allPlayersScoreSubmitted":
                 room_match["scores"] = i["data"]
                 new_data.append(room_match)

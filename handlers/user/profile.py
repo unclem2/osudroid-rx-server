@@ -64,7 +64,7 @@ async def profile():
             "ORDER BY pp DESC LIMIT $2",
             [p.id, 50],
         )
-    for score in top_scores:
+    for score in top_scores if top_scores else []:
         bmap = await Beatmap.from_md5(score["md5"])
         if bmap is not None:
             score["map"] = bmap.full

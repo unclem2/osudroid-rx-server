@@ -1,11 +1,9 @@
 from quart import Blueprint, request, jsonify
 from objects import glob
 from objects.beatmap import Beatmap
-from objects.room import (
-    Room,
-    PlayerMulti,
-    get_id,
-)
+from objects.room.room import Room
+from objects.room.player import PlayerMulti
+from objects.room.utils import get_id
 from handlers.multi import sio
 from handlers.multi.main_namespace import MultiNamespace
 

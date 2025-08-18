@@ -1,6 +1,7 @@
 from handlers.multi import sio
 from objects import glob
-from objects.room import PlayerMulti, Room
+from objects.room.room import Room
+from objects.room.player import PlayerMulti
 import utils
 import asyncio
 
@@ -34,36 +35,38 @@ class ConnectionEvents:
 
         if room_info.match.players:
             if disconnected_player in room_info.match.players:
-                room_info.match.players.remove(disconnected_player)
-                for score_data in room_info.match.live_score_data:
-                    if score_data.username == disconnected_player.username:
-                        room_info.match.live_score_data.remove(score_data)
-                        break
+                room_info.match.remove_player(disconnected_player)
 
         if len(room_info.players) == 0:
             room_info.name = "Closing"
             room_info.isLocked = True
-            asyncio.sleep(5)
+            await asyncio.sleep(5)
             glob.rooms.remove(room_info)
 
     async def on_connect(self, sid, environ, *args):
         print(f"Client connected: {sid}")
         room_info: Room = glob.rooms.get(id=self.room_id)
-        if room_info.is_locked == True:
-            if args[0]["password"] != room_info.password:
-                await self.emit_event(
-                    "error", "Wrong password", namespace=self.namespace, to=sid
-                )
+        match args[0]["type"]:
+            case "0":
+                if room_info.is_locked == True:
+                    if args[0]["password"] != room_info.password:
+                        await self.emit_event(
+                            "error", "Wrong password", namespace=self.namespace, to=sid
+                        )
 
-                await sio.disconnect(sid=sid, namespace=self.namespace)
-                return
-        if len(room_info.players) >= room_info.max_players:
-            await self.emit_event(
-                "error", "Room is full", namespace=self.namespace, to=sid
-            )
-            await sio.disconnect(sid=sid, namespace=self.namespace)
-            return
-        room_info.players.append(PlayerMulti.player(id=args[0]["uid"], sid=sid))
+                        await sio.disconnect(sid=sid, namespace=self.namespace)
+                        return
+                if len(room_info.players) >= room_info.max_players:
+                    await self.emit_event(
+                        "error", "Room is full", namespace=self.namespace, to=sid
+                    )
+                    await sio.disconnect(sid=sid, namespace=self.namespace)
+                    return
+                room_info.players.append(PlayerMulti.player(id=args[0]["uid"], sid=sid))
+            case "1":
+                room_info.watchers.append(
+                    PlayerMulti.watcher(sid=sid)
+                )
 
         resp = {
             "id": room_info.id,
@@ -98,11 +101,9 @@ class ConnectionEvents:
         if new_player is None:
             return
 
-        for player in room_info.players:
-            if player.sid != sid:
-                await self.emit_event(
-                    "playerJoined",
-                    data=new_player.as_json,
-                    namespace=self.namespace,
-                    to=player.sid,
-                )
+        await self.emit_event(
+            "playerJoined",
+            data=new_player.as_json,
+            namespace=self.namespace,
+            skip_sid=sid,
+        )

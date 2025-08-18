@@ -1,0 +1,49 @@
+from .player import PlayerMulti
+
+
+class Match:
+    def __init__(self):
+        self.beatmap_load_status: dict[int, bool] = {}
+        self.skip_requests: dict[int, bool] = {}
+        self.live_score_data: dict = {}
+        self.submitted_scores: dict = {}
+        self.players: list[PlayerMulti] = []
+
+    def skipped(self, uid) -> None:
+        self.skip_requests[uid] = True
+
+    def add_player(self, player: PlayerMulti) -> None:
+        if player not in self.players:
+            self.players.append(player)
+            self.live_score_data[player.uid] = {
+                "score": 0,
+                "combo": 0,
+                "accuracy": 0,
+                "isAlive": True,
+            }
+            self.submitted_scores[player.uid] = {
+                "score": 0,
+                "combo": 0,
+                "accuracy": 0,
+                "isAlive": True,
+            }
+            self.beatmap_load_status[player.uid] = False
+            self.skip_requests[player.uid] = False
+
+    def remove_player(self, player: PlayerMulti) -> None:
+        if player in self.players:
+            self.players.remove(player)
+            self.live_score_data.pop(player.uid, None)
+            self.submitted_scores.pop(player.uid, None)
+            self.beatmap_load_status.pop(player.uid, None)
+            self.skip_requests.pop(player.uid, None)
+
+    @property
+    def as_json(self) -> dict[str, dict]:
+        return {
+            "beatmap_load_status": self.beatmap_load_status,
+            "skip_requests": self.skip_requests,
+            "live_score_data": self.live_score_data,
+            "submitted_scores": self.submitted_scores,
+            "players": [player.as_json for player in self.players],
+        }
