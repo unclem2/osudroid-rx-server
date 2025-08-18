@@ -4,7 +4,7 @@ import time
 
 
 def write_event(
-    id: int, event: str, direction: int, data: dict, receiver=None, sender=None
+    id: int, event: str, direction: int, data: dict | str, receiver=None, sender=None
 ):
     """
     Write an event to a JSON file for a specific room.
@@ -16,7 +16,8 @@ def write_event(
         data (dict): The data associated with the event.
         to (str, optional): The recipient of the event. Defaults to None.
     """
-
+    if isinstance(data, bytes):
+        data = "binary"
     with open(f"data/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,

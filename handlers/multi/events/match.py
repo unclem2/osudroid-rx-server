@@ -25,8 +25,8 @@ class MatchEvents:
         player = room_info.get_player(sid=sid)
         if player is None:
             return
-        room_info.match.beatmap_load_status[player.uid] = True
-        if len(room_info.match.beatmap_load_status) == len(room_info.match.players):
+        room_info.match.loaded(player.uid)
+        if room_info.match.all_loaded:
             await self.emit_event(
                 "allPlayersBeatmapLoadComplete", namespace=self.namespace
             )
@@ -39,7 +39,7 @@ class MatchEvents:
             return
         room_info.match.skipped(player.uid)
 
-        if len(room_info.match.skip_requests) == len(room_info.match.players):
+        if room_info.match.all_skipped:
             await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
 
     async def on_liveScoreData(self, sid, *args):
@@ -93,9 +93,9 @@ class MatchEvents:
         player = room_info.get_player(sid=sid)
         if player is None:
             return
-        room_info.match.submitted_scores[player.uid] = args[0]
+        room_info.match.submitted(player.uid, args[0])
 
-        if len(room_info.match.submitted_scores) == len(room_info.match.players):
+        if room_info.match.all_submitted:
             data = []
             for player in room_info.match.players:
                 try:

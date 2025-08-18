@@ -9,9 +9,6 @@ class Match:
         self.submitted_scores: dict = {}
         self.players: list[PlayerMulti] = []
 
-    def skipped(self, uid) -> None:
-        self.skip_requests[uid] = True
-
     def add_player(self, player: PlayerMulti) -> None:
         if player not in self.players:
             self.players.append(player)
@@ -37,6 +34,29 @@ class Match:
             self.submitted_scores.pop(player.uid, None)
             self.beatmap_load_status.pop(player.uid, None)
             self.skip_requests.pop(player.uid, None)
+
+    def skipped(self, uid) -> None:
+        self.skip_requests[uid] = True
+
+    def submitted(self, uid, score_data) -> None:
+        self.submitted_scores[uid] = score_data
+
+    def loaded(self, uid) -> None:
+        self.beatmap_load_status[uid] = True
+
+    @property
+    def all_loaded(self) -> bool:
+        return all(self.beatmap_load_status.values())
+    
+    @property
+    def all_skipped(self) -> bool:
+        return all(self.skip_requests.values())
+    
+    @property
+    def all_submitted(self) -> bool:
+        return all(
+            score["score"] > 0 for score in self.submitted_scores.values()
+        )
 
     @property
     def as_json(self) -> dict[str, dict]:
