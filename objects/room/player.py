@@ -45,3 +45,5 @@ class PlayerMulti:
         instance.username = "Watcher"
         instance.sid = sid
         instance.type = PlayerType.WATCHER
+        
+        return instance

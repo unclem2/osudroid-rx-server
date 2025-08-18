@@ -16,8 +16,10 @@ def write_event(
         data (dict): The data associated with the event.
         to (str, optional): The recipient of the event. Defaults to None.
     """
-    if isinstance(data, bytes):
-        data = "binary"
+    if isinstance(data, set):
+        if len(data) == 2:
+            if isinstance(data[1], bytes):
+                data = "binary"
     with open(f"data/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,

@@ -8,6 +8,7 @@ from handlers.multi.events.room import RoomEvents
 from handlers.multi.events.match import MatchEvents
 from handlers.multi.events.chat import ChatEvents
 from handlers.multi.events.beatmap import BeatmapEvents
+from handlers.multi.events.spectator import SpectatorEvents
 
 
 class MultiNamespace(
@@ -17,6 +18,7 @@ class MultiNamespace(
     MatchEvents,
     ChatEvents,
     BeatmapEvents,
+    SpectatorEvents,
     socketio.AsyncNamespace,
 ):
     def __init__(self, namespace):

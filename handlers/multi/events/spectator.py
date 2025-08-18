@@ -13,11 +13,7 @@ class SpectatorEvents:
 
             await self.emit_event(
                 "spectatorData",
-                data=(str(player.uid), placeholder),
+                data=(str(player.uid), args[0]),
                 to=watcher.sid,
                 namespace=self.namespace,
-            )
-            await sio.eio.send(
-                watcher.sid,
-                args[0],
             )

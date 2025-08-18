@@ -39,7 +39,7 @@ class ConnectionEvents:
 
         if len(room_info.players) == 0:
             room_info.name = "Closing"
-            room_info.isLocked = True
+            room_info.is_locked = True
             await asyncio.sleep(5)
             glob.rooms.remove(room_info)
 
