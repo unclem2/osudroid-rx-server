@@ -30,6 +30,19 @@ class MatchEvents:
             await self.emit_event(
                 "allPlayersBeatmapLoadComplete", namespace=self.namespace
             )
+            watchers_data = {
+                "mods": room_info.mods.as_calculatable_mods,
+                "name": room_info.name,
+                "playingPlayers": [player.as_json for player in room_info.players],
+                "teamMode": room_info.team_mode,
+            }
+            for watcher in room_info.watchers:
+                await self.emit_event(
+                    "roundStarted",
+                    data=watchers_data,
+                    namespace=self.namespace,
+                    to=watcher.sid,
+                )
 
     async def on_skipRequested(self, sid, *args):
         room_info: Room = glob.rooms.get(id=self.room_id)
@@ -124,7 +137,14 @@ class MatchEvents:
             for player in room_info.players:
                 player.status = PlayerStatus.IDLE
                 await self.emit_event(
-                    "playerStatusChanged", (str(player.uid), int(player.status))
+                    "playerStatusChanged", (str(player.uid), int(player.status)), namespace=self.namespace
+                )
+
+            for watcher in room_info.watchers:
+                await self.emit_event(
+                    "roundEnded",
+                    namespace=self.namespace,
+                    to=watcher.sid,
                 )
 
             room_info.match = Match()

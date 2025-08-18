@@ -48,7 +48,7 @@ class Room:
             "isLocked": self.is_locked,
             "gameplaySettings": self.gameplay_settings.as_json,
             "maxPlayers": self.max_players,
-            "mods": self.mods.as_json,
+            "mods": self.mods.as_calculatable_mods,
             "players": [player.as_json for player in self.players],
             "status": self.status,
             "teamMode": self.team_mode,
