@@ -32,12 +32,12 @@ class MultiNamespace(
 
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
         handler_name = f"on_{event}"
-        if handler_name == "on_connect":
-            self.receive_event(sid, event, args[0])
-        else:
-            self.receive_event(sid, event, data)
-        if isinstance(data, bytes):
-            pass
+        # if handler_name == "on_connect":
+        #     self.receive_event(sid, event, args[0])
+        # else:
+        #     self.receive_event(sid, event, data)
+        # if isinstance(data, bytes):
+        #     super().trigger_event("binarydata", sid, data, *args, **kwargs)
         return await super().trigger_event(event, sid, data, *args, **kwargs)
 
     async def emit_event(

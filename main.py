@@ -63,6 +63,8 @@ app = make_app()
 
 def handle_ex(loop, context):
     logging.warning("SSL error ignored: ")
+    logging.error(f"{context["message"]}")
+    logging.error(context["exception"])
 
 
 @app.before_serving

@@ -3,7 +3,7 @@ from handlers.multi import sio
 
 
 class SpectatorEvents:
-    async def on_binarydata(self, sid, *args):
+    async def on_spectatorData(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
         player = room_info.get_player(sid=sid)
         placeholder = {"_placeholder": True, "num": 0}
