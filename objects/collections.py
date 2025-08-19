@@ -1,13 +1,17 @@
 import logging
-
+from typing import Optional, TypeVar, Generic
+from objects.player import Player
+from objects.room.room import Room
 import utils
 
-class BaseCollection:
+T = TypeVar("T")
+
+class BaseCollection(Generic[T]):
     name: str = "BaseCollection"
-    attrs: list = []
+    attrs: list[str] = []
 
     def __init__(self):
-        self.storage: list = []
+        self.storage: list[T] = []
 
     def __len__(self):
         return len(self.storage)
@@ -18,7 +22,7 @@ class BaseCollection:
     def __repr__(self):
         return f"<{self.name}|Items: {len(self)}>"
 
-    def add(self, o: object):
+    def add(self, o: T) -> None:
         if o in self.storage:
             return logging.info(f"Already added {o} into {self.name}")
 
@@ -29,7 +33,7 @@ class BaseCollection:
         """yes"""
         ...
 
-    def get(self, **kwargs):
+    def get(self, **kwargs) -> Optional[T]:
         for attr in self.attrs:
             if val := kwargs.get(attr, None):
                 break
@@ -47,7 +51,7 @@ class BaseCollection:
         logging.info(f"Removed {o} from {self.name}")
 
 
-class PlayerList(BaseCollection):
+class PlayerList(BaseCollection[Player]):
     name = "PlayerList"
     attrs = ["id", "username"]
 
@@ -58,7 +62,7 @@ class PlayerList(BaseCollection):
 
         return attr, val
 
-class RoomList(BaseCollection):
+class RoomList(BaseCollection[Room]):
     name = "RoomList"
     attrs = ["id", "name"]
     

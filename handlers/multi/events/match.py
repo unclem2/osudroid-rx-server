@@ -54,7 +54,8 @@ class MatchEvents:
 
         if room_info.match.all_skipped:
             await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
-
+            await self.emit_event("skipPerformed", namespace=self.namespace)
+            
     async def on_liveScoreData(self, sid, *args):
         room_info: Room = glob.rooms.get(id=self.room_id)
         live_score_data = []

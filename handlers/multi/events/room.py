@@ -37,6 +37,8 @@ class RoomEvents:
 
     async def on_roomNameChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         room_info.name = args[0]
         await self.emit_event(
             "roomNameChanged", data=str(room_info.name), namespace=self.namespace
@@ -44,6 +46,8 @@ class RoomEvents:
 
     async def on_roomPasswordChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return  
         new_password = args[0]
 
         if new_password == "":
@@ -55,6 +59,8 @@ class RoomEvents:
 
     async def on_winConditionChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         if args[0] == 0:
             room_info.win_condition = WinCondition.SCOREV1
         if args[0] == 1:
