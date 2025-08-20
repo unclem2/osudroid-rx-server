@@ -34,6 +34,8 @@ class MultiNamespace(
 
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
         handler_name = f"on_{event}"
+        #TODO как то отфильтровать все ивенты и добавить все те которые нужны спектатор клиенту
+        # желательно еще это как то абстрагировать
         # if handler_name == "on_connect":
         #     self.receive_event(sid, event, args[0])
         # else:
@@ -43,15 +45,15 @@ class MultiNamespace(
         return await super().trigger_event(event, sid, data, *args, **kwargs)
 
     async def emit_event(
-        self, event, data=None, namespace=None, to=None, skip_sid=None, *args, **kwargs
+        self, event, data=None, to=None, skip_sid=None, *args, **kwargs
     ):
         if to:
-            await sio.emit(event, data, namespace=namespace, to=to, *args, **kwargs)
+            await sio.emit(event=event, data=data, namespace=self.namespace, to=to, *args, **kwargs)
         elif skip_sid:
-            await sio.emit(event, data, namespace=namespace, skip_sid=skip_sid, *args, **kwargs)
+            await sio.emit(event=event, data=data, namespace=self.namespace, skip_sid=skip_sid, *args, **kwargs)
         else:
-            await sio.emit(event, data, namespace=namespace, *args, **kwargs)
-        write_event(self.room_id, event, 0, data, receiver=to)
+            await sio.emit(event=event, data=data, namespace=self.namespace, *args, **kwargs)
+        write_event(id=self.room_id, event=event, direction=0, data=data, receiver=to)
 
     def receive_event(self, sid, event, data=None):
-        write_event(self.room_id, event, 1, data, sender=sid)
+        write_event(id=self.room_id, event=event, direction=1, data=data, sender=sid)

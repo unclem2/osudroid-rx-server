@@ -19,9 +19,17 @@ class Match:
                 "isAlive": True,
             }
             self.submitted_scores[player.uid] = {
-                "score": 0,
-                "combo": 0,
                 "accuracy": 0,
+                "score": 0,
+                "username": player.username,
+                "mods": [],
+                "maxCombo": 0,
+                "geki": 0,
+                "perfect": 0,
+                "katu": 0,
+                "good": 0,
+                "bad": 0,
+                "miss": 0,
                 "isAlive": True,
             }
             self.beatmap_load_status[player.uid] = False

@@ -7,18 +7,22 @@ from osudroid_api_wrapper import ModList
 
 class RoomEvents:
     async def on_roomModsChanged(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         mods_data = args[0]
         room_info.mods = ModList.from_dict(mods_data)
 
         await self.emit_event(
             "roomModsChanged",
             room_info.mods.as_calculatable_mods,
-            namespace=self.namespace,
+             
         )
 
     async def on_roomGameplaySettingsChanged(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         gameplay_settings = room_info.gameplay_settings
         settings_data = args[0]
 
@@ -32,7 +36,7 @@ class RoomEvents:
         await self.emit_event(
             "roomGameplaySettingsChanged",
             gameplay_settings.as_json,
-            namespace=self.namespace,
+             
         )
 
     async def on_roomNameChanged(self, sid, *args):
@@ -41,7 +45,7 @@ class RoomEvents:
             return
         room_info.name = args[0]
         await self.emit_event(
-            "roomNameChanged", data=str(room_info.name), namespace=self.namespace
+            "roomNameChanged", data=str(room_info.name),  
         )
 
     async def on_roomPasswordChanged(self, sid, *args):
@@ -73,31 +77,35 @@ class RoomEvents:
         await self.emit_event(
             "winConditionChanged",
             data=room_info.win_condition,
-            namespace=self.namespace,
+             
         )
 
     async def on_teamModeChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         room_info.team_mode = args[0]
         await self.emit_event(
-            "teamModeChanged", room_info.team_mode, namespace=self.namespace
+            "teamModeChanged", room_info.team_mode,  
         )
         for player in room_info.players:
             player.team = None
             await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.IDLE)),
-                namespace=self.namespace,
+                 
             )
             await self.emit_event(
                 "teamChanged",
                 data=(str(player.uid), player.team),
-                namespace=self.namespace,
+                 
             )
 
     async def on_teamChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
-        player: PlayerMulti = room_info.get_player(sid=sid)
+        if room_info is None:
+            return
+        player = room_info.get_player(sid=sid)
         if player is None:
             return
 
@@ -108,14 +116,16 @@ class RoomEvents:
         await self.emit_event(
             "teamChanged",
             data=(str(player.uid), player.team),
-            namespace=self.namespace,
+             
         )
 
     async def on_maxPlayersChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         room_info.max_players = args[0]
         await self.emit_event(
             "maxPlayersChanged",
             data=str(room_info.max_players),
-            namespace=self.namespace,
+             
         )

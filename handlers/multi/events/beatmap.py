@@ -6,11 +6,13 @@ from objects.beatmap import Beatmap
 
 class BeatmapEvents:
     async def on_beatmapChanged(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
             await self.emit_event(
-                "beatmapChanged", data=args[0], namespace=self.namespace
+                "beatmapChanged", data=args[0]
             )
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
@@ -36,5 +38,5 @@ class BeatmapEvents:
                 return_data["beatmapSetId"] = room_info.map.set_id
 
             await self.emit_event(
-                "beatmapChanged", data=return_data, namespace=self.namespace
+                "beatmapChanged", data=return_data
             )

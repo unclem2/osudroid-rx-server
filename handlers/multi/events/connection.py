@@ -9,15 +9,18 @@ import asyncio
 
 class ConnectionEvents:
     async def on_disconnect(self, sid, *args):
+        #TODO че то придумать с ошибками изза реконнекта и вообще блять там пиздец какой то
         print(f"Client disconnected: {sid}")
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
 
         disconnected_player = room_info.get_player(sid=sid)
         if disconnected_player is None:
             return
 
         await self.emit_event(
-            "playerLeft", data=str(disconnected_player.uid), namespace=self.namespace
+            "playerLeft", data=str(disconnected_player.uid),  
         )
 
         if room_info.host.uid == disconnected_player.uid:
@@ -27,7 +30,7 @@ class ConnectionEvents:
                     await self.emit_event(
                         event="hostChanged",
                         data=str(room_info.host.uid),
-                        namespace=self.namespace,
+                         
                     )
                     break
 
@@ -55,14 +58,14 @@ class ConnectionEvents:
                 if room_info.is_locked == True:
                     if args[0]["password"] != room_info.password:
                         await self.emit_event(
-                            "error", "Wrong password", namespace=self.namespace, to=sid
+                            "error", "Wrong password",   to=sid
                         )
 
                         await sio.disconnect(sid=sid, namespace=self.namespace)
                         return
                 if len(room_info.players) >= room_info.max_players:
                     await self.emit_event(
-                        "error", "Room is full", namespace=self.namespace, to=sid
+                        "error", "Room is full",   to=sid
                     )
                     await sio.disconnect(sid=sid, namespace=self.namespace)
                     return
@@ -111,7 +114,7 @@ class ConnectionEvents:
 
 
         await self.emit_event(
-            data=resp, namespace=self.namespace, event="initialConnection", to=sid
+            data=resp,   event="initialConnection", to=sid
         )
 
         new_player = room_info.get_player(sid=sid)
@@ -121,6 +124,6 @@ class ConnectionEvents:
         await self.emit_event(
             "playerJoined",
             data=new_player.as_json,
-            namespace=self.namespace,
+             
             skip_sid=sid,
         )

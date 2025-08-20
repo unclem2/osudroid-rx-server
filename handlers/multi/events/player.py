@@ -10,7 +10,9 @@ from osudroid_api_wrapper import ModList
 class PlayerEvents:
     async def on_playerModsChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
-        player: PlayerMulti = room_info.get_player(sid=sid)
+        if room_info is None:
+            return
+        player = room_info.get_player(sid=sid)
         if player is None:
             return
 
@@ -18,12 +20,16 @@ class PlayerEvents:
         await self.emit_event(
             "playerModsChanged",
             (str(player.uid), player.mods.as_calculatable_mods),
-            namespace=self.namespace,
+             
         )
 
     async def on_playerStatusChanged(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         player = room_info.get_player(sid=sid)
+        if player is None:
+            return
         if args[0] == 0:
             player.status = PlayerStatus.IDLE
             if (
@@ -36,7 +42,7 @@ class PlayerEvents:
                 await self.emit_event(
                     "roomStatusChanged",
                     int(room_info.status),
-                    namespace=self.namespace,
+                     
                 )
                 room_info.match = Match()
         elif args[0] == 1:
@@ -48,17 +54,22 @@ class PlayerEvents:
         await self.emit_event(
             "playerStatusChanged",
             (str(player.uid), int(player.status)),
-            namespace=self.namespace,
+             
         )
 
     async def on_hostChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
-        room_info.host = PlayerMulti.player(int(args[0]), sid=sid)
+        if room_info is None:
+            return
+        player = room_info.get_player(sid=sid)
+        if player is None:
+            return
+        room_info.host = player
         await self.emit_event(
-            event="hostChanged", data=str(room_info.host.uid), namespace=self.namespace
+            event="hostChanged", data=str(room_info.host.uid),  
         )
 
     async def on_playerKicked(self, sid, *args):
         await self.emit_event(
-            "playerKicked", data=str(args[0]), namespace=self.namespace
+            "playerKicked", data=str(args[0]),  
         )

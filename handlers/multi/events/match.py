@@ -6,29 +6,33 @@ from objects import glob
 
 class MatchEvents:
     async def on_playBeatmap(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         room_info.status = RoomStatus.PLAYING
         await self.emit_event(
-            "roomStatusChanged", data=room_info.status, namespace=self.namespace
+            "roomStatusChanged", data=room_info.status,  
         )
-        await self.emit_event("playBeatmap", namespace=self.namespace)
+        await self.emit_event("playBeatmap",  )
         for player in room_info.players:
             await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.PLAYING)),
-                namespace=self.namespace,
+                 
             )
             room_info.match.add_player(player)
 
     async def on_beatmapLoadComplete(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         player = room_info.get_player(sid=sid)
         if player is None:
             return
         room_info.match.loaded(player.uid)
         if room_info.match.all_loaded:
             await self.emit_event(
-                "allPlayersBeatmapLoadComplete", namespace=self.namespace
+                "allPlayersBeatmapLoadComplete",  
             )
             watchers_data = {
                 "mods": room_info.mods.as_calculatable_mods,
@@ -40,12 +44,14 @@ class MatchEvents:
                 await self.emit_event(
                     "roundStarted",
                     data=watchers_data,
-                    namespace=self.namespace,
+                     
                     to=watcher.sid,
                 )
 
     async def on_skipRequested(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
 
         player = room_info.get_player(sid=sid)
         if player is None:
@@ -53,11 +59,13 @@ class MatchEvents:
         room_info.match.skipped(player.uid)
 
         if room_info.match.all_skipped:
-            await self.emit_event("allPlayersSkipRequested", namespace=self.namespace)
-            await self.emit_event("skipPerformed", namespace=self.namespace)
-            
+            await self.emit_event("allPlayersSkipRequested",  )
+            await self.emit_event("skipPerformed",  )
+
     async def on_liveScoreData(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         live_score_data = []
 
         for player in room_info.players:
@@ -99,11 +107,13 @@ class MatchEvents:
                 )
 
         await self.emit_event(
-            "liveScoreData", live_score_data, namespace=self.namespace
+            "liveScoreData", live_score_data,  
         )
 
     async def on_scoreSubmission(self, sid, *args):
-        room_info: Room = glob.rooms.get(id=self.room_id)
+        room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         player = room_info.get_player(sid=sid)
         if player is None:
             return
@@ -127,24 +137,23 @@ class MatchEvents:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
 
             await self.emit_event(
-                "allPlayersScoreSubmitted", data=data, namespace=self.namespace
+                "allPlayersScoreSubmitted", data=data,  
             )
 
             room_info.status = RoomStatus.IDLE
             await self.emit_event(
-                "roomStatusChanged", int(room_info.status), namespace=self.namespace
+                "roomStatusChanged", int(room_info.status),  
             )
 
             for player in room_info.players:
                 player.status = PlayerStatus.IDLE
                 await self.emit_event(
-                    "playerStatusChanged", (str(player.uid), int(player.status)), namespace=self.namespace
+                    "playerStatusChanged", (str(player.uid), int(player.status)),  
                 )
 
             for watcher in room_info.watchers:
                 await self.emit_event(
                     "roundEnded",
-                    namespace=self.namespace,
                     to=watcher.sid,
                 )
 

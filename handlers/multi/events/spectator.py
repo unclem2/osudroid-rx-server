@@ -5,7 +5,11 @@ from handlers.multi import sio
 class SpectatorEvents:
     async def on_spectatorData(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
+        if room_info is None:
+            return
         player = room_info.get_player(sid=sid)
+        if player is None:
+            return
         placeholder = {"_placeholder": True, "num": 0}
         if player is None:
             return
@@ -15,5 +19,5 @@ class SpectatorEvents:
                 "spectatorData",
                 data=(player.uid, args[0]),
                 to=watcher.sid,
-                namespace=self.namespace,
+                 
             )
