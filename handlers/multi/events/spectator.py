@@ -13,7 +13,7 @@ class SpectatorEvents:
 
             await self.emit_event(
                 "spectatorData",
-                data=(str(player.uid), args[0]),
+                data=(player.uid, args[0]),
                 to=watcher.sid,
                 namespace=self.namespace,
             )

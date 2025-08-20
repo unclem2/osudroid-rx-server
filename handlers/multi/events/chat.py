@@ -7,8 +7,18 @@ class ChatEvents:
         player = room_info.get_player(sid=sid)
         if player is None:
             return
-        await self.emit_event(
-            "chatMessage",
-            data=(str(player.uid), args[0]),
-            namespace=self.namespace,
-        )
+        #TODO change this
+        for a in room_info.players:
+            await self.emit_event(
+                "chatMessage",
+                data=(str(player.uid), args[0]),
+                namespace=self.namespace,
+                to=a.sid
+            )
+        for watcher in room_info.watchers:
+            await self.emit_event(
+                "chatMessage",
+                data=(player.username, args[0]),
+                namespace=self.namespace,
+                to=watcher.sid
+            )
