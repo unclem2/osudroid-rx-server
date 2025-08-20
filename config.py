@@ -15,11 +15,11 @@ domain = os.getenv("SERVER_DOMAIN")
 host = ""  # Internal use only
 
 # Client configuration
-online_version = 6
-client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16/osu.droid-1.16.250724.-debug-2025-07-23.apk"
-client_version = "1.16(250724)"
-client_version_code = 1753309279
-client_changelog = "1.8.4-3 patch"
+online_version = 7
+client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.1/osu.droid-1.16.1.250820.-debug-2025-08-20.apk"
+client_version = "1.16.1(250820)"
+client_version_code = 1755713786
+client_changelog = "spectator support"
 banner_url = "https://discord.gg/Ub4nXasaHd"
 
 # State toggles

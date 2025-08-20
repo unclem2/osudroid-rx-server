@@ -62,9 +62,9 @@ app = make_app()
 
 
 def handle_ex(loop, context):
-    logging.warning("SSL error ignored: ")
-    logging.error(f"{context["message"]}")
-    logging.error(context["exception"])
+    logging.debug("SSL error ignored: ")
+    logging.debug(f"{context["message"]}")
+    logging.debug(context["exception"])
 
 
 @app.before_serving
@@ -140,7 +140,7 @@ async def index():
 
 def main():
     hypercorn_config = hypercorn.Config()
-    coloredlogs.install(level=logging.DEBUG)
+    coloredlogs.install(level=logging.INFO)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)

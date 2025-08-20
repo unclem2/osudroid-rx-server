@@ -13,9 +13,9 @@ class Match:
         if player not in self.players:
             self.players.append(player)
             self.live_score_data[player.uid] = {
-                "score": 0,
-                "combo": 0,
-                "accuracy": 0,
+                "score": None,
+                "combo": None,
+                "accuracy": None,
                 "isAlive": True,
             }
             self.submitted_scores[player.uid] = {
