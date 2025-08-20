@@ -19,17 +19,17 @@ class Match:
                 "isAlive": True,
             }
             self.submitted_scores[player.uid] = {
-                "accuracy": 0,
-                "score": 0,
+                "accuracy": None,
+                "score": None,
                 "username": player.username,
                 "mods": [],
-                "maxCombo": 0,
-                "geki": 0,
-                "perfect": 0,
-                "katu": 0,
-                "good": 0,
-                "bad": 0,
-                "miss": 0,
+                "maxCombo": None,
+                "geki": None,
+                "perfect": None,
+                "katu": None,
+                "good": None,
+                "bad": None,
+                "miss": None,
                 "isAlive": True,
             }
             self.beatmap_load_status[player.uid] = False
@@ -63,7 +63,7 @@ class Match:
     @property
     def all_submitted(self) -> bool:
         return all(
-            score["score"] > 0 for score in self.submitted_scores.values()
+            score["score"] != None for score in self.submitted_scores.values()
         )
 
     @property
