@@ -34,7 +34,7 @@ class MultiNamespace(
         return glob.rooms.get(id=self.room_id)
 
     @property
-    def debug(self):
+    def debug_state(self):
         return self.debug
 
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
@@ -56,7 +56,7 @@ class MultiNamespace(
             await sio.emit(event=event, data=data, namespace=self.namespace, skip_sid=skip_sid, *args, **kwargs)
         else:
             await sio.emit(event=event, data=data, namespace=self.namespace, *args, **kwargs)
-        if self.debug:
+        if self.debug_state:
             if event == "spectatorData":
                 data = "binary"
             await sio.emit(
