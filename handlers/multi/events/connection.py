@@ -42,9 +42,6 @@ class ConnectionEvents:
                 room_info.match.remove_player(disconnected_player)
 
         if len(room_info.players) == 0:
-            room_info.name = "Closing"
-            room_info.is_locked = True
-            await asyncio.sleep(5)
             glob.rooms.remove(room_info)
 
     async def on_connect(self, sid, environ, *args):

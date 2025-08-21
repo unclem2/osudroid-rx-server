@@ -61,7 +61,7 @@ class PlayerEvents:
         room_info = glob.rooms.get(id=self.room_id)
         if room_info is None:
             return
-        player = room_info.get_player(id=int(args[0]))
+        player = room_info.get_player(uid=int(args[0]))
         if player is None:
             return
         room_info.host = player
