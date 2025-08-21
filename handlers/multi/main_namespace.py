@@ -22,6 +22,7 @@ class MultiNamespace(
     socketio.AsyncNamespace,
 ):
     def __init__(self, namespace):
+        self.debug = False
         super().__init__(namespace)
 
     @property
@@ -32,16 +33,18 @@ class MultiNamespace(
     def room(self):
         return glob.rooms.get(id=self.room_id)
 
+    @property
+    def debug(self):
+        return self.debug
+
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
         handler_name = f"on_{event}"
         #TODO как то отфильтровать все ивенты и добавить все те которые нужны спектатор клиенту
         # желательно еще это как то абстрагировать
-        # if handler_name == "on_connect":
-        #     self.receive_event(sid, event, args[0])
-        # else:
-        #     self.receive_event(sid, event, data)
-        # if isinstance(data, bytes):
-        #     super().trigger_event("binarydata", sid, data, *args, **kwargs)
+        if handler_name == "on_connect":
+            self.receive_event(sid, event, args[0])
+        else:
+            self.receive_event(sid, event, data)
         return await super().trigger_event(event, sid, data, *args, **kwargs)
 
     async def emit_event(
@@ -53,6 +56,13 @@ class MultiNamespace(
             await sio.emit(event=event, data=data, namespace=self.namespace, skip_sid=skip_sid, *args, **kwargs)
         else:
             await sio.emit(event=event, data=data, namespace=self.namespace, *args, **kwargs)
+        if self.debug:
+            if event == "spectatorData":
+                data = "binary"
+            await sio.emit(
+                event="chatMessage",
+                data=(None, f"{event} - {data}")
+            )
         write_event(id=self.room_id, event=event, direction=0, data=data, receiver=to)
 
     def receive_event(self, sid, event, data=None):

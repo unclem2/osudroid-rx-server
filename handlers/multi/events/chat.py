@@ -23,4 +23,11 @@ class ChatEvents:
                 pass
             case "!kick":
                 pass
+            case "!debug":
+                if int(player.uid) == 2:
+                    self.debug = not self.debug
+                    await self.emit_event(
+                        "chatMessage",
+                        data=(None, f"{'enabled' if self.debug else 'disabled'}")
+                    )
             
