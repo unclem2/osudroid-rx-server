@@ -74,9 +74,7 @@ async def login():
                         "UPDATE users SET country = $1 WHERE id = $2",
                         [country, player.id],
                     )
-                    player_new = await Player.from_sql(int(params["userID"]))
-                    glob.players.add(player_new)
-                    glob.players.remove(player)
+                    p.country = country # duh
     except Exception as e:
         logging.error(f"Failed to get country from ip: {e}")
     # returns long string of shit
