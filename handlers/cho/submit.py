@@ -32,22 +32,7 @@ async def submit_play():
 
     if glob.config.disable_submit:
         return Failed("Score submission is disable right now.")
-    try:
-        if player.country == None:
-            if os.path.exists("GeoLite2-Country.mmdb"):
-                with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
-                    ip = request.remote_addr
-                    response = reader.country(ip)
-                    country = response.country.iso_code
-                    await glob.db.execute(
-                        "UPDATE users SET country = $1 WHERE id = $2",
-                        [country, player.id],
-                    )
-                    player_new = await Player.from_sql(int(params["userID"]))
-                    glob.players.add(player_new)
-                    glob.players.remove(player)
-    except Exception as e:
-        logging.error(f"Failed to get country from ip: {e}")
+        
     if md5 := params.get("hash", None):
         logging.info(f"Changed {player} playing to {md5}")
         player.stats.playing = md5
