@@ -2,14 +2,14 @@ from quart import Blueprint, render_template, request
 from objects import glob
 from objects.beatmap import Beatmap
 from objects.player import Player
-from objects.mods import Mods
+from osudroid_api_wrapper import ModList
 import time
+import json
 import os
 
 bp = Blueprint("user_profile", __name__)
 
 php_file = True
-
 
 @bp.route("/")
 async def profile():
@@ -30,53 +30,23 @@ async def profile():
             "error.jinja", error_message="No player ID provided"
         )
     
-    p:Player = glob.players.get(id=player_id)
+    p = glob.players.get(id=player_id)
     if not p:
         return await render_template("error.jinja", error_message="Player not found")
 
     player_stats = p.stats.as_json
 
 
-    recent_scores = await glob.db.fetchall(
-            'SELECT id, status, "md5", score, combo, grade, acc, "hit300", "hitgeki", '
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 '
-            "ORDER BY id DESC LIMIT $2",
-            [p.id, 50],
-        )
-    
-    for score in recent_scores if recent_scores else []:
-        bmap = await Beatmap.from_md5(score["md5"])
-        if bmap is not None:
-            score["map"] = bmap.full
-            score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
-        else:
-            score["map"] = score["md5"]
-            score["link"] = ""
-        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
-        score["acc"] = f"{score['acc']:.2f}%"
-        score["pp"] = f"{round(score['pp'])}pp"
-        score["mods"] = f"{Mods(score['mods']).convert_std}"
-
-    
-    top_scores = await glob.db.fetchall(
-            'SELECT id, status, md5, score, combo, grade, acc, "hit300", "hitgeki", '
-            '"hit100", "hitkatsu", "hit50", "hitmiss", mods, pp, date FROM scores WHERE "playerid" = $1 AND "status" = 2 AND md5 IN (SELECT md5 FROM maps WHERE status IN (1, 4, 5))'
-            "ORDER BY pp DESC LIMIT $2",
-            [p.id, 50],
-        )
-    for score in top_scores if top_scores else []:
-        bmap = await Beatmap.from_md5(score["md5"])
-        if bmap is not None:
-            score["map"] = bmap.full
-            score["link"] = f"https://osu.ppy.sh/b/{bmap.id}"
-        else:
-            score["map"] = score["md5"]
-            score["link"] = ""
-        score["date"] = time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(score["date"] / 1000))
-        score["acc"] = f"{score['acc']:.2f}%"
-        score["pp"] = f"{round(score['pp'])}pp"
-        score["mods"] = f"{Mods(score['mods']).convert_std}"
-
+    recent_scores = await p.get_scores(50)
+    if not recent_scores:
+        recent_scores = []
+    for score in recent_scores:
+        score.mods = ModList.from_dict(json.loads(score.mods))
+    top_scores = await p.top_scores(50)
+    if not top_scores:
+        top_scores = []
+    for score in top_scores:
+        score.mods = ModList.from_dict(json.loads(score.mods))
     level = 0
 
     def level_formula(i):

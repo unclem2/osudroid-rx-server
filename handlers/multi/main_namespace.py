@@ -32,6 +32,10 @@ class MultiNamespace(
     @property
     def room(self):
         return glob.rooms.get(id=self.room_id)
+    
+    @property
+    def debug_mode(self):
+        return self.debug
 
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
         handler_name = f"on_{event}"
@@ -41,6 +45,12 @@ class MultiNamespace(
             self.receive_event(sid, event, args[0])
         else:
             self.receive_event(sid, event, data)
+        if self.debug_mode:
+            await sio.emit(
+                event="chatMessage",
+                data=(None, f"[in]{event} - {data}"),
+                namespace=self.namespace
+            )
         return await super().trigger_event(event, sid, data, *args, **kwargs)
 
     async def emit_event(
@@ -52,7 +62,14 @@ class MultiNamespace(
             await sio.emit(event=event, data=data, namespace=self.namespace, skip_sid=skip_sid, *args, **kwargs)
         else:
             await sio.emit(event=event, data=data, namespace=self.namespace, *args, **kwargs)
+
         write_event(id=self.room_id, event=event, direction=0, data=data, receiver=to)
+        if self.debug_mode:
+            await sio.emit(
+                event="chatMessage",
+                data=(None, f"[out]{event} - {data}"),
+                namespace=self.namespace
+            )
 
     def receive_event(self, sid, event, data=None):
         write_event(id=self.room_id, event=event, direction=1, data=data, sender=sid)

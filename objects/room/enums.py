@@ -19,7 +19,7 @@ class PlayerTeam(IntEnum):
     BLUE = 1
 
 
-class WinCondition:
+class WinCondition(IntEnum):
     SCOREV1 = 0
     ACC = 1
     COMBO = 2

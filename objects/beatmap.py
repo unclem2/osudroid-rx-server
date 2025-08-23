@@ -228,7 +228,7 @@ class Beatmap:
             bmap["last_update"], "%Y-%m-%d %H:%M:%S"
         )
 
-        # Optionally save to local SQL database
+        # Save to local SQL database
         await beatmap.save_to_sql()
 
         return beatmap

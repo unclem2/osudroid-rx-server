@@ -65,7 +65,7 @@ async def recalc_scores():
                     [score_data["pp"], s.id],
                 )
 
-                total_recalculated += 1  # ← увеличиваем счётчик
+                total_recalculated += 1  
                 print(
                     f"[{total_recalculated}/{left}]{player.id} - recalculated score {s.id} with pp {score_data['pp']}"
                 )

@@ -1,9 +1,10 @@
+import json
 import logging
 from objects import glob
 from objects.beatmap import Beatmap
 import rosu_pp_py as osu_pp
 import math
-import objects.mods as Mods
+from osudroid_api_wrapper import ModList
 
 
 def droid_cs_to_standard_cs(cs: float) -> float:
@@ -62,13 +63,16 @@ class PPCalculator:
 
     async def calc(self, api=False):
 
-        mods = Mods.Mods(self.mods)
+        if isinstance(self.mods, list):
+            mods = ModList.from_dict(self.mods)
+        elif isinstance(self.mods, str):
+            mods = ModList.from_dict(json.loads(self.mods))
 
         speed_multiplier = mods.get_mod("CS")
         if speed_multiplier is None:
             speed_multiplier = 1
         else:
-            speed_multiplier = speed_multiplier.get("settings", {}).get("rateMultiplier", 1)
+            speed_multiplier = speed_multiplier.settings.get_setting("rateMultiplier").value
 
         if mods.get_mod("RX") is None:
             self.calc_pp = 0
@@ -88,7 +92,7 @@ class PPCalculator:
         cs = beatmap.cs
         applied = None
 
-        submit_mods = mods.convert_droid
+        submit_mods = mods.as_calculable_mods
         if speed_multiplier != 1:
             for i, mod in enumerate(submit_mods):
                 if mod["acronym"] == "DT":
@@ -131,7 +135,7 @@ class PPCalculator:
         performance.set_od(original_od, od_with_mods=False)
         beatmap_attrs.set_od(original_od, od_with_mods=False)
         
-        for i, mod in enumerate(mods.convert_droid):
+        for i, mod in enumerate(mods.as_calculable_mods):
             if mod["acronym"] == "PR":
                 original_od += 4
                 performance.set_od(original_od, od_with_mods=False)

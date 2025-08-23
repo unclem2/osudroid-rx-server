@@ -15,7 +15,7 @@ class RoomEvents:
 
         await self.emit_event(
             "roomModsChanged",
-            room_info.mods.as_calculatable_mods,
+            room_info.mods.as_calculable_mods,
              
         )
 
@@ -65,14 +65,8 @@ class RoomEvents:
         room_info = glob.rooms.get(id=self.room_id)
         if room_info is None:
             return
-        if args[0] == 0:
-            room_info.win_condition = WinCondition.SCOREV1
-        if args[0] == 1:
-            room_info.win_condition = WinCondition.ACC
-        if args[0] == 2:
-            room_info.win_condition = WinCondition.COMBO
-        if args[0] == 3:
-            room_info.win_condition = WinCondition.SCOREV2
+        if args[0]:
+            room_info.win_condition = WinCondition(args[0])
 
         await self.emit_event(
             "winConditionChanged",

@@ -21,7 +21,7 @@ class PlayerMulti:
             "username": self.username,
             "status": self.status,
             "team": self.team,
-            "mods": self.mods.as_calculatable_mods,
+            "mods": self.mods.as_calculable_mods,
         }
 
     @classmethod

@@ -19,7 +19,7 @@ class PlayerEvents:
         player.mods = ModList.from_dict(args[0])
         await self.emit_event(
             "playerModsChanged",
-            (str(player.uid), player.mods.as_calculatable_mods),
+            (str(player.uid), player.mods.as_calculable_mods),
              
         )
 

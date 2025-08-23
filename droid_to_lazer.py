@@ -18,20 +18,20 @@ async def convert_db():
     scores = await glob.db.fetchall("SELECT * FROM scores")
     scores = sorted(scores, key=lambda x: len(x["mods"]), reverse=True)
     print(scores[0])
-    # for i, score in enumerate(scores):
+    for i, score in enumerate(scores):
         
-    #     mods = score["mods"]
-    #     if not mods:
-    #         continue
+        mods = score["mods"]
+        if not mods:
+            continue
 
-    #     old_mods = Mods(mods)
-    #     string = old_mods.convert_json
-    #     await glob.db.execute(
-    #         "UPDATE scores SET mods = $1 WHERE id = $2",
-    #         [string, score["id"]]
-    #     )
-    #     logging.info(f"[{i}/{len(scores)}]Before conversion: {mods}, After conversion: {string}")
-    #     logging.info(f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {string}")
+        old_mods = Mods(mods)
+        string = old_mods.convert_json
+        await glob.db.execute(
+            "UPDATE scores SET mods = $1 WHERE id = $2",
+            [string, score["id"]]
+        )
+        logging.info(f"[{i}/{len(scores)}]Before conversion: {mods}, After conversion: {string}")
+        logging.info(f"[{i}/{len(scores)}]Converted mods for score ID {score['id']} from {mods} to {string}")
 
 
 asyncio.run(convert_db())

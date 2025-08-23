@@ -185,12 +185,12 @@
     <tbody>
       {% for score in top_scores %}
       <tr>
-        <td><a href="{{ score.link }}">{{ score.map }}</a></td>
-        <td>{{ score.mods }}</td>
-        <td>{{ score.pp }}</td>
+        <td><a href="{{ score.link }}">{{ score.bmap.full }}</a></td>
+        <td>{{ score.mods.as_standard_mods }}</td>
+        <td>{{ score.pp.calc_pp }}</td>
         <td>{{ score.acc }}</td>
-        <td>{{ score.combo }}</td>
-        <td>{{ score.hitmiss }}</td>
+        <td>{{ score.max_combo }}</td>
+        <td>{{ score.hmiss }}</td>
         <td>{{ score.date }}</td>
       </tr>
       {% endfor %}
@@ -209,12 +209,12 @@
     <tbody>
       {% for score in recent_scores %}
       <tr>
-        <td><a href="{{ score.link }}">{{ score.map }}</a></td>
-        <td>{{ score.mods }}</td>
-        <td>{{ score.pp }}</td>
+        <td><a href="{{ score.link }}">{{ score.bmap.full }}</a></td>
+        <td>{{ score.mods.as_standard_mods }}</td>
+        <td>{{ score.pp.calc_pp }}</td>
         <td>{{ score.acc }}</td>
-        <td>{{ score.combo }}</td>
-        <td>{{ score.hitmiss }}</td>
+        <td>{{ score.max_combo }}</td>
+        <td>{{ score.hmiss }}</td>
         <td>{{ score.date }}</td>
       </tr>
       {% endfor %}

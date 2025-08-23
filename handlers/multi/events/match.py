@@ -35,7 +35,7 @@ class MatchEvents:
                 "allPlayersBeatmapLoadComplete",  
             )
             watchers_data = {
-                "mods": room_info.mods.as_calculatable_mods,
+                "mods": room_info.mods.as_calculable_mods,
                 "name": room_info.name,
                 "playingPlayers": [player.as_json for player in room_info.players],
                 "teamMode": room_info.team_mode,

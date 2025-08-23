@@ -19,10 +19,9 @@ class Stats:
     acc: float
     plays: int
     pp: float
-    country_pp_rank: int = 0
-    country_score_rank: int = 0
+    country_pp_rank: int
+    country_score_rank: int
     playing: str = None
-
     @property
     def droid_acc(self) -> (int | float):
         """
@@ -186,6 +185,9 @@ class Player:
             acc=100,
             plays=0,
             pp=0,
+            country_pp_rank=0,
+            country_score_rank=0,
+            playing="",
         )
 
         # Average accuracy from top scores

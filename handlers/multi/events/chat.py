@@ -23,4 +23,6 @@ class ChatEvents:
                 pass
             case "!kick":
                 pass
-            
+            case "!debug":
+                self.debug = not self.debug
+                await self.emit_event("chatMessage", data=(None, f"{'on' if self.debug else 'off'}"), to=sid)
