@@ -64,7 +64,7 @@ async def login():
     else:
         p.avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
     try:
-        if player.country == None:
+        if p.country == None:
             if os.path.exists("GeoLite2-Country.mmdb"):
                 with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
                     ip = request.remote_addr
@@ -72,7 +72,7 @@ async def login():
                     country = response.country.iso_code
                     await glob.db.execute(
                         "UPDATE users SET country = $1 WHERE id = $2",
-                        [country, player.id],
+                        [country, p.id],
                     )
                     p.country = country # duh
     except Exception as e:
