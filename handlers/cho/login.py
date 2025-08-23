@@ -1,3 +1,4 @@
+import logging
 from quart import Blueprint, request
 from objects import glob
 import os
