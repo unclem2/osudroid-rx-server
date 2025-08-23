@@ -24,5 +24,9 @@ class ChatEvents:
             case "!kick":
                 pass
             case "!debug":
+                if int(player.uid) != 2:
+                    return
                 self.debug = not self.debug
                 await self.emit_event("chatMessage", data=(None, f"{'on' if self.debug else 'off'}"), to=sid)
+            case "!dd":
+                await self.emit_event("chatMessage", data=(None, str(room_info.as_json)), to=sid)
