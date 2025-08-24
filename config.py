@@ -15,7 +15,7 @@ domain = os.getenv("SERVER_DOMAIN")
 host = ""  # Internal use only
 
 # Client configuration
-online_version = 7
+online_version = 8
 client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.1/osu.droid-1.16.1.250820.-debug-2025-08-20.apk"
 client_version = "1.16.1(250820)"
 client_version_code = 1755713786
