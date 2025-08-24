@@ -16,9 +16,9 @@ host = ""  # Internal use only
 
 # Client configuration
 online_version = 8
-client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.1/osu.droid-1.16.1.250820.-debug-2025-08-20.apk"
-client_version = "1.16.1(250820)"
-client_version_code = 1755713786
+client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.2/osu.droid-1.16.2.250824.-debug-2025-08-24.apk"
+client_version = "1.16.2(250824)"
+client_version_code = 1756049089
 client_changelog = "spectator support"
 banner_url = "https://discord.gg/Ub4nXasaHd"
 
