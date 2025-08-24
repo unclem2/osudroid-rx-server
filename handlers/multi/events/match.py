@@ -15,6 +15,7 @@ class MatchEvents:
         )
         await self.emit_event("playBeatmap",  )
         for player in room_info.players:
+            player.status = PlayerStatus.PLAYING
             await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.PLAYING)),

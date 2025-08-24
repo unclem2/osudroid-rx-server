@@ -16,10 +16,9 @@ def write_event(
         data (dict): The data associated with the event.
         to (str, optional): The recipient of the event. Defaults to None.
     """
-    if isinstance(data, set):
-        if len(data) == 2:
-            if isinstance(data[1], bytes):
-                data = "binary"
+    if event == "spectatorData":
+        print("Skipping spectatorData event logging")
+        return
     with open(f"data/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,
@@ -37,7 +36,10 @@ def read_room_log(id: int) -> list:
     with open(f"data/rooms/{id}.jsonl", "r") as f:
         room_data = []
         for line in f.readlines():
-            room_data.append(json.loads(line))
+            try:
+                room_data.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
 
     return room_data
 
