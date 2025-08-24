@@ -3,6 +3,7 @@ from objects import glob
 from handlers.response import Failed, Success
 import hashlib
 import utils
+import geoip2.database
 from objects.player import Player
 from argon2 import PasswordHasher
 
@@ -28,6 +29,16 @@ async def register():
         if len(params["username"]) < 2:
             return Failed("Username must be longer than 2 characters.")
 
+        try:
+            if os.path.exists("GeoLite2-Country.mmdb"):
+                with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
+                    ip = request.remote_addr
+                    response = reader.country(ip)
+                    country = response.country.iso_code
+        except Exception as e:
+            logging.error(f"Failed to get country from ip: {e}")
+            country = None
+
         pasw = params["password"] + "taikotaiko"
         md5_hash = hashlib.md5()
         md5_hash.update(pasw.encode("utf-8"))
@@ -36,8 +47,8 @@ async def register():
         player_id = await glob.db.execute(
             """
         INSERT INTO users (
-            prefix, username, username_safe, password_hash, device_id, sign, avatar_id, custom_avatar, email, email_hash, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
+            prefix, username, username_safe, password_hash, device_id, sign, avatar_id, custom_avatar, email, email_hash, status, country
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
         """,
             [
                 None,
@@ -51,6 +62,7 @@ async def register():
                 params["email"],
                 utils.make_md5(params["email"]),
                 0,
+                country
             ],
         )
 
