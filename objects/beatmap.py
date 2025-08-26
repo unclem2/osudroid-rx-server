@@ -148,9 +148,9 @@ class Beatmap:
             Optional[Beatmap]: The beatmap object if found, otherwise None.
         """
 
-        # Return cached beatmap if it exists
-        if beatmap := glob.cache["beatmaps"].get(md5):
-            return beatmap
+        # # Return cached beatmap if it exists
+        # if beatmap := glob.cache["beatmaps"].get(md5):
+        #     return beatmap
 
         # If the beatmap is unsubmitted, return None
         if md5 in glob.cache["unsubmitted"]:

@@ -6,6 +6,8 @@ import utils
 import geoip2.database
 from objects.player import Player
 from argon2 import PasswordHasher
+import os
+import logging
 
 ph = PasswordHasher()
 bp = Blueprint("register", __name__)
@@ -48,7 +50,7 @@ async def register():
             """
         INSERT INTO users (
             prefix, username, username_safe, password_hash, device_id, sign, avatar_id, custom_avatar, email, email_hash, status, country
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id
         """,
             [
                 None,
