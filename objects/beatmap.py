@@ -171,7 +171,6 @@ class Beatmap:
 
         # Put the beatmap in the cache
         glob.cache["beatmaps"][md5] = beatmap
-        beatmap.md5 = md5
         return beatmap
 
     @classmethod
@@ -237,7 +236,6 @@ class Beatmap:
 
             if not (beatmap := await cls.from_bid_osuapi(bid)):
                 return
-        beatmap.id = bid
         # Put the beatmap in the cache
         glob.cache["beatmaps"][beatmap.md5] = beatmap
         return beatmap
@@ -319,7 +317,7 @@ class Beatmap:
             Optional[Beatmap]: The beatmap object if found, otherwise None.
         """
         query = f"""
-        SELECT {"id" if bid else "md5"}, set_id,
+        SELECT id, md5, set_id,
         artist, title, version, creator,
         last_update, total_length, max_combo,
         status,
