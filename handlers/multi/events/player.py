@@ -1,6 +1,6 @@
 import json
 from objects import glob
-from objects.room.enums import PlayerStatus, RoomStatus
+from objects.room.consts import PlayerStatus, RoomStatus
 from objects.room.match import Match
 from objects.room.room import Room
 from objects.room.player import PlayerMulti
@@ -19,7 +19,7 @@ class PlayerEvents:
         player.mods = ModList.from_dict(args[0])
         await self.emit_event(
             "playerModsChanged",
-            (str(player.uid), player.mods.as_calculable_mods),
+            (str(player.uid), player.mods.as_droid_mods),
              
         )
 

@@ -1,5 +1,5 @@
 from objects import glob
-from objects.room.enums import RoomStatus
+from objects.room.consts import RoomStatus
 from objects.room.room import Room
 from objects.beatmap import Beatmap
 
@@ -11,11 +11,12 @@ class BeatmapEvents:
             return
         if args[0] == {}:
             room_info.status = RoomStatus.CHANGING_BEATMAP
-            await self.emit_event(
-                "beatmapChanged", data=args[0]
-            )
+            await self.emit_event("roomStatusChanged", int(room_info.status))
+            await self.emit_event("beatmapChanged", data=args[0])
         if args[0] != {}:
             room_info.status = RoomStatus.IDLE
+            await self.emit_event("roomStatusChanged", int(room_info.status))
+
             beatmap = await Beatmap.from_md5(args[0]["md5"])
             if beatmap is not None:
                 room_info.map = beatmap

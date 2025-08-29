@@ -33,8 +33,8 @@ async def beatmap(query_args: BeatmapRequest) -> ApiResponse[BeatmapModel]:
     """
     if query_args.md5:
         beatmap = await Beatmap.from_md5(query_args.md5)
-    else:
-        beatmap = await Beatmap.from_bid_osuapi(query_args.bid)
+    elif query_args.bid:
+        beatmap = await Beatmap.from_bid(query_args.bid)
     if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
     await beatmap.download()

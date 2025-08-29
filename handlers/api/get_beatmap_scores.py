@@ -8,6 +8,7 @@ from pydantic_core import PydanticCustomError
 from .models.beatmap import BeatmapModel
 from typing import List, Optional
 from quart import Blueprint
+from objects.score import Score
 
 
 bp = Blueprint("get_beatmap_scores", __name__)
@@ -39,12 +40,12 @@ class BeatmapScoresRequest(BaseModel):
 @validate_response(ApiResponse[str], 400)
 async def get_beatmap_scores(query_args: BeatmapScoresRequest) -> ApiResponse[List[ScoreModel]]:
     """
-    Get user scores for a specific beatmap.
+    Get user scores for a specific beatmap.(slow yet)
     """
     if query_args.md5:
         beatmap = await Beatmap.from_md5(query_args.md5)
     elif query_args.bid:
-        beatmap = await Beatmap.from_bid_osuapi(query_args.bid)
+        beatmap = await Beatmap.from_bid(query_args.bid)
 
     if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
@@ -64,5 +65,10 @@ async def get_beatmap_scores(query_args: BeatmapScoresRequest) -> ApiResponse[Li
     )
     if not scores:
         return ApiResponse.not_found("No scores found.")
-    
-    return ApiResponse.ok([ScoreModel(**score) for score in scores])
+    leaderboard = []
+    for score in scores:
+        score_obj = await Score.from_sql(0, score)
+        if score_obj:
+            leaderboard.append(ScoreModel(**score_obj.as_json))
+
+    return ApiResponse.ok(leaderboard)

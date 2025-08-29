@@ -1,4 +1,4 @@
-from objects.room.enums import RoomStatus, PlayerStatus, WinCondition
+from objects.room.consts import RoomStatus, PlayerStatus, WinCondition
 from objects.room.match import Match
 from objects.room.room import Room
 from objects import glob
@@ -13,7 +13,7 @@ class MatchEvents:
         await self.emit_event(
             "roomStatusChanged", data=room_info.status,  
         )
-        await self.emit_event("playBeatmap",  )
+        await self.emit_event("playBeatmap")
         for player in room_info.players:
             player.status = PlayerStatus.PLAYING
             await self.emit_event(
@@ -60,8 +60,8 @@ class MatchEvents:
         room_info.match.skipped(player.uid)
 
         if room_info.match.all_skipped:
-            await self.emit_event("allPlayersSkipRequested",  )
-            await self.emit_event("skipPerformed",  )
+            await self.emit_event("allPlayersSkipRequested")
+            await self.emit_event("skipPerformed")
 
     async def on_liveScoreData(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
@@ -70,11 +70,8 @@ class MatchEvents:
         live_score_data = []
 
         for player in room_info.players:
-            player = room_info.get_player(sid=sid)
-            if player is None:
-                continue
-
-            room_info.match.live_score_data[player.uid] = args[0]
+            if player.sid == sid:
+                room_info.match.live_score_data[player.uid] = args[0]
 
             if len(room_info.match.live_score_data) == len(room_info.match.players):
                 live_score_data.append(
@@ -107,9 +104,7 @@ class MatchEvents:
                     live_score_data, key=lambda x: x["combo"], reverse=True
                 )
 
-        await self.emit_event(
-            "liveScoreData", live_score_data,  
-        )
+        await self.emit_event("liveScoreData", live_score_data)
 
     async def on_scoreSubmission(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
@@ -137,25 +132,17 @@ class MatchEvents:
             elif room_info.win_condition == WinCondition.SCOREV2:
                 data = sorted(data, key=lambda x: x["score"], reverse=True)
 
-            await self.emit_event(
-                "allPlayersScoreSubmitted", data=data,  
-            )
+            await self.emit_event("allPlayersScoreSubmitted", data=data)
 
             room_info.status = RoomStatus.IDLE
-            await self.emit_event(
-                "roomStatusChanged", int(room_info.status),  
-            )
+            await self.emit_event("roomStatusChanged", int(room_info.status))
 
             for player in room_info.players:
                 player.status = PlayerStatus.IDLE
                 await self.emit_event(
-                    "playerStatusChanged", (str(player.uid), int(player.status)),  
+                    "playerStatusChanged", (str(player.uid), int(player.status))
                 )
 
             for watcher in room_info.watchers:
-                await self.emit_event(
-                    "roundEnded",
-                    to=watcher.sid,
-                )
-
+                await self.emit_event("roundEnded", to=watcher.sid)
             room_info.match = Match()

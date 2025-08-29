@@ -2,7 +2,7 @@ from objects.beatmap import Beatmap
 from .player import PlayerMulti
 from .settings import RoomSettings
 from .match import Match
-from .enums import RoomStatus, WinCondition
+from .consts import RoomStatus, WinCondition
 from typing import Optional, Union
 import osudroid_api_wrapper as od
 

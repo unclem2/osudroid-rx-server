@@ -1,4 +1,4 @@
-from .enums import PlayerStatus, PlayerType
+from .consts import PlayerStatus, PlayerType
 from objects import glob
 import osudroid_api_wrapper as od
 from typing import Dict

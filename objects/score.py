@@ -12,10 +12,10 @@ class SubmissionStatus(IntEnum):
     SUBMITTED = 1
     BEST = 2
 
-    def __repr__(self) -> str:
-        return {self.FAILED: "Failed", self.SUBMITTED: "Submitted", self.BEST: "Best"}[
-            self.value
-        ]
+    # def __repr__(self) -> str:
+    #     return {self.FAILED: "Failed", self.SUBMITTED: "Submitted", self.BEST: "Best"}[
+    #         self.value
+    #     ]
 
 
 class Score:

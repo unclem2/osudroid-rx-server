@@ -5,9 +5,9 @@ from handlers.response import ApiResponse
 from quart_schema import validate_querystring, validate_response, RequestSchemaValidationError
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
-from .models.beatmap import BeatmapModel
 from typing import List, Optional
 from quart import Blueprint
+from objects.score import Score
 
 bp = Blueprint("beatmap_leaderboard", __name__)
 
@@ -32,12 +32,12 @@ class BeatmapLeaderboardRequest(BaseModel):
 @validate_response(ApiResponse[str], 400)
 async def beatmap_leaderboard(query_args: BeatmapLeaderboardRequest) -> ApiResponse[List[ScoreModel]]:
     """
-    Get beatmap leaderboard.
+    Get beatmap leaderboard.(slow yet)
     """
     if query_args.md5:
         beatmap = await Beatmap.from_md5(query_args.md5)
     elif query_args.bid:
-        beatmap = await Beatmap.from_bid_osuapi(query_args.bid)
+        beatmap = await Beatmap.from_bid(query_args.bid)
     
     if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
@@ -51,8 +51,12 @@ async def beatmap_leaderboard(query_args: BeatmapLeaderboardRequest) -> ApiRespo
     )
     if not beatmap_lb:
         return ApiResponse.not_found("No leaderboard entries found for this beatmap")
-    
-    leaderboard = [ScoreModel(**score) for score in beatmap_lb]
+
+    leaderboard = []
+    for score_data in beatmap_lb:
+        score = await Score.from_sql(0, score_data)
+        if score:
+            leaderboard.append(ScoreModel(**score.as_json))
     return ApiResponse.ok(leaderboard)
 
 @bp.errorhandler(RequestSchemaValidationError)

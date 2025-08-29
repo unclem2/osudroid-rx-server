@@ -63,7 +63,7 @@ async def calculate(data: CalculateRequest):
     if data.md5:
         bmap = await Beatmap.from_md5(data.md5)
     if data.bid:
-        bmap = await Beatmap.from_bid_osuapi(data.bid)
+        bmap = await Beatmap.from_bid(data.bid)
 
     if bmap is None:
         return ApiResponse.not_found("Beatmap not found")

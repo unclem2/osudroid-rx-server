@@ -10,9 +10,6 @@ class SpectatorEvents:
         player = room_info.get_player(sid=sid)
         if player is None:
             return
-        placeholder = {"_placeholder": True, "num": 0}
-        if player is None:
-            return
         for watcher in room_info.watchers:
 
             await self.emit_event(

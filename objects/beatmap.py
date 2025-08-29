@@ -157,7 +157,7 @@ class Beatmap:
             return
 
         # Try to get beatmap from database
-        beatmap = await cls.from_md5_sql(md5)
+        beatmap = await cls.from_sql(md5=md5, bid=None)
 
         # If not found in database, try to get it from osuapi
         if beatmap is None:
@@ -173,28 +173,6 @@ class Beatmap:
         glob.cache["beatmaps"][md5] = beatmap
         beatmap.md5 = md5
         return beatmap
-
-    @classmethod
-    async def from_md5_sql(cls, md5: str) -> Optional["Beatmap"]:
-        """
-        Fetch a beatmap by its MD5 hash from the database.
-        Args:
-            md5 (str): The MD5 hash of the beatmap.
-        Returns:
-            Optional[Beatmap]: The beatmap object if found, otherwise None.
-        """
-
-        if res := await glob.db.fetch(
-            "SELECT id, set_id, "
-            "artist, title, version, creator, "
-            "last_update, total_length, max_combo, "
-            "status, "
-            "mode, bpm, cs, od, ar, hp, "
-            "star "
-            "FROM maps WHERE md5 = $1",
-            [md5],
-        ):
-            return cls(**res)
 
     @classmethod
     async def from_md5_osuapi(cls, md5: str) -> Optional["Beatmap"]:
@@ -232,6 +210,38 @@ class Beatmap:
         await beatmap.save_to_sql()
 
         return beatmap
+    
+    @classmethod
+    async def from_bid(cls, bid: int) -> Optional["Beatmap"]:
+        """
+        Fetch a beatmap by its beatmap ID (bid).
+        Args:
+            bid (int): The beatmap ID.
+        Returns:
+            Optional[Beatmap]: The beatmap object if found, otherwise None.
+        """
+
+        # # Return cached beatmap if it exists
+        # for beatmap in glob.cache["beatmaps"].values():
+        #     if beatmap.id == bid:
+        #         return beatmap
+
+        # Try to get beatmap from database
+        beatmap = await cls.from_sql(md5=None, bid=bid)
+
+        # If not found in database, try to get it from osuapi
+        if beatmap is None:
+            if len(glob.config.osu_key) < 32:
+                logging.info("Failed to get beatmap, invalid api key.")
+                return
+
+            if not (beatmap := await cls.from_bid_osuapi(bid)):
+                return
+        beatmap.id = bid
+        # Put the beatmap in the cache
+        glob.cache["beatmaps"][beatmap.md5] = beatmap
+        return beatmap
+
 
     @classmethod
     async def from_bid_osuapi(cls, bid: int) -> Optional["Beatmap"]:
@@ -297,6 +307,31 @@ class Beatmap:
             "hp": self.hp,
             "star": self.star,
         }
+
+    @classmethod
+    async def from_sql(cls, md5: Optional[str], bid: Optional[int]) -> Optional["Beatmap"]:
+        """
+        Fetch a beatmap by md5 or bid from the database.
+        Args:
+            md5 (str): The MD5 hash of the beatmap.
+            bid (int): The beatmap ID. 
+        Returns:
+            Optional[Beatmap]: The beatmap object if found, otherwise None.
+        """
+        query = f"""
+        SELECT {"id" if bid else "md5"}, set_id,
+        artist, title, version, creator,
+        last_update, total_length, max_combo,
+        status,
+        mode, bpm, cs, od, ar, hp,
+        star
+        FROM maps WHERE {"id" if bid else "md5"} = $1
+        """
+        params = [bid] if bid else [md5]
+        if not (data := await glob.db.fetch(query, params)):
+            return
+
+        return cls(**data)
 
     async def save_to_sql(self) -> None:
         """

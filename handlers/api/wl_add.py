@@ -46,7 +46,7 @@ async def whitelist_add(query_args: WhitelistAddRequest) -> ApiResponse[BeatmapM
     if query_args.md5 is not None:
         map = await Beatmap.from_md5(query_args.md5)
     elif query_args.bid is not None:
-        map = await Beatmap.from_bid_osuapi(query_args.bid)
+        map = await Beatmap.from_bid(query_args.bid)
     if map is None:
         return ApiResponse.not_found("Beatmap not found or missing required attributes.")
     glob.task_manager.add_task(map.download())

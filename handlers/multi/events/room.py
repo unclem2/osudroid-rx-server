@@ -1,5 +1,5 @@
 from objects import glob
-from objects.room.enums import WinCondition, PlayerStatus, PlayerTeam
+from objects.room.consts import WinCondition, PlayerStatus, PlayerTeam
 from objects.room.player import PlayerMulti
 from objects.room.room import Room
 from osudroid_api_wrapper import ModList
@@ -13,11 +13,7 @@ class RoomEvents:
         mods_data = args[0]
         room_info.mods = ModList.from_dict(mods_data)
 
-        await self.emit_event(
-            "roomModsChanged",
-            room_info.mods.as_calculable_mods,
-             
-        )
+        await self.emit_event("roomModsChanged", room_info.mods.as_droid_mods)
 
     async def on_roomGameplaySettingsChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
@@ -103,10 +99,7 @@ class RoomEvents:
         if player is None:
             return
 
-        if args[0] == 0:
-            player.team = PlayerTeam.RED
-        if args[0] == 1:
-            player.team = PlayerTeam.BLUE
+        player.team = PlayerTeam(args[0])
         await self.emit_event(
             "teamChanged",
             data=(str(player.uid), player.team),
