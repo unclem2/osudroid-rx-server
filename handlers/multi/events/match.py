@@ -15,6 +15,8 @@ class MatchEvents:
         )
         await self.emit_event("playBeatmap")
         for player in room_info.players:
+            if player.status == PlayerStatus.NOMAP:
+                continue
             player.status = PlayerStatus.PLAYING
             await self.emit_event(
                 "playerStatusChanged",

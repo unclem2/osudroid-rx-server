@@ -120,7 +120,7 @@ class ChatEvents:
                     return
                 for i in range(int(command_args[0])):
                     await asyncio.sleep(1)
-                    await self.emit_event("chatMessage", data=(None, f"{int(command_args[0])-i}"), to=sid)
+                    await self.emit_event("chatMessage", data=(None, f"{int(command_args[0])-i}"))
                 await self.on_playBeatmap(sid)
             case "!roll":
                 roll = random.randint(1, 100)
