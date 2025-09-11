@@ -82,8 +82,12 @@ async def calculate(data: CalculateRequest):
     score.pp  = await utils.pp.PPCalculator.from_score(score)
     if score.pp is False:
         return ApiResponse.internal_error("Failed to calculate performance points.")
-    await score.pp.calc(api=True)
+    try:
+        await score.pp.calc(api=True)
+    except:
+        return ApiResponse.internal_error("Failed to calculate performance points.")
 
+    score.bmap.star = score.pp.difficulty
     result = {
         "bmap": score.bmap.as_json,
         "pp": score.pp.calc_pp,

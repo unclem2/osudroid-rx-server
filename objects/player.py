@@ -267,14 +267,13 @@ class Player:
             List[Score]: A list of Score objects representing the player's scores.
         """
         from objects.score import Score
-        query = "SELECT * FROM scores WHERE playerid = $1"
+        query = "SELECT * FROM scores WHERE playerid = $1 ORDER BY id DESC"
         if limit != -1:
             query += f" LIMIT {limit}"
         scores_data = await glob.db.fetchall(query, [int(self.id)])
         scores = []
         for row in scores_data:
             scores.append(await Score.from_sql(0, res=row))
-
         return scores
     
     async def top_scores(self, limit: int = -1) -> List["Score"] | None:

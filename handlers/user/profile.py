@@ -42,11 +42,19 @@ async def profile():
         recent_scores = []
     for score in recent_scores:
         score.mods = ModList.from_dict(json.loads(score.mods))
+        if score.bmap is None:
+            continue
+        score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+
     top_scores = await p.top_scores(50)
     if not top_scores:
         top_scores = []
     for score in top_scores:
         score.mods = ModList.from_dict(json.loads(score.mods))
+        if score.bmap is None:
+            continue
+        score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+
     level = 0
 
     def level_formula(i):

@@ -83,6 +83,12 @@ class PPCalculator:
         if mods.get_mod("DA") is not None:
             self.calc_pp = 0
             return 0
+        if mods.get_mod("WD") is not None:
+            self.calc_pp = 0
+            return 0
+        if mods.get_mod("WU") is not None:
+            self.calc_pp = 0
+            return 0
     
 
         # Read the beatmap content
