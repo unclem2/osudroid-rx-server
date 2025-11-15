@@ -3,6 +3,7 @@ from objects import glob
 from objects.player import Player
 import os
 import utils
+import re
 
 
 bp = Blueprint("user_change_username", __name__)
@@ -25,10 +26,16 @@ async def change_username():
                 "error.jinja", error_message="Invalid login state"
             )
         new_username = req.get("new_username")
+
         if not new_username:
             return await render_template(
                 "error.jinja", error_message="Invalid new username"
             )
+        if re.fullmatch(r'^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$', new_username) is None:
+            return render_template(
+                "error.jinja", error_message="Username contains invalid characters."
+            )
+        
         try:
             if glob.players.get(username=new_username): 
                 return await render_template(
