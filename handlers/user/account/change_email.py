@@ -1,7 +1,7 @@
 from quart import Blueprint, request, render_template
 from objects import glob
 import utils
-import os
+import re
 
 
 bp = Blueprint("user_change_email", __name__)
@@ -28,6 +28,10 @@ async def change_email():
         if not new_email:
             return await render_template(
                 "error.jinja", error_message="Invalid new email"
+            )
+        if re.fullmatch(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])", new_email) is None:
+            return render_template(
+                "error.jinja", error_message="Email is not valid."
             )
 
         player = glob.players.get(id=int(player_id))
