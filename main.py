@@ -40,6 +40,8 @@ async def update_map_status():
     qualified_maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 3")
     for qualified_map in qualified_maps if qualified_maps else []:
         map = await Beatmap.from_bid_osuapi(int(qualified_map["id"]))
+        if map is None:
+            continue
         logging.info("Updated map %d to %s", map.id, map.status)
         await utils.send_webhook(
             title="Updated map",
@@ -47,7 +49,7 @@ async def update_map_status():
             url=glob.config.wl_hook,
             isEmbed=True,
         )
-        await asyncio.sleep(5)
+        # await asyncio.sleep(5)
 
 def make_app():
     quart_app = Quart(__name__)
@@ -77,7 +79,7 @@ async def init():
         update_player_stats, glob.config.cron_delay * 60
     )
     glob.task_manager.add_periodic_task(
-        update_map_status, glob.config.cron_delay * 3600
+        update_map_status, glob.config.cron_delay * 60 * 24
     )
     loop = asyncio.get_running_loop()
     loop.set_exception_handler(handle_ex)
@@ -140,7 +142,7 @@ async def index():
 
 def main():
     hypercorn_config = hypercorn.Config()
-    coloredlogs.install(level=logging.INFO)
+    coloredlogs.install(level=logging.DEBUG)
 
     if os.path.exists(f"/etc/letsencrypt/live/{glob.config.domain}"):
         redirected_app = HTTPToHTTPSRedirectMiddleware(app, host=glob.config.domain)
