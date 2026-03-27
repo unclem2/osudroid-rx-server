@@ -60,10 +60,8 @@ async def login():
     if not p.uuid:
         p.uuid = utils.make_uuid(p.username)
 
-    if os.path.isfile(f"data/avatar/{p.id}.png"):
-        p.avatar = f"{glob.config.host}/user/avatar/{p.id}.png"
-    else:
-        p.avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
+    p.avatar = f"{glob.config.host}/user/avatar/{p.id}.png"
+    
     try:
         if p.country == None:
             if os.path.exists("GeoLite2-Country.mmdb"):
