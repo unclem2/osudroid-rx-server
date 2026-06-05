@@ -93,7 +93,7 @@ async def profile():
             break
 
     player_stats["acc"] = f"{player_stats['acc']:.2f}%"
-    player_stats["rscore"] = f"{int(player_stats['rscore']):,}"
+    player_stats["rscore"] = int(player_stats['rscore'])
 
     if os.path.isfile(f"data/avatar/{player_id}.png"):
         avatar = f"{glob.config.host}/user/avatar/{player_id}.png"

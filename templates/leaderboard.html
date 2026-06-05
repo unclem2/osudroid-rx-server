@@ -12,8 +12,10 @@
 
   <!-- Controls -->
   <div class="flex flex-wrap gap-3 mb-5">
+
     <div class="relative flex-1 min-w-48">
-      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm" style="color:rgba(221,226,236,0.35)"></i>
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+         style="color:rgba(221,226,236,0.35)"></i>
       <input type="text" id="search-input" placeholder="Search player..."
              class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
              style="background:#1e2535;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;
@@ -21,93 +23,130 @@
              onfocus="this.style.borderColor='#5b8ef0'"
              onblur="this.style.borderColor='rgba(93,142,240,0.2)'">
     </div>
-    
-    {% if countries and countries|length > 0 %}
-    <select id="country-filter" class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all outline-none"
-            style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2);caret-color:#5b8ef0"
-            onchange="updateCountryFilter()">
-      <option value="">All Countries</option>
-      {% for country_code in countries %}
-      <option value="{{ country_code }}" {% if country and country == country_code %}selected{% endif %}>{{ country_code }}</option>
-      {% endfor %}
-    </select>
-    {% endif %}
-    
-    <button id="sort-pp" class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all {% if sortby == 'pp' %}active-sort{% endif %}"
-            style="background:{% if sortby == 'pp' %}#5b8ef0{% else %}#1e2535{% endif %};color:{% if sortby == 'pp' %}#fff{% else %}#dde2ec{% endif %};{% if sortby != 'pp' %}border:1px solid rgba(93,142,240,0.2){% endif %}"
-            onclick="updateSort('pp')">
+
+    <!-- Country selector -->
+    <div class="relative">
+      <i class="fas fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+         style="color:rgba(221,226,236,0.35)"></i>
+      <select id="country-select"
+              class="pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer transition-colors"
+              style="background:#1e2535;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;
+                     min-width:140px"
+              onfocus="this.style.borderColor='#5b8ef0'"
+              onblur="this.style.borderColor='rgba(93,142,240,0.2)'"
+              onchange="applyCountry(this.value)">
+        <option value="" {% if not country %}selected{% endif %}
+                style="background:#1e2535">All Countries</option>
+        {% for c in countries %}
+        <option value="{{ c.code }}"
+                {% if country == c.code %}selected{% endif %}
+                style="background:#1e2535">
+          {{ c.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <!-- Custom chevron -->
+      <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+         style="color:rgba(221,226,236,0.35)"></i>
+    </div>
+
+    <!-- Sort: By PP -->
+    <a href="?sortby=pp{% if country %}&country={{ country }}{% endif %}"
+       class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+       style="background:{{ '#5b8ef0' if sortby == 'pp' else '#1e2535' }};
+              color:{{ '#fff' if sortby == 'pp' else '#dde2ec' }};
+              border:1px solid rgba(93,142,240,0.2)">
       <i class="fas fa-star mr-1.5"></i>By PP
-    </button>
-    <button id="sort-rscore" class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all {% if sortby == 'score' %}active-sort{% endif %}"
-            style="background:{% if sortby == 'score' %}#5b8ef0{% else %}#1e2535{% endif %};color:{% if sortby == 'score' %}#fff{% else %}#dde2ec{% endif %};{% if sortby != 'score' %}border:1px solid rgba(93,142,240,0.2){% endif %}"
-            onclick="updateSort('score')">
+    </a>
+
+    <!-- Sort: By Score -->
+    <a href="?sortby=score{% if country %}&country={{ country }}{% endif %}"
+       class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+       style="background:{{ '#5b8ef0' if sortby == 'score' else '#1e2535' }};
+              color:{{ '#fff' if sortby == 'score' else '#dde2ec' }};
+              border:1px solid rgba(93,142,240,0.2)">
       <i class="fas fa-gamepad mr-1.5"></i>By Score
-    </button>
+    </a>
+
   </div>
 
-  <!-- Table card -->
-  <div class="rounded-2xl overflow-hidden shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+  <!-- Table -->
+  <div class="rounded-2xl overflow-hidden shadow-2xl"
+       style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
     <div class="overflow-x-auto">
-      <table class="w-full" id="leaderboard-table">
+      <table class="w-full text-sm">
         <thead>
           <tr style="background:#161c27;border-bottom:1px solid rgba(93,142,240,0.2)">
-            <th class="px-4 py-3 text-left text-xs uppercase tracking-wide font-semibold" style="color:rgba(221,226,236,0.5)">Rank</th>
-            <th class="px-4 py-3 text-left text-xs uppercase tracking-wide font-semibold" style="color:rgba(221,226,236,0.5)">Player</th>
-            <th class="px-4 py-3 text-right text-xs uppercase tracking-wide font-semibold pp-col {% if sortby == 'score' %}hidden{% endif %}" style="color:rgba(221,226,236,0.5)">PP</th>
-            <th class="px-4 py-3 text-right text-xs uppercase tracking-wide font-semibold score-col {% if sortby != 'score' %}hidden{% endif %}" style="color:rgba(221,226,236,0.5)">Ranked Score</th>
-            <th class="px-4 py-3 text-right text-xs uppercase tracking-wide font-semibold" style="color:rgba(221,226,236,0.5)">Plays</th>
+            <th class="px-4 py-3 text-left text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Rank</th>
+            <th class="px-4 py-3 text-left text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Player</th>
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">
+              {{ 'PP' if sortby == 'pp' else 'Ranked Score' }}
+            </th>
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Plays</th>
           </tr>
         </thead>
+
         <tbody id="leaderboard-body">
-          {% if leaderboard %}
-            {% for player in leaderboard %}
-            <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer"
-                style="border-color:rgba(93,142,240,0.08)"
-                onclick="window.location='/user/profile.php?id={{ player[0] }}'">
-              <td class="px-4 py-3" data-original-rank="{{ player[-1] }}">
-                {% if player[-1] == 1 %}
-                  <span class="text-base font-bold" style="color:#fbbf24">🥇</span>
-                {% elif player[-1] == 2 %}
-                  <span class="text-base font-bold" style="color:#94a3b8">🥈</span>
-                {% elif player[-1] == 3 %}
-                  <span class="text-base font-bold" style="color:#cd7f32">🥉</span>
-                {% elif player[-1] == 0 %}
-                  <span class="text-sm" style="color:rgba(221,226,236,0.35)">-</span>
-                {% else %}
-                  <span class="text-sm font-medium" style="color:rgba(221,226,236,0.6)">#{{ player[-1] }}</span>
-                {% endif %}
-              </td>
-              <td class="px-4 py-3">
-                <div class="flex items-center gap-3">
-                  <img src="/user/avatar/{{ player[0] }}.png" alt="{{ player[2] }}"
-                       class="w-8 h-8 rounded-lg object-cover flex-shrink-0"
-                       style="border:1px solid rgba(93,142,240,0.3)"
-                       onerror="this.style.display='none'">
-                  <span class="text-sm font-medium hover:underline" style="color:#dde2ec">{{ player[2] }}</span>
-                </div>
-              </td>
-              {% if sortby == 'pp' %}
-              <td class="px-4 py-3 text-right pp-col">
-                <span class="text-sm font-bold" style="color:#5b8ef0">{{ player[1] | int }}pp</span>
-              </td>
+          {% for player in leaderboard %}
+          {% set r = player.pp_rank if sortby == 'pp' else player.score_rank %}
+
+          <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer"
+              style="border-color:rgba(93,142,240,0.08)"
+              data-name="{{ player.username|lower }}"
+              data-rank="{{ r }}"
+              onclick="window.location='/user/profile.php?id={{ player.id }}'">
+
+            <td class="px-4 py-3">
+              {% if r == 1 %}
+                <span class="text-base font-bold" style="color:#fbbf24">🥇</span>
+              {% elif r == 2 %}
+                <span class="text-base font-bold" style="color:#94a3b8">🥈</span>
+              {% elif r == 3 %}
+                <span class="text-base font-bold" style="color:#cd7f32">🥉</span>
+              {% elif r == 0 or r is none %}
+                <span class="text-sm" style="color:rgba(221,226,236,0.35)">-</span>
               {% else %}
-              <td class="px-4 py-3 text-right score-col">
-                <span class="text-sm font-bold" style="color:#34d399">{{ "{:,}".format(player[3]) }}</span>
-              </td>
+                <span class="text-sm font-medium"
+                      style="color:rgba(221,226,236,0.6)">#{{ r }}</span>
               {% endif %}
-              <td class="px-4 py-3 text-right">
-                <span class="text-sm" style="color:rgba(221,226,236,0.6)">{{ player[1] if sortby == 'score' else player[2] }}</span>
-              </td>
-            </tr>
-            {% endfor %}
-          {% else %}
-          <tr>
-            <td colspan="5" class="px-4 py-8 text-center">
-              <i class="fas fa-chart-bar text-3xl mb-3 block" style="color:rgba(93,142,240,0.3)"></i>
-              <p class="text-sm" style="color:rgba(221,226,236,0.4)">No players found</p>
             </td>
+
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <img src="/user/avatar/{{ player.id }}.png"
+                     class="w-8 h-8 rounded-lg object-cover flex-shrink-0"
+                     style="border:1px solid rgba(93,142,240,0.3)"
+                     onerror="this.style.display='none'">
+                <span class="text-sm font-medium" style="color:#dde2ec">
+                  {{ player.username }}
+                </span>
+              </div>
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              {% if sortby == 'pp' %}
+                <span class="text-sm font-bold" style="color:#5b8ef0">
+                  {{ player.pp|int }}pp
+                </span>
+              {% else %}
+                <span class="text-sm font-bold" style="color:#34d399">
+                  {{ "{:,}".format(player.rscore) }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              <span class="text-sm" style="color:rgba(221,226,236,0.6)">
+                {{ player.plays }}
+              </span>
+            </td>
+
           </tr>
-          {% endif %}
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -115,14 +154,15 @@
 
   <!-- Pagination -->
   <div class="flex items-center justify-center gap-3 mt-5">
-    <button id="prev-page" disabled
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+    <button id="prev-page"
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
             style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
       <i class="fas fa-chevron-left mr-1"></i>Previous
     </button>
-    <span id="page-info" class="text-sm" style="color:rgba(221,226,236,0.5)">Page 1</span>
+    <span id="page-info" class="text-sm"
+          style="color:rgba(221,226,236,0.5)">Page 1</span>
     <button id="next-page"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
             style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
       Next<i class="fas fa-chevron-right ml-1"></i>
     </button>
@@ -131,80 +171,58 @@
 </div>
 
 <script>
-function updateSort(sortType) {
-  const params = new URLSearchParams();
-  params.set('sortby', sortType);
-  const countryFilter = document.getElementById('country-filter');
-  if (countryFilter && countryFilter.value) {
-    params.set('country', countryFilter.value);
+function applyCountry(code) {
+  const url = new URL(window.location.href);
+  if (code) {
+    url.searchParams.set('country', code);
+  } else {
+    url.searchParams.delete('country');
   }
-  window.location.href = '/leaderboard?' + params.toString();
-}
-
-function updateCountryFilter() {
-  const countrySelect = document.getElementById('country-filter');
-  const country = countrySelect.value;
-  const params = new URLSearchParams();
-  if (country) {
-    params.set('country', country);
-  }
-  const currentSort = new URLSearchParams(window.location.search).get('sortby');
-  if (currentSort) {
-    params.set('sortby', currentSort);
-  }
-  window.location.href = '/leaderboard?' + params.toString();
+  window.location.href = url.toString();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const tbody = document.getElementById('leaderboard-body');
   const searchInput = document.getElementById('search-input');
-  const ppBtn = document.getElementById('sort-pp');
-  const scoreBtn = document.getElementById('sort-rscore');
+  const prevBtn = document.getElementById('prev-page');
+  const nextBtn = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
 
   const PER_PAGE = 15;
   let currentPage = 1;
-  let allRows = Array.from(tbody.querySelectorAll('tr'));
-  let filteredRows = allRows.filter(r => {
-    const rankAttr = r.cells[0].getAttribute('data-original-rank');
-    return rankAttr !== '0';
-  });
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+  function getFilteredRows() {
+    const q = searchInput.value.toLowerCase().trim();
+    const searchActive = q.length > 0;
+    return allRows.filter(row => {
+      const name = row.dataset.name;
+      const rank = parseInt(row.dataset.rank || "0");
+      if (rank === 0 && !searchActive) return false;
+      return name.includes(q);
+    });
+  }
 
   function render() {
+    const filteredRows = getFilteredRows();
     const start = (currentPage - 1) * PER_PAGE;
     const end = start + PER_PAGE;
     allRows.forEach(r => r.style.display = 'none');
     filteredRows.slice(start, end).forEach(r => r.style.display = '');
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = end >= filteredRows.length;
     const totalPages = Math.max(1, Math.ceil(filteredRows.length / PER_PAGE));
-    const pageInfo = document.getElementById('page-info');
-    if (pageInfo) {
-      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-    }
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
   }
 
-  searchInput.addEventListener('input', () => {
-    const q = searchInput.value.toLowerCase().trim();
-    filteredRows = allRows.filter(row => {
-      const name = row.cells[1].textContent.toLowerCase();
-      const rankAttr = row.cells[0].getAttribute('data-original-rank');
-      if (rankAttr === '0' && q === '') return false;
-      return name.includes(q);
-    });
-    currentPage = 1;
-    render();
+  searchInput.addEventListener('input', () => { currentPage = 1; render(); });
+  prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
+  nextBtn.addEventListener('click', () => {
+    if (currentPage * PER_PAGE < getFilteredRows().length) { currentPage++; render(); }
   });
-
-  const prevBtn = document.getElementById('prev-page');
-  const nextBtn = document.getElementById('next-page');
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      if ((currentPage * PER_PAGE) < filteredRows.length) { currentPage++; render(); }
-    });
-  }
 
   render();
 });
 </script>
+
 {% endblock %}

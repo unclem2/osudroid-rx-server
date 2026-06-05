@@ -52,7 +52,7 @@
           {% endif %}
         </div>
         <div class="flex items-center gap-3 text-sm" style="color:rgba(221,226,236,0.55)">
-          <span><i class="fas fa-hashtag mr-1"></i>{{ "-" if player_stats.rank == 0 else player_stats.pp_rank }} / {{ "-" if player_stats.country_pp_rank == 0 else player_stats.country_pp_rank }}</span>
+          <span><i class="fas fa-hashtag mr-1"></i>{{ "-" if player_stats.pp_rank == 0 else player_stats.pp_rank }} / {{ "-" if player_stats.country_pp_rank == 0 else player_stats.country_pp_rank }}</span>
           <span>Lv. {{ level }}</span>
           {% if player.online %}
           <span class="flex items-center gap-1" style="color:#4ade80">
