@@ -126,8 +126,8 @@
 
         <!-- PP + Acc -->
         <div class="flex-shrink-0 text-right">
-          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp }}pp</div>
-          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc }}</div>
+          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp.calc_pp | round(2) }}pp</div>
+          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc | round(2) }}%</div>
         </div>
 
         <!-- Date (hidden on small screens) -->
@@ -176,14 +176,14 @@
         <div class="flex-1 min-w-0 cursor-pointer" onclick="window.location.href='{{ score.map_link }}'">
           <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
           <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
-            {% if score.mods and score.mods != 'NM' %}{{ score.mods }} &bull; {% endif %}{{ score.combo }}x &bull; {{ score.hitmiss }}x miss
+            {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.combo }}x &bull; {{ score.hitmiss }}x miss
           </div>
         </div>
 
         <!-- PP + Acc -->
         <div class="flex-shrink-0 text-right">
-          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp }}pp</div>
-          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc }}</div>
+          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp.calc_pp | round(2) }}pp</div>
+          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc | round(2) }}</div>
         </div>
 
         <!-- Date -->
