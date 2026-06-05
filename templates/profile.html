@@ -188,7 +188,7 @@
 
         <!-- Date -->
         <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
-          {{ score.date.strftime('%b %d, %Y') if score.date is defined else 'N/A' }}
+          {{ score.date }}
         </div>
       </div>
       {% endfor %}
