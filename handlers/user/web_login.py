@@ -15,7 +15,7 @@ async def web_login():
     # Check if the login state cookie is present
     login_state = request.cookies.get("login_state")
     if login_state is not None:
-        return await render_template("error.jinja", error_message="Already logged in")
+        return await render_template("error.html", error_message="Already logged in")
 
     if request.method == "POST":
         req = await request.form
@@ -24,7 +24,7 @@ async def web_login():
 
         if not username or not password:
             return await render_template(
-                "error.jinja", error_message="Invalid username or password"
+                "error.html", error_message="Invalid username or password"
             )
 
         hashed_password = utils.make_md5(f"{password}taikotaiko")
@@ -34,7 +34,7 @@ async def web_login():
         player = glob.players.get(username=username)
         if not player:
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
 
         # Fetch password hash and status from the database
@@ -43,7 +43,7 @@ async def web_login():
         )
         if not res:
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
 
         stored_password_hash = res["password_hash"]
@@ -53,18 +53,18 @@ async def web_login():
         if stored_password_hash in cached_hashes:
             if hashed_password != cached_hashes[stored_password_hash]:
                 return await render_template(
-                    "error.jinja", error_message="Wrong password"
+                    "error.html", error_message="Wrong password"
                 )
         else:
             try:
                 ph.verify(stored_password_hash, hashed_password)
             except BaseException:
                 return await render_template(
-                    "error.jinja", error_message="Wrong password"
+                    "error.html", error_message="Wrong password"
                 )
 
         response = await render_template(
-            "success.jinja", success_message=Success("Login successful")
+            "success.html", success_message=Success("Login successful")
         )
         response = await make_response(response)
         response.set_cookie(
@@ -75,4 +75,4 @@ async def web_login():
 
         return response
 
-    return await render_template("web_login.jinja")
+    return await render_template("web_login.html")

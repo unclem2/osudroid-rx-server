@@ -39,6 +39,7 @@ async def register():
             return Failed("Email is not valid.")
 
         try:
+            country = None
             if os.path.exists("GeoLite2-Country.mmdb"):
                 with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
                     ip = request.remote_addr
@@ -82,6 +83,6 @@ async def register():
         glob.players.add(p)
 
         return await render_template(
-            "success.jinja", success_message=Success("Account Created.")
+            "success.html", success_message=Success("Account Created.")
         )
-    return await render_template("register.jinja")
+    return await render_template("register.html")

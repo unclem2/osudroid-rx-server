@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Account Settings{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-8">
+
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-1 h-7 rounded-full" style="background:#5b8ef0"></div>
+    <h1 class="text-2xl font-bold">Account Settings</h1>
+  </div>
+
+  <div class="space-y-3">
+
+    <!-- Avatar -->
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      {% include "account/set_avatar.html" %}
+    </div>
+
+    <!-- Banner -->
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      {% include "account/set_banner.html" %}
+    </div>
+
+    <!-- Change Password -->
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      {% include "account/change_password.html" %}
+    </div>
+
+    <!-- Change Username -->
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      {% include "account/change_username.html" %}
+    </div>
+
+    <!-- Change Email -->
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      {% include "account/change_email.html" %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}

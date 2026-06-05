@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Error{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-md text-center">
+    <div class="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style="background:rgba(248,113,113,0.1)">
+      <i class="fas fa-exclamation-triangle text-2xl" style="color:#f87171"></i>
+    </div>
+    <h1 class="text-2xl font-bold mb-2">Something went wrong</h1>
+    {% if error_message %}
+    <p class="text-sm mb-6" style="color:rgba(221,226,236,0.6)">{{ error_message }}</p>
+    {% endif %}
+    <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(248,113,113,0.2)">
+      <p class="text-sm" style="color:rgba(221,226,236,0.5)">
+        If this keeps happening, please contact an administrator.
+      </p>
+    </div>
+    <a href="/" class="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-90"
+       style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
+      <i class="fas fa-home"></i>Go Home
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+<div class="flex items-start gap-4">
+  <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(93,142,240,0.1)">
+    <i class="fas fa-pen text-sm" style="color:#5b8ef0"></i>
+  </div>
+  <div class="flex-1">
+    <h3 class="font-semibold text-sm mb-0.5">Change Username</h3>
+    <p class="text-xs mb-3" style="color:rgba(221,226,236,0.45)">3–20 characters, letters, numbers, and underscores only.</p>
+    <form method="post" action="{{ url_for('user_change_username.change_username') }}" class="flex flex-wrap gap-3 items-center max-w-sm">
+      <input type="text" name="new_username" placeholder="New username" required
+             minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_]+$"
+             class="flex-1 min-w-0 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
+             style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;caret-color:#5b8ef0"
+             onfocus="this.style.borderColor='#5b8ef0'" onblur="this.style.borderColor='rgba(93,142,240,0.2)'">
+      <button type="submit" class="px-4 py-2.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-90 flex-shrink-0"
+              style="background:#5b8ef0;color:#fff">
+        Save
+      </button>
+    </form>
+  </div>
+</div>

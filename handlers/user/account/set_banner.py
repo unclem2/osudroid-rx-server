@@ -4,7 +4,7 @@ import os
 import utils
 from werkzeug.utils import secure_filename
 
-bp = Blueprint("user_set_avatar", __name__)
+bp = Blueprint("user_set_banner", __name__)
 
 
 def allowed_file(filename):
@@ -13,7 +13,7 @@ def allowed_file(filename):
 
 
 @bp.route("/", methods=["POST"])
-async def set_avatar():
+async def set_banner():
     # Check if the authentication cookie is present
     auth_cookie = request.cookies.get("login_state")
     if not auth_cookie:
@@ -37,12 +37,12 @@ async def set_avatar():
         files = await request.files
 
         # Check if the avatar file is part of the request
-        if "avatar" not in files:
+        if "banner" not in files:
             return await render_template(
-                "error.html", error_message="No avatar file provided"
+                "error.html", error_message="No banner file provided"
             )
 
-        file = files.get("avatar")
+        file = files.get("banner")
         if file.filename == "":
             return await render_template(
                 "error.html", error_message="No selected file"
@@ -59,11 +59,11 @@ async def set_avatar():
         if file and allowed_file(file.filename):
             file.filename = f"{p.id}.png"
             filename = secure_filename(file.filename)
-            file_path = os.path.join("data/avatar", filename)
+            file_path = os.path.join("data/banner", filename)
             await file.save(file_path)
 
             return await render_template(
-                "success.html", success_message="Avatar uploaded successfully"
+                "success.html", success_message="Banner uploaded successfully"
             )
         else:
             return await render_template(

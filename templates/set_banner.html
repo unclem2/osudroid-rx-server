@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Set Banner{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:rgba(93,142,240,0.15)">
+        <i class="fas fa-panorama text-xl" style="color:#5b8ef0"></i>
+      </div>
+      <h1 class="text-2xl font-bold">Set Banner</h1>
+      <p class="text-sm mt-1" style="color:rgba(221,226,236,0.5)">Wide image recommended (e.g. 1200×300)</p>
+    </div>
+    <div class="rounded-2xl p-6 shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      <form method="post" enctype="multipart/form-data" class="space-y-4">
+        <label class="flex flex-col items-center gap-3 p-6 rounded-xl cursor-pointer transition-colors hover:bg-white/5"
+               style="border:2px dashed rgba(93,142,240,0.3)">
+          <i class="fas fa-upload text-2xl" style="color:rgba(93,142,240,0.6)"></i>
+          <span class="text-sm" style="color:rgba(221,226,236,0.5)" id="bn-label">Click to select image</span>
+          <input type="file" name="banner" accept="image/*" required class="hidden"
+                 onchange="document.getElementById('bn-label').textContent=this.files[0]?.name||'Click to select image'">
+        </label>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                style="background:#5b8ef0;color:#fff">
+          Upload Banner
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

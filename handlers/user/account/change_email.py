@@ -11,7 +11,7 @@ bp = Blueprint("user_change_email", __name__)
 async def change_email():
     login_state = request.cookies.get("login_state")
     if login_state is None:
-        return await render_template("error.jinja", error_message="Not logged in")
+        return await render_template("error.html", error_message="Not logged in")
 
     if request.method == "POST":
         req = await request.form
@@ -21,23 +21,23 @@ async def change_email():
             == False
         ):
             return await render_template(
-                "error.jinja", error_message="Invalid login state"
+                "error.html", error_message="Invalid login state"
             )
         new_email = req.get("new_email")
 
         if not new_email:
             return await render_template(
-                "error.jinja", error_message="Invalid new email"
+                "error.html", error_message="Invalid new email"
             )
         if re.fullmatch(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])", new_email) is None:
             return render_template(
-                "error.jinja", error_message="Email is not valid."
+                "error.html", error_message="Email is not valid."
             )
 
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
 
         res = await glob.db.fetch(
@@ -45,13 +45,13 @@ async def change_email():
         )
         if not res:
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
 
         stored_email = res["email"]
         if new_email == stored_email:
             return await render_template(
-                "error.jinja", error_message="New email is the same as the old email"
+                "error.html", error_message="New email is the same as the old email"
             )
 
         email_hash = utils.make_md5(f"{new_email}")
@@ -62,5 +62,5 @@ async def change_email():
         )
 
         return await render_template(
-            "success.jinja", success_message="Email changed successfully"
+            "success.html", success_message="Email changed successfully"
         )

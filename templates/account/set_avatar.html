@@ -1,0 +1,22 @@
+<div class="flex items-start gap-4">
+  <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center" style="background:rgba(93,142,240,0.1)">
+    <i class="fas fa-image text-sm" style="color:#5b8ef0"></i>
+  </div>
+  <div class="flex-1">
+    <h3 class="font-semibold text-sm mb-0.5">Avatar</h3>
+    <p class="text-xs mb-3" style="color:rgba(221,226,236,0.45)">Upload a PNG or JPG image. Recommended: square, at least 256×256.</p>
+    <form method="post" enctype="multipart/form-data" action="{{ url_for('user_set_avatar.set_avatar') }}" class="flex flex-wrap gap-3 items-center">
+      <label class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm cursor-pointer transition-colors hover:bg-white/5"
+             style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
+        <i class="fas fa-upload opacity-60"></i>
+        <span id="avatar-filename">Choose file…</span>
+        <input type="file" name="avatar" accept="image/png,image/jpeg" required class="hidden"
+               onchange="document.getElementById('avatar-filename').textContent=this.files[0]?.name||'Choose file…'">
+      </label>
+      <button type="submit" class="px-4 py-2 rounded-xl text-sm font-medium transition-opacity hover:opacity-90"
+              style="background:#5b8ef0;color:#fff">
+        Upload
+      </button>
+    </form>
+  </div>
+</div>
