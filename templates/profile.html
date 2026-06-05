@@ -6,31 +6,18 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
 
   <!-- Profile Card -->
-  <!--
-    NO overflow-hidden on the outer card — avatar must be free to overlap the banner.
-    overflow-hidden is kept only on the banner div itself (to clip the image).
-  -->
   <div class="rounded-2xl shadow-2xl mb-6" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
 
-    <!-- Banner: rounded-t clips image to card corners -->
+    <!-- Banner -->
     <div class="relative rounded-t-2xl overflow-hidden" style="min-height:80px;background:linear-gradient(135deg,#161c27,#1e2535)">
       <img src="/user/banner/{{ player.id }}.png"
            alt="Banner"
            class="w-full block"
            onerror="this.style.display='none'">
-      <!-- Bottom gradient so username text is readable if placed over the banner -->
       <div class="absolute inset-0" style="background:linear-gradient(to bottom,transparent 40%,rgba(13,17,23,0.6))"></div>
     </div>
 
-    <!--
-      Avatar + name row.
-      margin-top: -3rem pulls this row up by half the avatar height (96px / 2 = 48px = 3rem),
-      centering the avatar on the banner's bottom edge.
-
-      position: relative + z-index: 10 is required: the banner div has position:relative which
-      creates a stacking context. Without explicit z-index here, CSS paints earlier stacking
-      contexts (the banner) above later non-positioned siblings (the avatar), hiding the avatar.
-    -->
+    <!-- Avatar + name row -->
     <div class="relative z-10 flex flex-col sm:flex-row sm:items-end gap-3 px-6" style="margin-top:-3rem">
       <div class="flex-shrink-0">
         <img src="{{ avatar_url }}"
@@ -40,7 +27,6 @@
              onerror="this.src='https://www.gravatar.com/avatar/?d=mp&s=96'">
       </div>
 
-      <!-- Name + rank — pb-1 to sit slightly above the flex baseline -->
       <div class="flex-1 min-w-0 pb-1">
         <div class="flex flex-wrap items-center gap-2 mb-1">
           <h1 class="text-2xl font-bold truncate">{{ player.username }}</h1>
@@ -117,8 +103,8 @@
         </div>
 
         <!-- Map name -->
-        <div class="flex-1 min-w-0 cursor-pointer" onclick="window.location.href='{{ score.map_link }}'">
-          <div class="text-sm font-medium truncate">{{ score.bmap.full}}</div>
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
           <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
             {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.max_combo }}x &bull; {{ score.hmiss }}x miss
           </div>
@@ -130,9 +116,9 @@
           <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc | round(2) }}%</div>
         </div>
 
-        <!-- Date (hidden on small screens) -->
+        <!-- Date -->
         <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
-          {{ score.date }}
+          <span class="score-date" data-ts="{{ score.date }}"></span>
         </div>
       </div>
       {% endfor %}
@@ -173,7 +159,7 @@
         </div>
 
         <!-- Map name -->
-        <div class="flex-1 min-w-0 cursor-pointer" onclick="window.location.href='{{ score.map_link }}'">
+        <div class="flex-1 min-w-0">
           <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
           <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
             {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.combo }}x &bull; {{ score.hitmiss }}x miss
@@ -188,7 +174,7 @@
 
         <!-- Date -->
         <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
-          {{ score.date }}
+          <span class="score-date" data-ts="{{ score.date }}"></span>
         </div>
       </div>
       {% endfor %}
@@ -202,5 +188,31 @@
   </div>
 
 </div>
-{% endblock %}
 
+<script>
+  document.querySelectorAll('.score-date').forEach(function(el) {
+    var ts = el.dataset.ts;
+    if (!ts) return;
+
+    var date = new Date(/^\d+$/.test(ts) ? ts * 1000 : ts);
+    if (isNaN(date.getTime())) return;
+
+    var now = Date.now();
+    var diff = Math.floor((now - date) / 1000);
+
+    var label;
+    if (diff < 60)           label = diff + 's ago';
+    else if (diff < 3600)    label = Math.floor(diff / 60) + 'm ago';
+    else if (diff < 86400)   label = Math.floor(diff / 3600) + 'h ago';
+    else if (diff < 2592000) label = Math.floor(diff / 86400) + 'd ago';
+    else {
+      label = date.toLocaleDateString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    }
+
+    el.textContent = label;
+    el.title = date.toLocaleString();
+  });
+</script>
+{% endblock %}
