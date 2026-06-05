@@ -49,6 +49,7 @@ async def profile():
         if score.bmap is None:
             continue
         score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
 
     top_scores = None
 
