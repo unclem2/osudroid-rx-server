@@ -95,8 +95,9 @@
     {% if top_scores %}
     <div class="space-y-2">
       {% for score in top_scores %}
-      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group"
-           style="background:#1e2535;border:1px solid rgba(93,142,240,0.1)">
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group cursor-pointer"
+           style="background:linear-gradient(rgba(30, 37, 53, 0.85), rgba(30, 37, 53, 0.85)), url('{{ score.map_cover }}');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"
+           onclick="window.location.href='{{ score.map_link }}'">
 
         <!-- Rank number -->
         <div class="w-7 flex-shrink-0 text-center text-xs font-bold" style="color:rgba(221,226,236,0.3)">
@@ -155,8 +156,9 @@
     {% if recent_scores %}
     <div class="space-y-2">
       {% for score in recent_scores %}
-      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5"
-           style="background:#1e2535;border:1px solid rgba(93,142,240,0.1)">
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 cursor-pointer"
+           style="background:linear-gradient(rgba(30, 37, 53, 0.85), rgba(30, 37, 53, 0.85)), url('{{ score.map_cover }}');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"
+           onclick="window.location.href='{{ score.map_link }}'">
 
         <!-- Grade -->
         <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"

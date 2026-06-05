@@ -62,7 +62,8 @@ async def profile():
         score.mods = ModList.from_dict(json.loads(score.mods))
         if score.bmap is None:
             continue
-        score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
 
     level = 0
 
@@ -92,7 +93,7 @@ async def profile():
 
     player_stats["acc"] = f"{player_stats['acc']:.2f}%"
     player_stats["rscore"] = f"{int(player_stats['rscore']):,}"
-    
+
     if os.path.isfile(f"data/avatar/{player_id}.png"):
         avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
     else:
