@@ -107,13 +107,13 @@
         <!-- Grade -->
         <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"
              style="background:rgba(93,142,240,0.1);color:
-             {%- if score.rank in ('SS', 'S') %}#fbbf24
-             {%- elif score.rank in ('XH', 'SH') %}#cbd5e1
-             {%- elif score.rank == 'A' %}#4ade80
-             {%- elif score.rank == 'B' %}#60a5fa
-             {%- elif score.rank == 'C' %}#fb923c
+             {%- if score.grade in ('SS', 'S') %}#fbbf24
+             {%- elif score.grade in ('XH', 'SH') %}#cbd5e1
+             {%- elif score.grade == 'A' %}#4ade80
+             {%- elif score.grade == 'B' %}#60a5fa
+             {%- elif score.grade == 'C' %}#fb923c
              {%- else %}#f87171{% endif -%}">
-          {%- if score.rank == 'XH' %}SS{%- elif score.rank == 'SH' %}S{%- else %}{{ score.rank }}{%- endif %}
+          {%- if score.grade == 'XH' %}SS{%- elif score.grade == 'SH' %}S{%- else %}{{ score.grade }}{%- endif %}
         </div>
 
         <!-- Map name -->
@@ -163,13 +163,13 @@
         <!-- Grade -->
         <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"
              style="background:rgba(93,142,240,0.1);color:
-             {%- if score.rank in ('SS', 'S') %}#fbbf24
-             {%- elif score.rank in ('XH', 'SH') %}#cbd5e1
-             {%- elif score.rank == 'A' %}#4ade80
-             {%- elif score.rank == 'B' %}#60a5fa
-             {%- elif score.rank == 'C' %}#fb923c
+             {%- if score.grade in ('SS', 'S') %}#fbbf24
+             {%- elif score.grade in ('XH', 'SH') %}#cbd5e1
+             {%- elif score.grade == 'A' %}#4ade80
+             {%- elif score.grade == 'B' %}#60a5fa
+             {%- elif score.grade == 'C' %}#fb923c
              {%- else %}#f87171{% endif -%}">
-          {%- if score.rank == 'XH' %}SS{%- elif score.rank == 'SH' %}S{%- else %}{{ score.rank }}{%- endif %}
+          {%- if score.grade == 'XH' %}SS{%- elif score.grade == 'SH' %}S{%- else %}{{ score.grade }}{%- endif %}
         </div>
 
         <!-- Map name -->
