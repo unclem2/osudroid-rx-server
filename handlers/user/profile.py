@@ -95,7 +95,7 @@ async def profile():
     player_stats["acc"] = f"{player_stats['acc']:.2f}%"
     player_stats["rscore"] = int(player_stats['rscore'])
 
-    avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
+    avatar = f"/user/avatar/{player_id}.png"
     return await render_template(
         "profile.html",
         player_stats=player_stats,
