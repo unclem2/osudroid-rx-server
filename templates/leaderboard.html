@@ -38,10 +38,10 @@
         <option value="" {% if not country %}selected{% endif %}
                 style="background:#1e2535">All Countries</option>
         {% for c in countries %}
-        <option value="{{ c.code }}"
-                {% if country == c.code %}selected{% endif %}
+        <option value="{{ c }}"
+                {% if country == c %}selected{% endif %}
                 style="background:#1e2535">
-          {{ c.name }}
+          {{ c }}
         </option>
         {% endfor %}
       </select>

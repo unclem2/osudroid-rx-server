@@ -162,7 +162,7 @@
         <div class="flex-1 min-w-0">
           <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
           <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
-            {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.combo }}x &bull; {{ score.hitmiss }}x miss
+            {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.max_combo }}x &bull; {{ score.hmiss }}x miss
           </div>
         </div>
 
@@ -194,7 +194,7 @@
     var ts = el.dataset.ts;
     if (!ts) return;
 
-    var date = new Date(/^\d+$/.test(ts) ? ts * 1000 : ts);
+    var date = new Date(/^\d+$/.test(ts) ? ts: ts);
     if (isNaN(date.getTime())) return;
 
     var now = Date.now();
