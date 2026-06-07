@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}{{ player.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- Profile Card -->
+  <div class="rounded-2xl shadow-2xl mb-6" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+
+    <!-- Banner -->
+    <div class="relative rounded-t-2xl overflow-hidden" style="min-height:80px;background:linear-gradient(135deg,#161c27,#1e2535)">
+      <img src="/user/banner/{{ player.id }}.png"
+           alt="Banner"
+           class="w-full block"
+           onerror="this.style.display='none'">
+      <div class="absolute inset-0" style="background:linear-gradient(to bottom,transparent 40%,rgba(13,17,23,0.6))"></div>
+    </div>
+
+    <!-- Avatar + name row -->
+    <div class="relative z-10 flex flex-col sm:flex-row sm:items-end gap-3 px-6" style="margin-top:-3rem">
+      <div class="flex-shrink-0">
+        <img src="{{ avatar_url }}"
+             alt="{{ player.username }}"
+             class="w-24 h-24 rounded-2xl object-cover"
+             style="border:4px solid #1e2535;box-shadow:0 0 0 2.5px #5b8ef0"
+             onerror="this.src='https://www.gravatar.com/avatar/?d=mp&s=96'">
+      </div>
+
+      <div class="flex-1 min-w-0 pb-1">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <h1 class="text-2xl font-bold truncate">{{ player.username }}</h1>
+          {% if player.country %}
+          <img src="https://flagsapi.com/{{ player.country }}/flat/32.png"
+               alt="{{ player.country }}"
+               class="h-5 rounded-sm"
+               onerror="this.style.display='none'">
+          {% endif %}
+        </div>
+        <div class="flex items-center gap-3 text-sm" style="color:rgba(221,226,236,0.55)">
+          <span><i class="fas fa-hashtag mr-1"></i>{{ "-" if player_stats.pp_rank == 0 else player_stats.pp_rank }} / {{ "-" if player_stats.country_pp_rank == 0 else player_stats.country_pp_rank }}</span>
+          <span>Lv. {{ level }}</span>
+          {% if player.online %}
+          <span class="flex items-center gap-1" style="color:#4ade80">
+            <i class="fas fa-circle text-xs animate-pulse"></i>Playing
+          </span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 pb-6 mt-5">
+      <div class="rounded-xl p-3 text-center" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Performance</div>
+        <div class="text-xl font-bold" style="color:#5b8ef0">{{ player_stats.pp | int }}pp</div>
+      </div>
+      <div class="rounded-xl p-3 text-center" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Accuracy</div>
+        <div class="text-xl font-bold" style="color:#a78bfa">{{ player_stats.acc }}</div>
+      </div>
+      <div class="rounded-xl p-3 text-center" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Play Count</div>
+        <div class="text-xl font-bold">{{ player_stats.plays }}</div>
+      </div>
+      <div class="rounded-xl p-3 text-center" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Ranked Score</div>
+        <div class="text-lg font-bold" style="color:#34d399">{{ "{:,}".format(player_stats.rscore) }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Scores -->
+  <div class="mb-6">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-1 h-6 rounded-full" style="background:#5b8ef0"></div>
+      <h2 class="text-lg font-bold">Top Scores</h2>
+      <span class="text-sm" style="color:rgba(221,226,236,0.4)">{{ top_scores | length }}</span>
+    </div>
+
+    {% if top_scores %}
+    <div class="space-y-2">
+      {% for score in top_scores %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group cursor-pointer"
+           style="background:linear-gradient(rgba(30, 37, 53, 0.85), rgba(30, 37, 53, 0.85)), url('{{ score.map_cover }}');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"
+           onclick="window.location.href='{{ score.map_link }}'">
+
+        <!-- Rank number -->
+        <div class="w-7 flex-shrink-0 text-center text-xs font-bold" style="color:rgba(221,226,236,0.3)">
+          #{{ loop.index }}
+        </div>
+
+        <!-- Grade -->
+        <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"
+             style="background:rgba(93,142,240,0.1);color:
+             {%- if score.grade in ('SS', 'S') %}#fbbf24
+             {%- elif score.grade in ('XH', 'SH') %}#cbd5e1
+             {%- elif score.grade == 'A' %}#4ade80
+             {%- elif score.grade == 'B' %}#60a5fa
+             {%- elif score.grade == 'C' %}#fb923c
+             {%- else %}#f87171{% endif -%}">
+          {%- if score.grade == 'XH' %}SS{%- elif score.grade == 'SH' %}S{%- else %}{{ score.grade }}{%- endif %}
+        </div>
+
+        <!-- Map name -->
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
+          <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
+            {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.max_combo }}x &bull; {{ score.hmiss }}x miss
+          </div>
+        </div>
+
+        <!-- PP + Acc -->
+        <div class="flex-shrink-0 text-right">
+          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp.calc_pp | round(2) }}pp</div>
+          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc | round(2) }}%</div>
+        </div>
+
+        <!-- Date -->
+        <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
+          <span class="score-date" data-ts="{{ score.date }}"></span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-xl py-10 text-center" style="background:#1e2535;border:1px solid rgba(93,142,240,0.1)">
+      <i class="fas fa-chart-bar text-3xl mb-3 block" style="color:rgba(93,142,240,0.3)"></i>
+      <p class="text-sm" style="color:rgba(221,226,236,0.4)">No top scores yet</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Recent Scores -->
+  <div>
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-1 h-6 rounded-full" style="background:#818cf8"></div>
+      <h2 class="text-lg font-bold">Recent Scores</h2>
+      <span class="text-sm" style="color:rgba(221,226,236,0.4)">{{ recent_scores | length }}</span>
+    </div>
+
+    {% if recent_scores %}
+    <div class="space-y-2">
+      {% for score in recent_scores %}
+      <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 cursor-pointer"
+           style="background:linear-gradient(rgba(30, 37, 53, 0.85), rgba(30, 37, 53, 0.85)), url('{{ score.map_cover }}');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"
+           onclick="window.location.href='{{ score.map_link }}'">
+
+        <!-- Grade -->
+        <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"
+             style="background:rgba(93,142,240,0.1);color:
+             {%- if score.grade in ('SS', 'S') %}#fbbf24
+             {%- elif score.grade in ('XH', 'SH') %}#cbd5e1
+             {%- elif score.grade == 'A' %}#4ade80
+             {%- elif score.grade == 'B' %}#60a5fa
+             {%- elif score.grade == 'C' %}#fb923c
+             {%- else %}#f87171{% endif -%}">
+          {%- if score.grade == 'XH' %}SS{%- elif score.grade == 'SH' %}S{%- else %}{{ score.grade }}{%- endif %}
+        </div>
+
+        <!-- Map name -->
+        <div class="flex-1 min-w-0">
+          <div class="text-sm font-medium truncate">{{ score.bmap.full }}</div>
+          <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
+            {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.combo }}x &bull; {{ score.hitmiss }}x miss
+          </div>
+        </div>
+
+        <!-- PP + Acc -->
+        <div class="flex-shrink-0 text-right">
+          <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp.calc_pp | round(2) }}pp</div>
+          <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.acc | round(2) }}</div>
+        </div>
+
+        <!-- Date -->
+        <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
+          <span class="score-date" data-ts="{{ score.date }}"></span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="rounded-xl py-10 text-center" style="background:#1e2535;border:1px solid rgba(93,142,240,0.1)">
+      <i class="fas fa-clock text-3xl mb-3 block" style="color:rgba(93,142,240,0.3)"></i>
+      <p class="text-sm" style="color:rgba(221,226,236,0.4)">No recent scores</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+  document.querySelectorAll('.score-date').forEach(function(el) {
+    var ts = el.dataset.ts;
+    if (!ts) return;
+
+    var date = new Date(/^\d+$/.test(ts) ? ts * 1000 : ts);
+    if (isNaN(date.getTime())) return;
+
+    var now = Date.now();
+    var diff = Math.floor((now - date) / 1000);
+
+    var label;
+    if (diff < 60)           label = diff + 's ago';
+    else if (diff < 3600)    label = Math.floor(diff / 60) + 'm ago';
+    else if (diff < 86400)   label = Math.floor(diff / 3600) + 'h ago';
+    else if (diff < 2592000) label = Math.floor(diff / 86400) + 'd ago';
+    else {
+      label = date.toLocaleDateString(undefined, {
+        year: 'numeric', month: 'short', day: 'numeric'
+      });
+    }
+
+    el.textContent = label;
+    el.title = date.toLocaleString();
+  });
+</script>
+{% endblock %}

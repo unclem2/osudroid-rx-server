@@ -10,7 +10,7 @@ bp = Blueprint("user_settings", __name__)
 async def settings():
     login_state = request.cookies.get("login_state")
     if login_state is None:
-        return await render_template("error.jinja", error_message="Not logged in")
+        return await render_template("error.html", error_message="Not logged in")
 
     if request.method == "POST":
         req = await request.form
@@ -20,6 +20,6 @@ async def settings():
             == False
         ):
             return await render_template(
-                "error.jinja", error_message="Invalid login state"
+                "error.html", error_message="Invalid login state"
             )
-    return await render_template("account/settings.jinja")
+    return await render_template("account/settings.html")

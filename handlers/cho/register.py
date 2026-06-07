@@ -1,5 +1,5 @@
 import re
-from quart import Blueprint, request, render_template
+from quart import Blueprint, request, render_template, make_response
 from objects import glob
 from handlers.response import Failed, Success
 import hashlib
@@ -39,6 +39,7 @@ async def register():
             return Failed("Email is not valid.")
 
         try:
+            country = None
             if os.path.exists("GeoLite2-Country.mmdb"):
                 with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
                     ip = request.remote_addr
@@ -81,7 +82,17 @@ async def register():
         p = await Player.from_sql(player_id)
         glob.players.add(p)
 
-        return await render_template(
-            "success.jinja", success_message=Success("Account Created.")
+        response = await render_template(
+            "success.html", success_message=Success("Account Created.")
         )
-    return await render_template("register.jinja")
+        response = await make_response(response)
+        username = params["username"]
+        response.set_cookie(
+            "login_state",
+            f'{username}-{player_id}-{utils.make_md5(f"{username}-{player_id}-{glob.config.login_key}")}',
+            max_age=60 * 60 * 24 * 30 * 12,
+        )  # Cookie expires in 1 year
+        
+        return response
+
+    return await render_template("register.html")

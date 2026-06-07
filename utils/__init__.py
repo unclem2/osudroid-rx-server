@@ -60,7 +60,7 @@ async def get_countries():
     countries = await glob.db.fetchall(
         "SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country"
     )
-    return [row["country"] for row in countries]
+    return [row["country"] for row in countries] if countries else []
 
 
 def is_convertable(value, type):

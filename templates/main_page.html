@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="relative min-h-screen flex items-center justify-center px-4 py-16 overflow-hidden">
+
+  <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+    {% for i in range(25) %}
+    <div style="
+      position:absolute;
+      width:8px; height:8px;
+      background:#5b8ef0;
+      border-radius:50%;
+      left:{{ (loop.index * 4) % 100 }}%;
+      animation: floatUp {{ 10 + (loop.index % 10) }}s linear infinite;
+      animation-delay: -{{ loop.index * 0.6 }}s;
+      opacity:0.15;
+    "></div>
+    {% endfor %}
+  </div>
+
+  <div class="relative z-10 w-full max-w-md">
+    <div class="rounded-2xl overflow-hidden shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+
+      <div class="h-1 w-full" style="background:linear-gradient(to right,#5b8ef0,#818cf8)"></div>
+
+      <div class="p-8 text-center">
+        <div class="w-20 h-20 mx-auto mb-5 rounded-2xl overflow-hidden flex items-center justify-center" style="background:rgba(93,142,240,0.1)">
+          <img src="/static/assets/img/logo.webp" alt="Logo" class="w-full h-full object-contain"
+               onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'fas fa-circle-dot text-4xl',style:'color:#5b8ef0'}))">
+        </div>
+
+        <h1 class="text-2xl font-bold mb-1">{{ title }}</h1>
+        <p class="text-sm mb-6" style="color:rgba(221,226,236,0.5)">od!rx private server</p>
+
+        <div class="grid grid-cols-2 gap-3 mb-6">
+          <div class="rounded-xl p-3" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Players</div>
+            <div class="text-xl font-bold" style="color:#5b8ef0">{{ players }}</div>
+          </div>
+          <div class="rounded-xl p-3" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Online</div>
+            <div class="text-xl font-bold" style="color:#4ade80">{{ online }}</div>
+          </div>
+        </div>
+
+        <div class="text-sm mb-6 space-y-1.5" style="color:rgba(221,226,236,0.6)">
+          <div class="flex items-center justify-between px-2">
+            <span><i class="fas fa-code-branch mr-2 opacity-60"></i>Version</span>
+            <span class="font-mono text-xs px-2 py-0.5 rounded" style="background:rgba(93,142,240,0.15);color:#5b8ef0">{{ version }}</span>
+          </div>
+          {% if changelog %}
+          <div class="flex items-start justify-between px-2 gap-4">
+            <span class="flex-shrink-0"><i class="fas fa-list mr-2 opacity-60"></i>Changelog</span>
+            <span class="text-right text-xs" style="color:rgba(221,226,236,0.5)">{{ changelog }}</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="flex flex-col gap-3">
+          <a href="{{ download_link }}" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90" style="background:#5b8ef0;color:#fff">
+            <i class="fas fa-download"></i>Download Client
+          </a>
+          <a href="https://discord.gg/syd5GjFk5Q" target="_blank" rel="noopener" class="flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-opacity hover:opacity-90" style="background:#5865F2;color:#fff">
+            <i class="fab fa-discord"></i>Join Discord
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes floatUp {
+    from { transform: translateY(100vh) scale(0.8); opacity: 0; }
+    10% { opacity: 0.15; }
+    90% { opacity: 0.15; }
+    to { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+  }
+</style>
+{% endblock %}

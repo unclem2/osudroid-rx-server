@@ -1,176 +1,183 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}My Website{% endblock %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        :root {
-            --color-primary: #000;
-            --color-background: #fffb
-        }
+  <meta charset="UTF-8">
+  <title>{% block title %}nekosu!{% endblock %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    /* Re-anchor font scale after Tailwind Preflight resets it */
+    html { font-size: 16px; }
+    body {
+      background: #0d1117;
+      color: #dde2ec;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 1rem;
+      line-height: 1.5;
+    }
 
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --background-color: #111;
-                --text-color: #DDD;
-            }
-        }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1117; }
+    ::-webkit-scrollbar-thumb { background: #5b8ef0; border-radius: 3px; }
 
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--background-color);
-            color: var(--text-color);
-        }
-        .menu {
-            background-color: #3d3d3d;
-            overflow: hidden;
-        }
-        .menu a, .dropbtn {
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-            font-size: 16px;
-        }
-        .menu a:hover, .dropdown:hover .dropbtn {
-            background-color: #ddd;
-            color: black;
-        }
-        .dropdown {
-            overflow: hidden;
-        }
-        .dropdown .dropbtn {
-            cursor: pointer;
-            border: none;
-            outline: none;
-            background-color: inherit;
-            font-family: inherit;
-            margin: 0;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
-        }
-        .dropdown-content a {
-            float: none;
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-            text-align: left;
-        }
-        .dropdown-content a:hover {
-            background-color: #ddd;
-        }
+    .nav-link {
+      transition: background 0.15s;
+      border-radius: 6px;
+      line-height: 1;
+    }
+    .nav-link:hover { background: rgba(255,255,255,0.06); }
 
-        .hamburger {
-            display: none;
-            font-size: 30px;
-            padding: 14px 16px;
-            cursor: pointer;
-            color: #f2f2f2;
-        }
+    /*
+      Dropdown — gap-safe approach:
+      .dd-panel sits at top:100% with transparent padding-top so it physically
+      covers the visual gap, keeping :hover on .dd-wrap alive while the mouse
+      travels from the button down to the visible menu.
+    */
+    .dd-wrap { position: relative; }
 
-        .dropbtn:after {
-            content: ' ▼';
-            font-size: 0.8em;
-        }
+    .dd-panel {
+      position: absolute;
+      top: 100%;          /* starts right at button bottom — no gap in DOM */
+      left: 0;
+      width: 188px;
+      padding-top: 6px;   /* visual breathing room, area is transparent */
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 50;
+    }
+    .dd-wrap:hover .dd-panel {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
 
-        @media (max-width: 600px) {
-            .menu a, .dropbtn, .dropdown-content {
-                display: none;
-                float: none;
-                width: 100%;
-                text-align: left;
-            }
-            .hamburger {
-                display: block;
-                float: right;
-            }
-            .menu .spacer {
-                display: none;
-            }
-        }
+    /* The visible box is an inner element so padding-top stays transparent */
+    .dd-inner {
+      background: #1e2535;
+      border: 1px solid rgba(93,142,240,0.22);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.55);
+      overflow: hidden;
+    }
 
-        @media (min-width: 601px) {
-            .dropdown:hover .dropdown-content {
-                display: block;
-            }
-            .menu a {
-                float: left;
-            }
-            .dropdown-content {
-                position: absolute;
-            }
-        }
-    </style>
+    .dd-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      font-size: 0.8125rem; /* 13px */
+      color: #dde2ec;
+      text-decoration: none;
+      transition: background 0.12s;
+    }
+    .dd-item:hover { background: rgba(255,255,255,0.06); }
+    .dd-item.danger { color: #f87171; }
+    .dd-item.danger:hover { background: rgba(248,113,113,0.08); }
+    .dd-sep { height: 1px; background: rgba(93,142,240,0.15); margin: 3px 12px; }
+  </style>
 </head>
-<body>
-    <div class="menu">
-        <a href="/"><i class="fas fa-home"></i> Home</a>
-        <div class="dropdown">
-            <button class="dropbtn">Profile</button>
-            <div class="dropdown-content">
-                <a href="/user/profile.php">Profile</a>
-                <a href="/user/account/settings">Account Settings</a>
-                <a href="/user/logout.php">Logout</a>
-            </div>
+<body class="min-h-screen flex flex-col">
+
+{% set logged_in = request.cookies.get('login_state') %}
+
+<nav style="background:#161c27;border-bottom:1px solid rgba(93,142,240,0.2)">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+
+    <a href="/" class="font-bold flex items-center gap-2" style="font-size:1rem;color:#5b8ef0">
+      <i class="fas fa-circle-dot"></i>od!rx
+    </a>
+
+    <!-- Desktop nav -->
+    <div class="hidden md:flex items-center gap-0.5">
+      <a href="/" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
+        <i class="fas fa-home mr-1.5 opacity-70"></i>Home
+      </a>
+      <a href="/user/leaderboard" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
+        <i class="fas fa-trophy mr-1.5 opacity-70"></i>Leaderboard
+      </a>
+
+      {% if logged_in %}
+      <div class="dd-wrap">
+        <button class="nav-link px-3 py-2 flex items-center gap-1" style="font-size:0.875rem;color:#dde2ec;background:none;border:none;cursor:default">
+          <i class="fas fa-user mr-1.5 opacity-70"></i>Profile
+          <i class="fas fa-chevron-down ml-1 opacity-40" style="font-size:9px"></i>
+        </button>
+        <div class="dd-panel">
+          <div class="dd-inner">
+            <a href="/user/profile.php" class="dd-item">
+              <i class="fas fa-user opacity-50" style="width:14px;text-align:center"></i>My Profile
+            </a>
+            <a href="/user/account/settings" class="dd-item">
+              <i class="fas fa-cog opacity-50" style="width:14px;text-align:center"></i>Settings
+            </a>
+            <div class="dd-sep"></div>
+            <a href="/user/logout.php" class="dd-item danger">
+              <i class="fas fa-sign-out-alt" style="width:14px;text-align:center"></i>Logout
+            </a>
+          </div>
         </div>
-        <a href="/user/leaderboard">Leaderboard</a>
-        <a href="/user/web_login.php">Login</a>
-        <a href="/api/register.php">Register</a>
-        <!-- Add more menu items as needed -->
-        <span class="hamburger">&#9776;</span>
+      </div>
+      {% else %}
+      <a href="/user/web_login.php" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
+        <i class="fas fa-sign-in-alt mr-1.5 opacity-70"></i>Login
+      </a>
+      <a href="/api/register.php" class="ml-1 px-3 py-1.5 rounded-lg font-medium hover:opacity-90 transition-opacity" style="font-size:0.875rem;background:#5b8ef0;color:#fff">
+        <i class="fas fa-user-plus mr-1.5"></i>Register
+      </a>
+      {% endif %}
     </div>
-    <div class="content">
-        {% block content %}{% endblock %}
-    </div>
-    <script>
-        const hamburger = document.querySelector('.hamburger');
-        const menuItems = document.querySelectorAll('.menu a, .dropdown .dropbtn');
-        const dropdownContents = document.querySelectorAll('.dropdown-content');
 
-        hamburger.addEventListener('click', () => {
-            menuItems.forEach(item => {
-                item.style.display = item.style.display === 'block' ? 'none' : 'block';
-            });
-        });
+    <!-- Hamburger -->
+    <button id="hamburger" class="md:hidden p-2 rounded hover:bg-white/5 transition-colors" style="color:#dde2ec;background:none;border:none;cursor:pointer">
+      <i class="fas fa-bars" style="font-size:1.125rem"></i>
+    </button>
+  </div>
 
-        const dropdownButtons = document.querySelectorAll('.dropdown .dropbtn');
-        dropdownButtons.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (window.innerWidth <= 600) {
-                    e.preventDefault();
-                    const dropdownContent = e.target.nextElementSibling;
-                    dropdownContent.style.display = dropdownContent.style.display === 'block' ? 'none' : 'block';
-                }
-            });
-        });
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden md:hidden px-3 pb-3 pt-1 border-t" style="border-color:rgba(93,142,240,0.2)">
+    <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-home opacity-60" style="width:16px;text-align:center"></i>Home
+    </a>
+    <a href="/user/leaderboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-trophy opacity-60" style="width:16px;text-align:center"></i>Leaderboard
+    </a>
 
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 600) {
-                menuItems.forEach(item => item.style.display = 'block');
-                dropdownContents.forEach(content => content.style.display = 'none');
-            } else {
-                menuItems.forEach(item => item.style.display = 'none');
-            }
-        });
+    {% if logged_in %}
+    <a href="/user/profile.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-user opacity-60" style="width:16px;text-align:center"></i>My Profile
+    </a>
+    <a href="/user/account/settings" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-cog opacity-60" style="width:16px;text-align:center"></i>Settings
+    </a>
+    <a href="/user/logout.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg" style="font-size:0.875rem;color:#f87171">
+      <i class="fas fa-sign-out-alt" style="width:16px;text-align:center"></i>Logout
+    </a>
+    {% else %}
+    <a href="/user/web_login.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-sign-in-alt opacity-60" style="width:16px;text-align:center"></i>Login
+    </a>
+    <a href="/api/register.php" class="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium" style="font-size:0.875rem;background:#5b8ef0;color:#fff">
+      <i class="fas fa-user-plus" style="width:16px;text-align:center"></i>Register
+    </a>
+    {% endif %}
+  </div>
+</nav>
 
-        document.addEventListener('click', (event) => {
-            if (window.innerWidth <= 600 && !event.target.closest('.menu')) {
-                menuItems.forEach(item => item.style.display = 'none');
-                dropdownContents.forEach(content => content.style.display = 'none');
-            }
-        });
-    </script>
+<main class="flex-1">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="py-5 text-center" style="font-size:0.75rem;color:rgba(221,226,236,0.3);border-top:1px solid rgba(93,142,240,0.1)">
+  od!rx by unclem2
+</footer>
+
+<script>
+  document.getElementById('hamburger').addEventListener('click', () => {
+    document.getElementById('mobile-menu').classList.toggle('hidden');
+  });
+</script>
 </body>
 </html>

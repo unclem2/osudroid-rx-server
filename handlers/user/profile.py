@@ -23,21 +23,25 @@ async def profile():
         elif "login_state" in request.cookies:
             player_id = int(request.cookies["login_state"].split("-")[1])
     except (ValueError, TypeError, IndexError):
-        return await render_template("error.jinja", error_message="Invalid player ID")
+        return await render_template("error.html", error_message="Invalid player ID")
 
     if player_id is None:
         return await render_template(
-            "error.jinja", error_message="No player ID provided"
+            "error.html", error_message="No player ID provided"
         )
     
     p = glob.players.get(id=player_id)
     if not p:
-        return await render_template("error.jinja", error_message="Player not found")
+        return await render_template("error.html", error_message="Player not found")
 
     player_stats = p.stats.as_json
 
+    recent_scores = None
 
-    recent_scores = await p.get_scores(50)
+    try:
+        recent_scores = await p.get_scores(50)
+    except:
+        pass
     if not recent_scores:
         recent_scores = []
     for score in recent_scores:
@@ -45,15 +49,22 @@ async def profile():
         if score.bmap is None:
             continue
         score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
 
-    top_scores = await p.top_scores(50)
+    top_scores = None
+
+    try:
+        top_scores = await p.top_scores(50)
+    except:
+        pass
     if not top_scores:
         top_scores = []
     for score in top_scores:
         score.mods = ModList.from_dict(json.loads(score.mods))
         if score.bmap is None:
             continue
-        score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_link = f"https://osu.ppy.sh/b/{score.bmap.id}"
+        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
 
     level = 0
 
@@ -82,13 +93,11 @@ async def profile():
             break
 
     player_stats["acc"] = f"{player_stats['acc']:.2f}%"
-    player_stats["rscore"] = f"{int(player_stats['rscore']):,}"
-    if os.path.isfile(f"data/avatar/{player_id}.png"):
-        avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
-    else:
-        avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"
+    player_stats["rscore"] = int(player_stats['rscore'])
+
+    avatar = f"{glob.config.host}/user/avatar/{player_id}.png"
     return await render_template(
-        "profile.jinja",
+        "profile.html",
         player_stats=player_stats,
         recent_scores=recent_scores,
         top_scores=top_scores,

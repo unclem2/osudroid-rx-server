@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Password Recovery{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-sm">
+
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:rgba(93,142,240,0.15)">
+        <i class="fas fa-key text-xl" style="color:#5b8ef0"></i>
+      </div>
+      <h1 class="text-2xl font-bold">Recover Account</h1>
+      <p class="text-sm mt-1" style="color:rgba(221,226,236,0.5)">Enter your username and email to receive a recovery link</p>
+    </div>
+
+    <div class="rounded-2xl p-6 shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      <form method="post" action="/user/password_recovery?type=submit">
+        <div class="mb-4">
+          <label for="username" class="block text-sm font-medium mb-1.5" style="color:rgba(221,226,236,0.8)">Username</label>
+          <input type="text" id="username" name="username" placeholder="Your username" required
+                 class="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
+                 style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;caret-color:#5b8ef0"
+                 onfocus="this.style.borderColor='#5b8ef0'" onblur="this.style.borderColor='rgba(93,142,240,0.2)'">
+        </div>
+        <div class="mb-6">
+          <label for="email" class="block text-sm font-medium mb-1.5" style="color:rgba(221,226,236,0.8)">Email</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required
+                 class="w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
+                 style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;caret-color:#5b8ef0"
+                 onfocus="this.style.borderColor='#5b8ef0'" onblur="this.style.borderColor='rgba(93,142,240,0.2)'">
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90"
+                style="background:#5b8ef0;color:#fff">
+          Send Recovery Email
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-sm mt-5">
+      <a href="/user/login" class="hover:underline" style="color:rgba(93,142,240,0.8)">
+        <i class="fas fa-arrow-left mr-1"></i>Back to login
+      </a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

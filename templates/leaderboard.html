@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-1 h-7 rounded-full" style="background:#5b8ef0"></div>
+    <h1 class="text-2xl font-bold">Leaderboard</h1>
+  </div>
+
+  <!-- Controls -->
+  <div class="flex flex-wrap gap-3 mb-5">
+
+    <div class="relative flex-1 min-w-48">
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+         style="color:rgba(221,226,236,0.35)"></i>
+      <input type="text" id="search-input" placeholder="Search player..."
+             class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
+             style="background:#1e2535;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;
+                    caret-color:#5b8ef0"
+             onfocus="this.style.borderColor='#5b8ef0'"
+             onblur="this.style.borderColor='rgba(93,142,240,0.2)'">
+    </div>
+
+    <!-- Country selector -->
+    <div class="relative">
+      <i class="fas fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
+         style="color:rgba(221,226,236,0.35)"></i>
+      <select id="country-select"
+              class="pl-9 pr-8 py-2.5 rounded-xl text-sm outline-none appearance-none cursor-pointer transition-colors"
+              style="background:#1e2535;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;
+                     min-width:140px"
+              onfocus="this.style.borderColor='#5b8ef0'"
+              onblur="this.style.borderColor='rgba(93,142,240,0.2)'"
+              onchange="applyCountry(this.value)">
+        <option value="" {% if not country %}selected{% endif %}
+                style="background:#1e2535">All Countries</option>
+        {% for c in countries %}
+        <option value="{{ c.code }}"
+                {% if country == c.code %}selected{% endif %}
+                style="background:#1e2535">
+          {{ c.name }}
+        </option>
+        {% endfor %}
+      </select>
+      <!-- Custom chevron -->
+      <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+         style="color:rgba(221,226,236,0.35)"></i>
+    </div>
+
+    <!-- Sort: By PP -->
+    <a href="?sortby=pp{% if country %}&country={{ country }}{% endif %}"
+       class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+       style="background:{{ '#5b8ef0' if sortby == 'pp' else '#1e2535' }};
+              color:{{ '#fff' if sortby == 'pp' else '#dde2ec' }};
+              border:1px solid rgba(93,142,240,0.2)">
+      <i class="fas fa-star mr-1.5"></i>By PP
+    </a>
+
+    <!-- Sort: By Score -->
+    <a href="?sortby=score{% if country %}&country={{ country }}{% endif %}"
+       class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
+       style="background:{{ '#5b8ef0' if sortby == 'score' else '#1e2535' }};
+              color:{{ '#fff' if sortby == 'score' else '#dde2ec' }};
+              border:1px solid rgba(93,142,240,0.2)">
+      <i class="fas fa-gamepad mr-1.5"></i>By Score
+    </a>
+
+  </div>
+
+  <!-- Table -->
+  <div class="rounded-2xl overflow-hidden shadow-2xl"
+       style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr style="background:#161c27;border-bottom:1px solid rgba(93,142,240,0.2)">
+            <th class="px-4 py-3 text-left text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Rank</th>
+            <th class="px-4 py-3 text-left text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Player</th>
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">
+              {{ 'PP' if sortby == 'pp' else 'Ranked Score' }}
+            </th>
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">Plays</th>
+          </tr>
+        </thead>
+
+        <tbody id="leaderboard-body">
+          {% for player in leaderboard %}
+          {% set r = player.pp_rank if sortby == 'pp' else player.score_rank %}
+
+          <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer"
+              style="border-color:rgba(93,142,240,0.08)"
+              data-name="{{ player.username|lower }}"
+              data-rank="{{ r }}"
+              onclick="window.location='/user/profile.php?id={{ player.id }}'">
+
+            <td class="px-4 py-3">
+              {% if r == 1 %}
+                <span class="text-base font-bold" style="color:#fbbf24">🥇</span>
+              {% elif r == 2 %}
+                <span class="text-base font-bold" style="color:#94a3b8">🥈</span>
+              {% elif r == 3 %}
+                <span class="text-base font-bold" style="color:#cd7f32">🥉</span>
+              {% elif r == 0 or r is none %}
+                <span class="text-sm" style="color:rgba(221,226,236,0.35)">-</span>
+              {% else %}
+                <span class="text-sm font-medium"
+                      style="color:rgba(221,226,236,0.6)">#{{ r }}</span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-3">
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-medium" style="color:#dde2ec">
+                  {{ player.username }}
+                </span>
+              </div>
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              {% if sortby == 'pp' %}
+                <span class="text-sm font-bold" style="color:#5b8ef0">
+                  {{ player.pp|int }}pp
+                </span>
+              {% else %}
+                <span class="text-sm font-bold" style="color:#34d399">
+                  {{ "{:,}".format(player.rscore) }}
+                </span>
+              {% endif %}
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              <span class="text-sm" style="color:rgba(221,226,236,0.6)">
+                {{ player.plays }}
+              </span>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex items-center justify-center gap-3 mt-5">
+    <button id="prev-page"
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
+      <i class="fas fa-chevron-left mr-1"></i>Previous
+    </button>
+    <span id="page-info" class="text-sm"
+          style="color:rgba(221,226,236,0.5)">Page 1</span>
+    <button id="next-page"
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+            style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
+      Next<i class="fas fa-chevron-right ml-1"></i>
+    </button>
+  </div>
+
+</div>
+
+<script>
+function applyCountry(code) {
+  const url = new URL(window.location.href);
+  if (code) {
+    url.searchParams.set('country', code);
+  } else {
+    url.searchParams.delete('country');
+  }
+  window.location.href = url.toString();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const tbody = document.getElementById('leaderboard-body');
+  const searchInput = document.getElementById('search-input');
+  const prevBtn = document.getElementById('prev-page');
+  const nextBtn = document.getElementById('next-page');
+  const pageInfo = document.getElementById('page-info');
+
+  const PER_PAGE = 15;
+  let currentPage = 1;
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+  function getFilteredRows() {
+    const q = searchInput.value.toLowerCase().trim();
+    const searchActive = q.length > 0;
+    return allRows.filter(row => {
+      const name = row.dataset.name;
+      const rank = parseInt(row.dataset.rank || "0");
+      if (rank === 0 && !searchActive) return false;
+      return name.includes(q);
+    });
+  }
+
+  function render() {
+    const filteredRows = getFilteredRows();
+    const start = (currentPage - 1) * PER_PAGE;
+    const end = start + PER_PAGE;
+    allRows.forEach(r => r.style.display = 'none');
+    filteredRows.slice(start, end).forEach(r => r.style.display = '');
+    prevBtn.disabled = currentPage === 1;
+    nextBtn.disabled = end >= filteredRows.length;
+    const totalPages = Math.max(1, Math.ceil(filteredRows.length / PER_PAGE));
+    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+  }
+
+  searchInput.addEventListener('input', () => { currentPage = 1; render(); });
+  prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
+  nextBtn.addEventListener('click', () => {
+    if (currentPage * PER_PAGE < getFilteredRows().length) { currentPage++; render(); }
+  });
+
+  render();
+});
+</script>
+
+{% endblock %}

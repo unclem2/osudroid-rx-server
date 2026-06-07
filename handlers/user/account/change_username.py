@@ -13,7 +13,7 @@ bp = Blueprint("user_change_username", __name__)
 async def change_username():
     login_state = request.cookies.get("login_state")
     if login_state is None:
-        return await render_template("error.jinja", error_message="Not logged in")
+        return await render_template("error.html", error_message="Not logged in")
 
     if request.method == "POST":
         req = await request.form
@@ -23,36 +23,36 @@ async def change_username():
             == False
         ):
             return await render_template(
-                "error.jinja", error_message="Invalid login state"
+                "error.html", error_message="Invalid login state"
             )
         new_username = req.get("new_username")
 
         if not new_username:
             return await render_template(
-                "error.jinja", error_message="Invalid new username"
+                "error.html", error_message="Invalid new username"
             )
         if re.fullmatch(r'^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$', new_username) is None:
             return render_template(
-                "error.jinja", error_message="Username contains invalid characters."
+                "error.html", error_message="Username contains invalid characters."
             )
         
         try:
             if glob.players.get(username=new_username): 
                 return await render_template(
-                    "error.jinja", error_message="Username already taken"
+                    "error.html", error_message="Username already taken"
                 )
         except:
             pass
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
 
         res = await glob.db.fetch("SELECT status FROM users WHERE id = $1", [player.id])
         if not res:
             return await render_template(
-                "error.jinja", error_message="Player not found"
+                "error.html", error_message="Player not found"
             )
         safe_username = utils.make_safe(new_username)
         await glob.db.execute(
@@ -65,5 +65,5 @@ async def change_username():
         glob.players.remove(player)
 
         return await render_template(
-            "success.jinja", success_message="Username changed successfully"
+            "success.html", success_message="Username changed successfully"
         )

@@ -25,9 +25,10 @@ from utils.tasks import TaskManager
 
 async def init_players():
     player_ids = await glob.db.fetchall("SELECT id FROM users WHERE id != -1")
-    for player_id in player_ids:
-        player = await Player.from_sql(player_id["id"])
-        glob.players.add(player)
+    if player_ids:
+        for player_id in player_ids:
+            player = await Player.from_sql(player_id["id"])
+            glob.players.add(player)
 
 async def update_player_stats():
     try:
@@ -65,7 +66,7 @@ app = make_app()
 
 def handle_ex(loop, context):
     logging.debug("SSL error ignored: ")
-    logging.debug(f"{context["message"]}")
+    logging.debug(f"{context['message']}")
     logging.debug(context["exception"])
 
 
@@ -130,7 +131,7 @@ async def index():
     download_link = glob.config.client_link
 
     return await render_template(
-        "main_page.jinja",
+        "main_page.html",
         players=players,
         online=online,
         title=title,
