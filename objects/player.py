@@ -174,7 +174,10 @@ class Player:
             logging.error(
                 f"Failed to find player scores when updating stats. (Ignore if the player is new, id: {self.id})"
             )
-            return
+        if not top_scores:
+            top_scores = []
+        if not all_scores:
+            all_scores = []
 
         stats = self.stats or Stats(
             id=int(self.id),
@@ -191,7 +194,7 @@ class Player:
         )
 
         # Average accuracy from top scores
-        stats.acc = sum(row["acc"] for row in top_scores) / len(top_scores)
+        stats.acc = sum(row["acc"] for row in top_scores) / len(top_scores) if top_scores else 100
 
         # Weighted pp calculation (top 100 scores)
         total_pp = 0
