@@ -6,10 +6,15 @@ from objects.player import Player
 from handlers.response import ApiResponse
 from pydantic import BaseModel, model_validator
 from typing import Optional
-from quart_schema import validate_response, validate_querystring, RequestSchemaValidationError
+from quart_schema import (
+    validate_response,
+    validate_querystring,
+    RequestSchemaValidationError,
+)
 
 
 bp = Blueprint("get_user", __name__)
+
 
 class UserRequest(BaseModel):
     id: Optional[int] = None
@@ -19,7 +24,9 @@ class UserRequest(BaseModel):
     @classmethod
     def validate_args(cls, values):
         if not values.get("id") and not values.get("username"):
-            raise PydanticCustomError("validation_error", "Either id or username must be provided.")
+            raise PydanticCustomError(
+                "validation_error", "Either id or username must be provided."
+            )
         if values.get("username") is not None and len(values["username"]) < 2:
             raise PydanticCustomError("validation_error", "Invalid username.")
         return values
@@ -41,6 +48,7 @@ async def get_user(query_args: UserRequest) -> ApiResponse[PlayerModel]:
         return ApiResponse.not_found("User not found")
 
     return ApiResponse.ok(PlayerModel(**player.as_json))
+
 
 @bp.errorhandler(RequestSchemaValidationError)
 async def handle_validation_error(error: RequestSchemaValidationError):

@@ -6,10 +6,10 @@ from objects.room.match import Match
 from objects.beatmap import Beatmap
 import random
 
+
 class ChatEvents:
     async def help(self):
         functions = dir(self)
-
 
     async def set_map(self, bid):
         room_info = glob.rooms.get(id=self.room_id)
@@ -36,7 +36,7 @@ class ChatEvents:
         if room_info is None:
             return
         mods_data = mods
-        #TODO make from_string
+        # TODO make from_string
         # room_info.mods = ModList.from_string(mods)
 
         # await self.emit_event("roomModsChanged", room_info.mods.as_droid_mods)
@@ -69,11 +69,13 @@ class ChatEvents:
             return
         await self.emit_event(
             "chatMessage",
-            data=(str(player.uid), args[0]), skip_sid=[watcher.sid for watcher in room_info.watchers]
+            data=(str(player.uid), args[0]),
+            skip_sid=[watcher.sid for watcher in room_info.watchers],
         )
         await self.emit_event(
             "chatMessage",
-            data=(str(player.username), args[0]), skip_sid=[player.sid for player in room_info.players]
+            data=(str(player.username), args[0]),
+            skip_sid=[player.sid for player in room_info.players],
         )
         command = args[0].split(" ")[0]
         if not command.startswith("!"):
@@ -104,9 +106,15 @@ class ChatEvents:
                 if int(player.uid) != 2:
                     return
                 self.debug = not self.debug
-                await self.emit_event("chatMessage", data=(None, f"{'on' if self.debug else 'off'}"), to=sid)
+                await self.emit_event(
+                    "chatMessage",
+                    data=(None, f"{'on' if self.debug else 'off'}"),
+                    to=sid,
+                )
             case "!dd":
-                await self.emit_event("chatMessage", data=(None, str(room_info.as_json)), to=sid)
+                await self.emit_event(
+                    "chatMessage", data=(None, str(room_info.as_json)), to=sid
+                )
             case "!abort":
                 if player.uid != room_info.host.uid:
                     return
@@ -120,8 +128,12 @@ class ChatEvents:
                     return
                 for i in range(int(command_args[0])):
                     await asyncio.sleep(1)
-                    await self.emit_event("chatMessage", data=(None, f"{int(command_args[0])-i}"))
+                    await self.emit_event(
+                        "chatMessage", data=(None, f"{int(command_args[0])-i}")
+                    )
                 await self.on_playBeatmap(sid)
             case "!roll":
                 roll = random.randint(1, 100)
-                await self.emit_event("chatMessage", data=(None, f"{player.username} rolled {roll}"))
+                await self.emit_event(
+                    "chatMessage", data=(None, f"{player.username} rolled {roll}")
+                )

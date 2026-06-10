@@ -1,5 +1,9 @@
 from quart import Blueprint
-from quart_schema import validate_response, validate_querystring, RequestSchemaValidationError
+from quart_schema import (
+    validate_response,
+    validate_querystring,
+    RequestSchemaValidationError,
+)
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
 from typing import Optional
@@ -8,6 +12,7 @@ from handlers.response import ApiResponse
 from .models.beatmap import BeatmapModel
 
 bp = Blueprint("beatmap", __name__)
+
 
 class BeatmapRequest(BaseModel):
     md5: Optional[str] = None
@@ -19,9 +24,10 @@ class BeatmapRequest(BaseModel):
         if not values.get("md5") and not values.get("bid"):
             raise PydanticCustomError(
                 "validation_error",
-                "Either 'md5' or 'bid' must be provided to retrieve a beatmap."
+                "Either 'md5' or 'bid' must be provided to retrieve a beatmap.",
             )
         return values
+
 
 @bp.route("/", methods=["GET"])
 @validate_querystring(BeatmapRequest)
@@ -40,11 +46,10 @@ async def beatmap(query_args: BeatmapRequest) -> ApiResponse[BeatmapModel]:
     await beatmap.download()
     return ApiResponse.ok(BeatmapModel(**beatmap.as_json))
 
+
 @bp.errorhandler(RequestSchemaValidationError)
 async def handle_error(error: RequestSchemaValidationError):
     error_message = error.validation_error.errors()[0]
     return ApiResponse.custom(
-        status=error_message["type"],
-        data=error_message["msg"],
-        code=400
+        status=error_message["type"], data=error_message["msg"], code=400
     )

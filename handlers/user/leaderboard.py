@@ -39,7 +39,7 @@ async def leaderboard():
 
     players_stats = await glob.db.fetchall(query, params)
     countries = await get_countries()
-    
+
     # Failsafe: ensure countries is a list (even if empty)
     if not countries:
         countries = []

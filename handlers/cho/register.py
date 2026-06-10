@@ -31,11 +31,22 @@ async def register():
 
         if len(params["username"]) < 2:
             return Failed("Username must be longer than 2 characters.")
-        
-        if re.fullmatch(r'^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$', params["username"]) is None:
+
+        if (
+            re.fullmatch(
+                r"^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$", params["username"]
+            )
+            is None
+        ):
             return Failed("Username contains invalid characters.")
-        
-        if re.fullmatch(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])", params["email"]) is None:
+
+        if (
+            re.fullmatch(
+                r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])",
+                params["email"],
+            )
+            is None
+        ):
             return Failed("Email is not valid.")
 
         try:
@@ -72,7 +83,7 @@ async def register():
                 params["email"],
                 utils.make_md5(params["email"]),
                 0,
-                country
+                country,
             ],
         )
 
@@ -92,7 +103,7 @@ async def register():
             f'{username}-{player_id}-{utils.make_md5(f"{username}-{player_id}-{glob.config.login_key}")}',
             max_age=60 * 60 * 24 * 30 * 12,
         )  # Cookie expires in 1 year
-        
+
         return response
 
     return await render_template("register.html")

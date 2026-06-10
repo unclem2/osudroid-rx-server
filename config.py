@@ -6,9 +6,7 @@ load_dotenv(override=True)
 
 # Main server configuration
 server_name = "osudroid!relax"
-server_description = (
-    "Server that aims to be a relax mod only version of osu!droid, for those people that like to play RX and wish it were ranked."
-)
+server_description = "Server that aims to be a relax mod only version of osu!droid, for those people that like to play RX and wish it were ranked."
 port = int(os.getenv("SERVER_PORT", 8080))
 ip = os.getenv("SERVER_IP")
 domain = os.getenv("SERVER_DOMAIN")

@@ -25,6 +25,7 @@ class RankedStatus(IntEnum):
         Loved (int): 4 — The beatmap is loved (Bancho).
         Whitelisted (int): 5 — The beatmap is whitelisted (locally).
     """
+
     Blacklisted = -3
     Graveyard = -2
     NotSubmitted = -1
@@ -37,6 +38,7 @@ class RankedStatus(IntEnum):
 
     def __str__(self):
         return self.name
+
 
 class Beatmap:
     """
@@ -210,7 +212,7 @@ class Beatmap:
         await beatmap.save_to_sql()
 
         return beatmap
-    
+
     @classmethod
     async def from_bid(cls, bid: int) -> Optional["Beatmap"]:
         """
@@ -240,7 +242,6 @@ class Beatmap:
         # Put the beatmap in the cache
         glob.cache["beatmaps"][beatmap.md5] = beatmap
         return beatmap
-
 
     @classmethod
     async def from_bid_osuapi(cls, bid: int) -> Optional["Beatmap"]:
@@ -308,12 +309,14 @@ class Beatmap:
         }
 
     @classmethod
-    async def from_sql(cls, md5: Optional[str], bid: Optional[int]) -> Optional["Beatmap"]:
+    async def from_sql(
+        cls, md5: Optional[str], bid: Optional[int]
+    ) -> Optional["Beatmap"]:
         """
         Fetch a beatmap by md5 or bid from the database.
         Args:
             md5 (str): The MD5 hash of the beatmap.
-            bid (int): The beatmap ID. 
+            bid (int): The beatmap ID.
         Returns:
             Optional[Beatmap]: The beatmap object if found, otherwise None.
         """
@@ -396,13 +399,14 @@ class Beatmap:
                 self.star,
             ],
         )
-    
+
     async def recalc_lb_placements(self) -> None:
         """
         Recalculates the local and global placements for the beatmap.
         This is useful when the beatmap's scores change and placements need to be updated.
         """
         from objects.score import Score
+
         scores = await glob.db.fetchall(
             """
             SELECT id, score, local_placement, global_placement, pp, playerid
@@ -416,8 +420,15 @@ class Beatmap:
         for score in scores:
             score["md5"] = self.md5
             score_obj = await Score.from_sql(0, score)
-            score_obj.global_placement, score_obj.local_placement = await score_obj.calc_lb_placement()
+            (
+                score_obj.global_placement,
+                score_obj.local_placement,
+            ) = await score_obj.calc_lb_placement()
             await glob.db.execute(
                 "UPDATE scores SET global_placement = $1, local_placement = $2 WHERE id = $3",
-                [score_obj.global_placement if score_obj.local_placement == 1 else 0, score_obj.local_placement, score_obj.id],
+                [
+                    score_obj.global_placement if score_obj.local_placement == 1 else 0,
+                    score_obj.local_placement,
+                    score_obj.id,
+                ],
             )
