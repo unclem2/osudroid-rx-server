@@ -15,6 +15,7 @@ async def map_status(md5: str):
         return {"md5": "", "ranked": -1}
     if map.status == RankedStatus.Whitelisted:
         map.status = RankedStatus.Ranked
-
+    if map.status == RankedStatus.Blacklisted:
+        map.status = RankedStatus.Graveyard
     glob.task_manager.add_task(map.download())
     return {"md5": md5, "ranked": map.status}

@@ -15,6 +15,7 @@ class RankedStatus(IntEnum):
     Enum representing the ranked status of a beatmap.
 
     Attributes:
+        Blacklisted (int): -3 — The beatmap is blacklisted (locally)
         Graveyard (int): -2 — The beatmap is in the graveyard (locally or on Bancho).
         NotSubmitted (int): -1 — The beatmap is not found (locally or on Bancho).
         Pending (int): 0 — The beatmap is pending (Bancho).
@@ -24,7 +25,7 @@ class RankedStatus(IntEnum):
         Loved (int): 4 — The beatmap is loved (Bancho).
         Whitelisted (int): 5 — The beatmap is whitelisted (locally).
     """
-
+    Blacklisted = -3
     Graveyard = -2
     NotSubmitted = -1
     Pending = 0
