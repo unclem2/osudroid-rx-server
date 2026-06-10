@@ -55,16 +55,14 @@ class Match:
     @property
     def all_loaded(self) -> bool:
         return all(self.beatmap_load_status.values())
-    
+
     @property
     def all_skipped(self) -> bool:
         return all(self.skip_requests.values())
-    
+
     @property
     def all_submitted(self) -> bool:
-        return all(
-            score["score"] != None for score in self.submitted_scores.values()
-        )
+        return all(score["score"] != None for score in self.submitted_scores.values())
 
     @property
     def as_json(self) -> dict[str, dict]:

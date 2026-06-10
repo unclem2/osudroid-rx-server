@@ -4,7 +4,12 @@ from objects.score import Score
 import utils.pp
 import utils
 from typing import Optional
-from quart_schema import RequestSchemaValidationError, validate_request, validate_response, validate_querystring
+from quart_schema import (
+    RequestSchemaValidationError,
+    validate_request,
+    validate_response,
+    validate_querystring,
+)
 from pydantic import BaseModel, model_validator
 from pydantic_core import PydanticCustomError
 from .models.score import ScoreModel
@@ -12,6 +17,7 @@ from handlers.response import ApiResponse
 
 
 bp = Blueprint("calculate", __name__)
+
 
 class CalculateRequest(BaseModel):
     md5: Optional[str] = None
@@ -21,14 +27,13 @@ class CalculateRequest(BaseModel):
     combo: Optional[int] = None
     mods: Optional[str] = ""
 
-
     @model_validator(mode="before")
     @classmethod
     def validate(cls, values):
         if not values.get("md5") and not values.get("bid"):
             raise PydanticCustomError(
                 "validation_error",
-                "Either 'md5' or 'bid' must be provided to retrieve a beatmap."
+                "Either 'md5' or 'bid' must be provided to retrieve a beatmap.",
             )
         return values
 
@@ -79,7 +84,7 @@ async def calculate(data: CalculateRequest):
     if data.mods is not None:
         score.mods = data.mods
 
-    score.pp  = await utils.pp.PPCalculator.from_score(score)
+    score.pp = await utils.pp.PPCalculator.from_score(score)
     if score.pp is False:
         return ApiResponse.internal_error("Failed to calculate performance points.")
     try:
@@ -95,9 +100,10 @@ async def calculate(data: CalculateRequest):
         "hmiss": score.hmiss,
         "max_combo": score.pp.max_combo,
         "mods": score.mods,
-        "difficulty": score.pp.difficulty
+        "difficulty": score.pp.difficulty,
     }
     return ApiResponse.ok(ScoreModel(**result))
+
 
 @bp.errorhandler(RequestSchemaValidationError)
 async def handle_validation_error(error: RequestSchemaValidationError):
@@ -106,7 +112,5 @@ async def handle_validation_error(error: RequestSchemaValidationError):
     """
     error_message = error.validation_error.errors()[0]
     return ApiResponse.custom(
-        status=error_message["type"],
-        data=error_message["msg"],
-        code=400
+        status=error_message["type"], data=error_message["msg"], code=400
     )

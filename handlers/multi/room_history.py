@@ -18,11 +18,7 @@ async def room_history():
             current_beatmap = record["data"]
         elif record["event"] == "allPlayersScoreSubmitted":
             ret.append(
-                {
-                    "event": "match",
-                    "beatmap": current_beatmap,
-                    "scores": record["data"]
-                }
+                {"event": "match", "beatmap": current_beatmap, "scores": record["data"]}
             )
 
     return jsonify(ret)

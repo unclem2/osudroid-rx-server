@@ -32,7 +32,6 @@ class RoomEvents:
         await self.emit_event(
             "roomGameplaySettingsChanged",
             gameplay_settings.as_json,
-             
         )
 
     async def on_roomNameChanged(self, sid, *args):
@@ -41,13 +40,14 @@ class RoomEvents:
             return
         room_info.name = args[0]
         await self.emit_event(
-            "roomNameChanged", data=str(room_info.name),  
+            "roomNameChanged",
+            data=str(room_info.name),
         )
 
     async def on_roomPasswordChanged(self, sid, *args):
         room_info = glob.rooms.get(id=self.room_id)
         if room_info is None:
-            return  
+            return
         new_password = args[0]
 
         if new_password == "":
@@ -67,7 +67,6 @@ class RoomEvents:
         await self.emit_event(
             "winConditionChanged",
             data=room_info.win_condition,
-             
         )
 
     async def on_teamModeChanged(self, sid, *args):
@@ -76,19 +75,18 @@ class RoomEvents:
             return
         room_info.team_mode = args[0]
         await self.emit_event(
-            "teamModeChanged", room_info.team_mode,  
+            "teamModeChanged",
+            room_info.team_mode,
         )
         for player in room_info.players:
             player.team = None
             await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.IDLE)),
-                 
             )
             await self.emit_event(
                 "teamChanged",
                 data=(str(player.uid), player.team),
-                 
             )
 
     async def on_teamChanged(self, sid, *args):
@@ -103,7 +101,6 @@ class RoomEvents:
         await self.emit_event(
             "teamChanged",
             data=(str(player.uid), player.team),
-             
         )
 
     async def on_maxPlayersChanged(self, sid, *args):
@@ -114,5 +111,4 @@ class RoomEvents:
         await self.emit_event(
             "maxPlayersChanged",
             data=str(room_info.max_players),
-             
         )

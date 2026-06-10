@@ -12,6 +12,7 @@ import utils
 
 bp = Blueprint("wl_add", __name__)
 
+
 class WhitelistAddRequest(BaseModel):
     key: str
     md5: Optional[str] = None
@@ -20,16 +21,13 @@ class WhitelistAddRequest(BaseModel):
     @model_validator(mode="before")
     def validate(cls, values):
         if not values.get("key"):
-            raise PydanticCustomError(
-                "validation_error",
-                "Key must be provided."
-            )
+            raise PydanticCustomError("validation_error", "Key must be provided.")
         if not values.get("md5") and not values.get("bid"):
             raise PydanticCustomError(
-                "validation_error",
-                "Either md5 or bid must be provided."
+                "validation_error", "Either md5 or bid must be provided."
             )
         return values
+
 
 @bp.route("/", methods=["GET"])
 @validate_querystring(WhitelistAddRequest)
@@ -37,7 +35,7 @@ class WhitelistAddRequest(BaseModel):
 @validate_response(ApiResponse[str], 400)
 @validate_response(ApiResponse[str], 403)
 async def whitelist_add(query_args: WhitelistAddRequest) -> ApiResponse[BeatmapModel]:
-    """ 
+    """
     Add a beatmap to the whitelist.
     """
     if query_args.key != glob.config.wl_key:
@@ -48,7 +46,9 @@ async def whitelist_add(query_args: WhitelistAddRequest) -> ApiResponse[BeatmapM
     elif query_args.bid is not None:
         map = await Beatmap.from_bid(query_args.bid)
     if map is None:
-        return ApiResponse.not_found("Beatmap not found or missing required attributes.")
+        return ApiResponse.not_found(
+            "Beatmap not found or missing required attributes."
+        )
     glob.task_manager.add_task(map.download())
 
     # made by operagx

@@ -11,7 +11,8 @@ class MatchEvents:
             return
         room_info.status = RoomStatus.PLAYING
         await self.emit_event(
-            "roomStatusChanged", data=room_info.status,  
+            "roomStatusChanged",
+            data=room_info.status,
         )
         await self.emit_event("playBeatmap")
         for player in room_info.players:
@@ -21,7 +22,6 @@ class MatchEvents:
             await self.emit_event(
                 "playerStatusChanged",
                 (str(player.uid), int(PlayerStatus.PLAYING)),
-                 
             )
             room_info.match.add_player(player)
 
@@ -35,7 +35,7 @@ class MatchEvents:
         room_info.match.loaded(player.uid)
         if room_info.match.all_loaded:
             await self.emit_event(
-                "allPlayersBeatmapLoadComplete",  
+                "allPlayersBeatmapLoadComplete",
             )
             watchers_data = {
                 "mods": room_info.mods.as_calculable_mods,
@@ -47,7 +47,6 @@ class MatchEvents:
                 await self.emit_event(
                     "roundStarted",
                     data=watchers_data,
-                     
                     to=watcher.sid,
                 )
 

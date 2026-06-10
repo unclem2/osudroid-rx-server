@@ -32,7 +32,7 @@ async def submit_play():
 
     if glob.config.disable_submit:
         return Failed("Score submission is disable right now.")
-        
+
     if md5 := params.get("hash", None):
         logging.info(f"Changed {player} playing to {md5}")
         player.stats.playing = md5
