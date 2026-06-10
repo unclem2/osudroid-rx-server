@@ -33,10 +33,10 @@ class WhitelistRemoveRequest(BaseModel):
 
 @bp.route("/", methods=["GET"])
 @validate_querystring(WhitelistRemoveRequest)
-@validate_response(ApiResponse[str], 200)
+@validate_response(ApiResponse[BeatmapModel], 200)
 @validate_response(ApiResponse[str], 400)
 @validate_response(ApiResponse[str], 403)
-async def whitelist_remove(query_args: WhitelistRemoveRequest) -> ApiResponse[str]:
+async def whitelist_remove(query_args: WhitelistRemoveRequest) -> ApiResponse[BeatmapModel]:
     """ 
     Remove a beatmap from the whitelist.
     """
