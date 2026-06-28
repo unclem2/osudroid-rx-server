@@ -1,8 +1,9 @@
 import re
 import json
 
-#TODO: move to lib
-#TODO: fix differences between mod settings appearance 
+
+# TODO: move to lib
+# TODO: fix differences between mod settings appearance
 class Mods:
     def __init__(self, mods):
         self.is_json = True
@@ -11,13 +12,13 @@ class Mods:
         except json.JSONDecodeError:
             self.mods = mods
             self.is_json = False
-    
+
     def __get_droid_encoded_mods(self, mods: str):
         mods = re.sub(r"\bx\d+\.\d+\b", "", mods, flags=re.IGNORECASE)
 
         mods = re.sub(r"[^a-z]", "", mods)
         return mods
-    
+
     def __old_convert_std(self):
         mod_mapping = {
             "n": "NF",
@@ -68,7 +69,7 @@ class Mods:
             mods += f"CS({matchsm.group(1)})"
         if matchfld:
             mods += f"FLD({matchfld.group(1)})"
-        
+
         return mods
 
     def __old_convert_droid(self):
@@ -93,7 +94,7 @@ class Mods:
             "b": {"acronym": "TC"},
         }
 
-        mods= []
+        mods = []
         for char in self.__get_droid_encoded_mods(self.mods):
             if char in mod_mapping:
                 mods.append(mod_mapping[char])
@@ -106,10 +107,7 @@ class Mods:
         matchfld = re.search(r"\bFLD(\d+\.\d+)\b", self.mods)
 
         if matchar or matchcs or matchod or matchhp:
-            da = {
-                "acronym": "DA",
-                "settings": {}
-            }
+            da = {"acronym": "DA", "settings": {}}
             if matchar:
                 da["settings"]["ar"] = float(matchar.group(1))
             if matchcs:
@@ -121,23 +119,23 @@ class Mods:
             mods.append(da)
 
         if matchsm:
-            mods.append({
-                "acronym": "CS",
-                "settings": {"rateMultiplier": float(matchsm.group(1))}
-            })
+            mods.append(
+                {
+                    "acronym": "CS",
+                    "settings": {"rateMultiplier": float(matchsm.group(1))},
+                }
+            )
 
         if matchfld:
             for i, mod in enumerate(mods):
                 if mod["acronym"] == "FL":
                     mods[i] = {
                         "acronym": "FL",
-                        "settings": {"areaFollowDelay": float(matchfld.group(1))}
+                        "settings": {"areaFollowDelay": float(matchfld.group(1))},
                     }
                     break
 
-
         return mods
-
 
     @property
     def convert_std(self):
@@ -179,5 +177,4 @@ class Mods:
         for mod in self.convert_droid:
             if mod["acronym"] == acronym:
                 return mod
-        return None    
-
+        return None

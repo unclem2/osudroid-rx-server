@@ -11,6 +11,7 @@ bp = Blueprint("user_profile", __name__)
 
 php_file = True
 
+
 @bp.route("/")
 async def profile():
     params = request.args
@@ -29,7 +30,7 @@ async def profile():
         return await render_template(
             "error.html", error_message="No player ID provided"
         )
-    
+
     p = glob.players.get(id=player_id)
     if not p:
         return await render_template("error.html", error_message="Player not found")
@@ -49,7 +50,9 @@ async def profile():
         if score.bmap is None:
             continue
         score.link = f"https://osu.ppy.sh/b/{score.bmap.id}"
-        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
+        score.map_cover = (
+            f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
+        )
 
     top_scores = None
 
@@ -64,7 +67,9 @@ async def profile():
         if score.bmap is None:
             continue
         score.map_link = f"https://osu.ppy.sh/b/{score.bmap.id}"
-        score.map_cover = f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
+        score.map_cover = (
+            f"https://assets.ppy.sh/beatmaps/{score.bmap.set_id}/covers/cover.jpg"
+        )
 
     level = 0
 
@@ -80,20 +85,16 @@ async def profile():
     while True:
         cur = level_formula(i)
         nxt = level_formula(i + 1)
-        if cur <= int(player_stats["rscore"]) and nxt >= int(
-            player_stats["rscore"]
-        ):
+        if cur <= int(player_stats["rscore"]) and nxt >= int(player_stats["rscore"]):
             level = i
             break
         i += 1
-        if cur > int(player_stats["rscore"]) and nxt > int(
-            player_stats["rscore"]
-        ):
+        if cur > int(player_stats["rscore"]) and nxt > int(player_stats["rscore"]):
             level = i
             break
 
     player_stats["acc"] = f"{player_stats['acc']:.2f}%"
-    player_stats["rscore"] = int(player_stats['rscore'])
+    player_stats["rscore"] = int(player_stats["rscore"])
 
     avatar = f"/user/avatar/{player_id}.png"
     return await render_template(

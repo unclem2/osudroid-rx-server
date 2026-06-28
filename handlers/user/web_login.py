@@ -33,18 +33,14 @@ async def web_login():
         ph = PasswordHasher()
         player = glob.players.get(username=username)
         if not player:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         # Fetch password hash and status from the database
         res = await glob.db.fetch(
             "SELECT password_hash, status FROM users WHERE id = $1", [player.id]
         )
         if not res:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         stored_password_hash = res["password_hash"]
         cached_hashes = glob.cache["hashes"]

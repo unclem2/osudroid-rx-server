@@ -6,6 +6,7 @@ import utils
 
 T = TypeVar("T")
 
+
 class BaseCollection(Generic[T]):
     name: str = "BaseCollection"
     attrs: list[str] = []
@@ -62,10 +63,10 @@ class PlayerList(BaseCollection[Player]):
 
         return attr, val
 
+
 class RoomList(BaseCollection[Room]):
     name = "RoomList"
     attrs = ["id", "name"]
-    
+
     def fix_attr(self, attr, val):
         return attr, val
-

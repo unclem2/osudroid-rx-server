@@ -107,12 +107,24 @@ class PostgresDB:
 
     @staticmethod
     async def _ensure_indexes(connection):
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_playerid_idx ON scores (playerID)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_md5_idx ON scores (md5)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_status_idx ON scores (status)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_playerid_status_idx ON scores (playerID, status)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_md5_status_pp_idx ON scores (md5, status, pp DESC)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS scores_playerid_md5_status_idx ON scores (playerID, md5, status)")
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_playerid_idx ON scores (playerID)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_md5_idx ON scores (md5)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_status_idx ON scores (status)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_playerid_status_idx ON scores (playerID, status)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_md5_status_pp_idx ON scores (md5, status, pp DESC)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS scores_playerid_md5_status_idx ON scores (playerID, md5, status)"
+        )
         await connection.execute(
             "CREATE INDEX IF NOT EXISTS scores_md5_global_placement_idx ON scores (md5, global_placement) "
             "WHERE global_placement IS NOT NULL"
@@ -120,14 +132,24 @@ class PostgresDB:
         await connection.execute(
             "CREATE INDEX IF NOT EXISTS scores_md5_playerid_local_placement_idx ON scores (md5, playerID, local_placement)"
         )
-        await connection.execute("CREATE INDEX IF NOT EXISTS maps_status_idx ON maps (status)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS maps_md5_idx ON maps (md5)")
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS maps_status_idx ON maps (status)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS maps_md5_idx ON maps (md5)"
+        )
         await connection.execute(
             "CREATE INDEX IF NOT EXISTS users_country_idx ON users (country) WHERE country IS NOT NULL"
         )
-        await connection.execute("CREATE INDEX IF NOT EXISTS users_id_country_idx ON users (id, country)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS stats_pp_idx ON stats (pp DESC)")
-        await connection.execute("CREATE INDEX IF NOT EXISTS stats_rscore_idx ON stats (rscore DESC)")
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS users_id_country_idx ON users (id, country)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS stats_pp_idx ON stats (pp DESC)"
+        )
+        await connection.execute(
+            "CREATE INDEX IF NOT EXISTS stats_rscore_idx ON stats (rscore DESC)"
+        )
         logging.debug("Database indexes ensured")
 
     async def connect(self):

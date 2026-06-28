@@ -28,18 +28,18 @@ class MultiNamespace(
     @property
     def room_id(self):
         return self.namespace.split("/")[-1]
-    
+
     @property
     def room(self):
         return glob.rooms.get(id=self.room_id)
-    
+
     @property
     def debug_mode(self):
         return self.debug
 
     async def trigger_event(self, event, sid, data=None, *args, **kwargs):
         handler_name = f"on_{event}"
-        #TODO как то отфильтровать все ивенты и добавить все те которые нужны спектатор клиенту
+        # TODO как то отфильтровать все ивенты и добавить все те которые нужны спектатор клиенту
         # желательно еще это как то абстрагировать
         if handler_name == "on_connect":
             self.receive_event(sid, event, args[0])
@@ -49,7 +49,7 @@ class MultiNamespace(
             await sio.emit(
                 event="chatMessage",
                 data=(None, f"[in]{event} - {data}"),
-                namespace=self.namespace
+                namespace=self.namespace,
             )
         return await super().trigger_event(event, sid, data, *args, **kwargs)
 
@@ -57,18 +57,29 @@ class MultiNamespace(
         self, event, data=None, to=None, skip_sid=None, *args, **kwargs
     ):
         if to:
-            await sio.emit(event=event, data=data, namespace=self.namespace, to=to, *args, **kwargs)
+            await sio.emit(
+                event=event, data=data, namespace=self.namespace, to=to, *args, **kwargs
+            )
         elif skip_sid:
-            await sio.emit(event=event, data=data, namespace=self.namespace, skip_sid=skip_sid, *args, **kwargs)
+            await sio.emit(
+                event=event,
+                data=data,
+                namespace=self.namespace,
+                skip_sid=skip_sid,
+                *args,
+                **kwargs,
+            )
         else:
-            await sio.emit(event=event, data=data, namespace=self.namespace, *args, **kwargs)
+            await sio.emit(
+                event=event, data=data, namespace=self.namespace, *args, **kwargs
+            )
 
         write_event(id=self.room_id, event=event, direction=0, data=data, receiver=to)
         if self.debug_mode:
             await sio.emit(
                 event="chatMessage",
                 data=(None, f"[out]{event} - {data}"),
-                namespace=self.namespace
+                namespace=self.namespace,
             )
 
     def receive_event(self, sid, event, data=None):

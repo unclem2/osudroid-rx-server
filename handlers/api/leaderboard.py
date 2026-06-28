@@ -9,9 +9,11 @@ import json
 
 bp = Blueprint("leaderboard", __name__)
 
+
 class RequestModel(BaseModel):
     type: str = "pp"
     country: Optional[str] = None
+
 
 @bp.route("/")
 @validate_querystring(RequestModel)
@@ -52,7 +54,7 @@ async def leaderboard(query_args: RequestModel) -> ApiResponse[List[PlayerModel]
     else:
         players_stats = await glob.db.fetchall(query)
     for player in players_stats:
-        player["stats"] = json.loads(player["stats"])   
+        player["stats"] = json.loads(player["stats"])
     return ApiResponse.ok(PlayerModel(**player) for player in players_stats)
 
 

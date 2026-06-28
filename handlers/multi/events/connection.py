@@ -9,7 +9,7 @@ import asyncio
 
 class ConnectionEvents:
     async def on_disconnect(self, sid, *args):
-        #TODO че то придумать с ошибками изза реконнекта и вообще блять там пиздец какой то
+        # TODO че то придумать с ошибками изза реконнекта и вообще блять там пиздец какой то
         print(f"Client disconnected: {sid}")
         room_info = glob.rooms.get(id=self.room_id)
         if room_info is None:
@@ -20,7 +20,8 @@ class ConnectionEvents:
             return
 
         await self.emit_event(
-            "playerLeft", data=str(disconnected_player.uid),  
+            "playerLeft",
+            data=str(disconnected_player.uid),
         )
 
         if room_info.host.uid == disconnected_player.uid:
@@ -30,7 +31,6 @@ class ConnectionEvents:
                     await self.emit_event(
                         event="hostChanged",
                         data=str(room_info.host.uid),
-                         
                     )
                     break
 
@@ -50,7 +50,7 @@ class ConnectionEvents:
         if room_info is None:
             await sio.disconnect(sid=sid, namespace=self.namespace)
             return
-   
+
         match args[0]["type"]:
             case "0":
                 if room_info.is_locked == True:
@@ -64,32 +64,30 @@ class ConnectionEvents:
                     return
                 room_info.players.append(PlayerMulti.player(id=args[0]["uid"], sid=sid))
                 resp = {
-                            "id": room_info.id,
-                            "name": room_info.name,
-                            "beatmap": {
-                                "md5": room_info.map.md5,
-                                "title": room_info.map.title,
-                                "artist": room_info.map.artist,
-                                "version": room_info.map.version,
-                                "creator": room_info.map.creator,
-                                "beatmapSetId": room_info.map.set_id,
-                            },
-                            "host": room_info.host.as_json,
-                            "isLocked": room_info.is_locked,
-                            "gameplaySettings": room_info.gameplay_settings.as_json,
-                            "maxPlayers": room_info.max_players,
-                            "mods": room_info.mods.as_droid_mods,
-                            "players": [p.as_json for p in room_info.players],
-                            "status": room_info.status,
-                            "teamMode": room_info.team_mode,
-                            "winCondition": room_info.win_condition,
-                            "sessionId": utils.make_uuid(),
-                        }     
-                        
+                    "id": room_info.id,
+                    "name": room_info.name,
+                    "beatmap": {
+                        "md5": room_info.map.md5,
+                        "title": room_info.map.title,
+                        "artist": room_info.map.artist,
+                        "version": room_info.map.version,
+                        "creator": room_info.map.creator,
+                        "beatmapSetId": room_info.map.set_id,
+                    },
+                    "host": room_info.host.as_json,
+                    "isLocked": room_info.is_locked,
+                    "gameplaySettings": room_info.gameplay_settings.as_json,
+                    "maxPlayers": room_info.max_players,
+                    "mods": room_info.mods.as_droid_mods,
+                    "players": [p.as_json for p in room_info.players],
+                    "status": room_info.status,
+                    "teamMode": room_info.team_mode,
+                    "winCondition": room_info.win_condition,
+                    "sessionId": utils.make_uuid(),
+                }
+
             case "1":
-                room_info.watchers.append(
-                    PlayerMulti.watcher(sid=sid)
-                )
+                room_info.watchers.append(PlayerMulti.watcher(sid=sid))
                 resp = {
                     "beatmap": {
                         "md5": room_info.map.md5,
@@ -105,7 +103,6 @@ class ConnectionEvents:
                     "playingPlayers": [player.as_json for player in room_info.players],
                     "teamMode": room_info.team_mode,
                 }
-
 
         await self.emit_event(data=resp, event="initialConnection", to=sid)
 

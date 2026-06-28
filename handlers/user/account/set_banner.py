@@ -23,7 +23,9 @@ async def set_banner():
     try:
         username, player_id, auth_hash = auth_cookie.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
+            utils.check_md5(
+                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+            )
             == False
         ):
             return await render_template(
@@ -44,16 +46,12 @@ async def set_banner():
 
         file = files.get("banner")
         if file.filename == "":
-            return await render_template(
-                "error.html", error_message="No selected file"
-            )
+            return await render_template("error.html", error_message="No selected file")
 
         # Retrieve player object
         p = glob.players.get(username=username)
         if not p or p.id != player_id:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         # Validate and save the avatar file
         if file and allowed_file(file.filename):
