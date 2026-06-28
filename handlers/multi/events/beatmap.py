@@ -38,6 +38,4 @@ class BeatmapEvents:
             if hasattr(room_info.map, "set_id"):
                 return_data["beatmapSetId"] = room_info.map.set_id
 
-            await self.emit_event(
-                "beatmapChanged", data=return_data
-            )
+            await self.emit_event("beatmapChanged", data=return_data)

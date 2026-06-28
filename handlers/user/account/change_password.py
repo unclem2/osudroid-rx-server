@@ -17,7 +17,9 @@ async def change_password():
         req = await request.form
         username, player_id, auth_hash = login_state.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
+            utils.check_md5(
+                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+            )
             == False
         ):
             return await render_template(
@@ -43,17 +45,13 @@ async def change_password():
 
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         res = await glob.db.fetch(
             "SELECT password_hash, status FROM users WHERE id = $1", [player.id]
         )
         if not res:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         stored_password_hash = res["password_hash"]
 

@@ -68,7 +68,11 @@ class Score:
 
         s.id = res.get("id", 0)
         s.bmap = await Beatmap.from_md5(res.get("md5", "")) if res.get("md5") else None
-        s.player = glob.players.get(id=int(res.get("playerid", 0))) if res.get("playerid") else None
+        s.player = (
+            glob.players.get(id=int(res.get("playerid", 0)))
+            if res.get("playerid")
+            else None
+        )
         s.status = SubmissionStatus(res.get("status", SubmissionStatus.SUBMITTED))
         s.md5 = res.get("md5", "")
 
@@ -84,7 +88,7 @@ class Score:
         s.hmiss = res.get("hitmiss", 0)
         s.hgeki = res.get("hitgeki", 0)
         s.hkatsu = res.get("hitkatsu", 0)
-        
+
         s.date = int(res.get("date", 0))
         s.pp = await PPCalculator.from_score(s)
         if s.bmap and s.pp is not False:
@@ -121,14 +125,16 @@ class Score:
 
         if s.md5:
             s.bmap = await Beatmap.from_md5(s.md5)
-            
+
         s.mods = data[0]
         (s.score, s.max_combo) = map(int, data[1:3])
         s.grade = data[3]
         (s.hgeki, s.h300, s.hkatsu, s.h100, s.h50, s.hmiss) = map(int, data[4:10])
 
         if glob.config.legacy:
-            s.acc = float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
+            s.acc = (
+                float(data[10]) / 1000 if glob.config.legacy else float(data[10]) * 100
+            )
             s.date = int(data[11])  # 1.6.8: Int?
             s.fc = (data[12] == "true") or (data[12] == "1")  # 1.6.8 Fix
         else:
@@ -192,7 +198,6 @@ class Score:
         return global_rank, local_rank
 
     async def calc_status(self):
-
         res = await glob.db.fetch(
             "SELECT * FROM scores WHERE playerID = $1 AND md5 = $2 AND status= $3",
             [self.player.id, self.md5, 2],
@@ -209,5 +214,3 @@ class Score:
                 )
         else:
             self.status = SubmissionStatus.BEST
-
-

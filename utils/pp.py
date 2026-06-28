@@ -9,9 +9,9 @@ from osudroid_api_wrapper import ModList
 
 def droid_cs_to_standard_cs(cs: float) -> float:
     """
-        Converts Droid CS to standard CS.
-        Formulas taken from Rian8337 osu-droid-module:
-        https://github.com/Rian8337/osu-droid-module/blob/master/packages/osu-base/src/utils/CircleSizeCalculator.ts
+    Converts Droid CS to standard CS.
+    Formulas taken from Rian8337 osu-droid-module:
+    https://github.com/Rian8337/osu-droid-module/blob/master/packages/osu-base/src/utils/CircleSizeCalculator.ts
     """
     old_assumed_droid_height = 681
     base_radius = 64
@@ -19,16 +19,21 @@ def droid_cs_to_standard_cs(cs: float) -> float:
     broken_gamefield_rounding_allowance = 1.00041
 
     old_droid_scale = max(
-        ((old_assumed_droid_height / 480) * (54.42 - cs * 4.48)) / base_radius + old_droid_scale_multiplier,
-        1e-3
+        ((old_assumed_droid_height / 480) * (54.42 - cs * 4.48)) / base_radius
+        + old_droid_scale_multiplier,
+        1e-3,
     )
 
-    standard_radius = (base_radius * old_droid_scale) / ((old_assumed_droid_height * 0.85) / 384)
+    standard_radius = (base_radius * old_droid_scale) / (
+        (old_assumed_droid_height * 0.85) / 384
+    )
 
     scale = standard_radius / base_radius
 
-    standard_cs = 5 + (5 * (1 - (2 * scale) / broken_gamefield_rounding_allowance)) / 0.7
-    return standard_cs 
+    standard_cs = (
+        5 + (5 * (1 - (2 * scale) / broken_gamefield_rounding_allowance)) / 0.7
+    )
+    return standard_cs
 
 
 class PPCalculator:
@@ -43,7 +48,6 @@ class PPCalculator:
         self.acc = kwargs.get("acc", 0.0)
         self.difficulty = 0
         self.calc_pp = None
-  
 
     @classmethod
     async def from_score(cls, score):
@@ -60,9 +64,7 @@ class PPCalculator:
 
         return cls(**{"bm_path": res, **score.as_json})
 
-
     async def calc(self, api=False):
-
         if isinstance(self.mods, list):
             mods = ModList.from_dict(self.mods)
         elif isinstance(self.mods, str):
@@ -72,7 +74,9 @@ class PPCalculator:
         if speed_multiplier is None:
             speed_multiplier = 1
         else:
-            speed_multiplier = speed_multiplier.settings.get_setting("rateMultiplier").value
+            speed_multiplier = speed_multiplier.settings.get_setting(
+                "rateMultiplier"
+            ).value
 
         if mods.get_mod("RX") is None:
             self.calc_pp = 0
@@ -89,7 +93,6 @@ class PPCalculator:
         if mods.get_mod("WU") is not None:
             self.calc_pp = 0
             return 0
-    
 
         # Read the beatmap content
         beatmap_content = self.bm_path.read_text()
@@ -124,15 +127,9 @@ class PPCalculator:
                     break
 
         # print(mods)
-        performance = osu_pp.Performance(
-            mods=submit_mods
+        performance = osu_pp.Performance(mods=submit_mods)
 
-        )
-
-        beatmap_attrs = osu_pp.BeatmapAttributesBuilder(
-            mods=submit_mods,
-            map=beatmap
-        )
+        beatmap_attrs = osu_pp.BeatmapAttributesBuilder(mods=submit_mods, map=beatmap)
 
         if applied != True and speed_multiplier != 1:
             performance.set_clock_rate(speed_multiplier)
@@ -140,7 +137,7 @@ class PPCalculator:
 
         performance.set_od(original_od, od_with_mods=False)
         beatmap_attrs.set_od(original_od, od_with_mods=False)
-        
+
         for i, mod in enumerate(mods.as_calculable_mods):
             if mod["acronym"] == "PR":
                 original_od += 4
@@ -157,8 +154,6 @@ class PPCalculator:
                 beatmap_attrs.set_od(original_od, od_with_mods=False)
                 beatmap_attrs.set_cs(cs, cs_with_mods=False)
 
-        
-
         # cs = droid_cs_to_standard_cs(cs)
         # performance.set_cs(cs, cs_with_mods=False)
 
@@ -171,7 +166,6 @@ class PPCalculator:
         performance.set_misses(self.hmiss)
         performance.set_combo(self.max_combo)
         attributes = performance.calculate(beatmap)
-        
 
         beatmap_attrs = beatmap_attrs.build()
 
@@ -183,8 +177,9 @@ class PPCalculator:
         elif beatmap_attrs.ar < 8.0:
             ar_bonus += 0.01 * (8.0 - beatmap_attrs.ar)
 
-
-        pp_return = attributes.pp * (1+min(ar_bonus, ar_bonus * (beatmap.n_objects / 1000)))
+        pp_return = attributes.pp * (
+            1 + min(ar_bonus, ar_bonus * (beatmap.n_objects / 1000))
+        )
 
         if float(pp_return) >= float(glob.config.max_pp_value):
             self.calc_pp = 0
@@ -194,5 +189,3 @@ class PPCalculator:
             self.difficulty = attributes.difficulty.stars
         self.calc_pp = pp_return
         return pp_return
-
-

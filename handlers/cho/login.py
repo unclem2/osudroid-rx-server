@@ -75,7 +75,7 @@ async def login():
                         "UPDATE users SET country = $1 WHERE id = $2",
                         [country, p.id],
                     )
-                    p.country = country # duh
+                    p.country = country  # duh
     except Exception as e:
         logging.error(f"Failed to get country from ip: {e}")
     # returns long string of shit

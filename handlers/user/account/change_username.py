@@ -19,7 +19,9 @@ async def change_username():
         req = await request.form
         username, player_id, auth_hash = login_state.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
+            utils.check_md5(
+                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+            )
             == False
         ):
             return await render_template(
@@ -31,13 +33,16 @@ async def change_username():
             return await render_template(
                 "error.html", error_message="Invalid new username"
             )
-        if re.fullmatch(r'^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$', new_username) is None:
+        if (
+            re.fullmatch(r"^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$", new_username)
+            is None
+        ):
             return render_template(
                 "error.html", error_message="Username contains invalid characters."
             )
-        
+
         try:
-            if glob.players.get(username=new_username): 
+            if glob.players.get(username=new_username):
                 return await render_template(
                     "error.html", error_message="Username already taken"
                 )
@@ -45,15 +50,11 @@ async def change_username():
             pass
         player = glob.players.get(id=int(player_id))
         if not player or player.id != int(player_id):
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
 
         res = await glob.db.fetch("SELECT status FROM users WHERE id = $1", [player.id])
         if not res:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return await render_template("error.html", error_message="Player not found")
         safe_username = utils.make_safe(new_username)
         await glob.db.execute(
             "UPDATE users SET username = $1, username_safe = $2 WHERE id = $3",
