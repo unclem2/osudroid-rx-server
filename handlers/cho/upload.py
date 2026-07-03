@@ -17,7 +17,7 @@ async def upload_replay():
     file = files.get("uploadedfile")
     replay_id = form.get("replayID")
 
-    path = f"data/replays/{replay_id}.odr"  # doesnt have .odr
+    path = f"/srv/odrx_storage/replays/{replay_id}.odr"  # doesnt have .odr
     raw_replay = file.read()
 
     if raw_replay[:2] != b"PK":

@@ -134,7 +134,7 @@ async def submit_play():
             file = files.get("replayFile")
             replay_id = score.id
 
-            path = f"data/replays/{replay_id}.odr"  # doesnt have .odr
+            path = f"/srv/odrx_storage/replays/{replay_id}.odr"  # doesnt have .odr
             raw_replay = file.read()
 
             if raw_replay[:2] != b"PK":

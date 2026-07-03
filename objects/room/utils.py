@@ -19,7 +19,7 @@ def write_event(
     if event == "spectatorData":
         print("Skipping spectatorData event logging")
         return
-    with open(f"data/rooms/{id}.jsonl", "a") as f:
+    with open(f"/srv/odrx_storage/rooms/{id}.jsonl", "a") as f:
         dump_data = {
             "event": event,
             "data": data,
@@ -33,7 +33,7 @@ def write_event(
 
 
 def read_room_log(id: int) -> list:
-    with open(f"data/rooms/{id}.jsonl", "r") as f:
+    with open(f"/srv/odrx_storage/rooms/{id}.jsonl", "r") as f:
         room_data = []
         for line in f.readlines():
             try:
@@ -52,7 +52,7 @@ def get_id() -> str:
         int: The next available room ID.
     """
 
-    rooms = os.listdir("data/rooms")
+    rooms = os.listdir("/srv/odrx_storage/rooms")
     if len(rooms) == 0:
         return "1"
     else:

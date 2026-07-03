@@ -25,8 +25,8 @@ def check_folder():
         os.mkdir("data")
 
     for folder in required_folders:
-        if not os.path.isdir(f"data/{folder}"):
-            os.mkdir(f"data/{folder}")
+        if not os.path.isdir(f"/srv/odrx_storage/{folder}"):
+            os.mkdir(f"/srv/odrx_storage/{folder}")
 
 
 def check_md5(n: str, md5: str):

@@ -59,7 +59,7 @@ async def set_avatar():
         if file and allowed_file(file.filename):
             file.filename = f"{p.id}.png"
             filename = secure_filename(file.filename)
-            file_path = os.path.join("data/avatar", filename)
+            file_path = os.path.join("/srv/odrx_storage/avatar", filename)
             await file.save(file_path)
 
             return await render_template(

@@ -1,15 +1,20 @@
 import asyncio
+import json
+import time
+
+import aiohttp
+import osudroid_api_wrapper
+
 from objects import glob
+from objects.beatmap import Beatmap
 from objects.db import PostgresDB
 from objects.player import Player
 from objects.score import Score
-from objects.beatmap import Beatmap
-from utils.pp import PPCalculator
-import logging
 
 # logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 
 glob.db = PostgresDB()
+
 
 async def recalc_stats():
     players = await glob.db.fetchall("SELECT id FROM users")
@@ -19,14 +24,14 @@ async def recalc_stats():
 
 
 async def recalc_scores():
-    """never use this unless something is messed up/testing"""
+    """Never use this unless something is messed up/testing"""
     print("Recalculating scores...")
 
-    for player in glob.players:
+    for player in glob.players:  # noqa: PLR1702
         print(f"{player.id} - processing")
         total_recalculated = 0
         scores = await glob.db.fetchall(
-            "SELECT * FROM scores WHERE playerid = $1", [player.id]
+            "SELECT * FROM scores WHERE playerid = $1", [player.id],
         )
         left = len(scores)
         print(f"{player.id} - {len(scores)} scores found")
@@ -34,57 +39,69 @@ async def recalc_scores():
         grouped_scores = {}
         for score in scores:
             grouped_scores.setdefault(score["md5"], []).append(score)
+        async with aiohttp.ClientSession() as session:
+            for md5, user_map_scores in grouped_scores.items():
+                print(f"[{total_recalculated}/{left}]{player.id} - processing map {md5}")
 
-        for md5, user_map_scores in grouped_scores.items():
-            print(f"[{total_recalculated}/{left}]{player.id} - processing map {md5}")
+                for score_data in user_map_scores:
+                    s = Score()
 
-            for score_data in user_map_scores:
-                s = Score()
-                
-                s.id = score_data["id"]
-                if s.id == 11002:
-                    pass
-                s.bmap = await Beatmap.from_md5(md5)
-                s.md5 = md5
-                s.player = player
-                s.h300 = score_data["hit300"]
-                s.h100 = score_data["hit100"]
-                s.h50 = score_data["hit50"]
-                s.hmiss = score_data["hitmiss"]
-                s.max_combo = score_data["combo"]
-                s.mods = score_data["mods"]
-                s.pp = await PPCalculator.from_score(s)
-                if s.pp != False:
-                    await s.pp.calc()
-                    score_data["pp"] = s.pp.calc_pp
-                else:
-                    score_data["pp"] = 0
+                    s.id = score_data["id"]
+                    s.bmap = await Beatmap.from_md5(md5)
+                    s.md5 = md5
+                    s.player = player
+                    s.h300 = score_data["hit300"]
+                    s.h100 = score_data["hit100"]
+                    s.h50 = score_data["hit50"]
+                    s.hmiss = score_data["hitmiss"]
+                    s.max_combo = score_data["combo"]
+                    s.mods = score_data["mods"]
+                    # s.pp = await PPCalculator.from_score(s)
+                    # if s.pp != False:
+                    #     await s.pp.calc()
+                    #     score_data["pp"] = s.pp.calc_pp
+                    # else:
+                    #     score_data["pp"] = 0
+                    mods = osudroid_api_wrapper.ModList.from_dict(json.loads(s.mods))
+                    request = {
+                        "md5": s.md5,
+                        "miss": s.hmiss,
+                        "combo": s.max_combo,
+                        "h300": s.h300,
+                        "h100": s.h100,
+                        "h50": s.h50,
+                        "mods": mods.as_calculable_mods,
+                        }
+                    start = time.perf_counter()
+                    async with session.post(url="http://localhost:9000/api/calculate/score", json=request) as response:
+                        if response.status == 200:
+                            data = await response.json()
+                            score_data["pp"] = data.get("pp_attributes").get("total", 0)
+                        else:
+                    print(f"{time.perf_counter() - start:.3f}s")
+                    await glob.db.execute(
+                        "UPDATE scores SET pp = $1 WHERE id = $2",
+                        [score_data["pp"], s.id],
+                    )
 
-                await glob.db.execute(
-                    "UPDATE scores SET pp = $1 WHERE id = $2",
-                    [score_data["pp"], s.id],
-                )
+                    total_recalculated += 1
+                    print(
+                        f"[{total_recalculated}/{left}]{player.id} - recalculated score {s.id} with pp {score_data['pp']}",
+                    )
 
-                total_recalculated += 1  
-                print(
-                    f"[{total_recalculated}/{left}]{player.id} - recalculated score {s.id} with pp {score_data['pp']}"
-                )
-
-            user_map_scores.sort(key=lambda x: x["pp"], reverse=True)
-            for i, user_map_score in enumerate(user_map_scores):
-                new_status = 2 if i == 0 else 1
-                await glob.db.execute(
-                    "UPDATE scores SET status = $1 WHERE id = $2",
-                    [new_status, user_map_score["id"]],
-                )
-                print(
-                    f"[{total_recalculated}/{left}]{player.id} - updated status for score {user_map_score['id']} to {new_status}"
-                )
+                user_map_scores.sort(key=lambda x: x["pp"], reverse=True)
+                for i, user_map_score in enumerate(user_map_scores):
+                    new_status = 2 if i == 0 else 1
+                    await glob.db.execute(
+                        "UPDATE scores SET status = $1 WHERE id = $2",
+                        [new_status, user_map_score["id"]],
+                    )
+                    print(
+                        f"[{total_recalculated}/{left}]{player.id} - updated status for score {user_map_score['id']} to {new_status}",
+                    )
 
         await player.update_stats()
         print(f"{player.id} - updated stats")
-
-
 
 
 async def init_players():
