@@ -1,45 +1,47 @@
-from quart import Blueprint, request
 import logging
+import os
 import time
+
+from fastapi import APIRouter, Request
+
 from objects import glob
 from handlers.response import Failed, Success
 from objects.score import Score, SubmissionStatus
 from objects.beatmap import RankedStatus
 import utils
 import geoip2.database
-import os
 from objects.player import Player
 
-bp = Blueprint("submit", __name__)
+router = APIRouter()
 
 php_file = True
 
 
-@bp.route("/", methods=["POST"])
-async def submit_play():
-    params = await request.form
-    if "userID" not in params:
+@router.post("")
+async def submit_play(request: Request):
+    form = await request.form()
+    if "userID" not in form:
         return Failed("Not enough argument.")
 
-    player: Player = glob.players.get(id=int(params["userID"]))
+    player: Player = glob.players.get(id=int(form["userID"]))
     player.last_online = time.time()
     if not player:
         return Failed("Player not found, report to server admin.")
 
-    if "ssid" in params:
-        if params["ssid"] != player.uuid:
+    if "ssid" in form:
+        if form["ssid"] != player.uuid:
             return Failed("Server restart, please relogin.")
 
     if glob.config.disable_submit:
         return Failed("Score submission is disable right now.")
-        
-    if md5 := params.get("hash", None):
+
+    if md5 := form.get("hash", None):
         logging.info(f"Changed {player} playing to {md5}")
         player.stats.playing = md5
         if glob.config.legacy == True:
             return Success(1, player.id)
 
-    if play_data := params.get("data"):
+    if play_data := form.get("data"):
         score: Score = await Score.from_submission(play_data)
         if not score:
             return Failed("Failed to read score data.")
@@ -128,14 +130,11 @@ async def submit_play():
                 )
             )
         else:
-            files = await request.files
-
-            # Correctly access the file and replayID
-            file = files.get("replayFile")
+            file = form.get("replayFile")
             replay_id = score.id
 
-            path = f"data/replays/{replay_id}.odr"  # doesnt have .odr
-            raw_replay = file.read()
+            path = f"data/replays/{replay_id}.odr"
+            raw_replay = await file.read()
 
             if raw_replay[:2] != b"PK":
                 return Failed("Fuck off lol.")
@@ -143,8 +142,8 @@ async def submit_play():
             if os.path.isfile(path):
                 return Failed("File already exists.")
 
-            with open(path, "wb") as file:
-                file.write(raw_replay)
+            with open(path, "wb") as f:
+                f.write(raw_replay)
             return Success(
                 "{rank} {score} {acc} {map_rank} {pp}".format(
                     rank=int(stats.pp_rank if glob.config.pp else stats.score_rank),

@@ -1,78 +1,63 @@
-from quart import Blueprint, request, render_template, make_response
-from objects import glob
-from handlers.response import Success
-import utils
-import os
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
 from argon2 import PasswordHasher
 
-bp = Blueprint("user_web_login", __name__)
+from objects import glob
+from handlers.response import success_str
+import utils
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 php_file = True
 
 
-@bp.route("/", methods=["GET", "POST"])
-async def web_login():
-    # Check if the login state cookie is present
+@router.api_route("", methods=["GET", "POST"])
+async def web_login(request: Request):
     login_state = request.cookies.get("login_state")
     if login_state is not None:
-        return await render_template("error.html", error_message="Already logged in")
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Already logged in"})
 
     if request.method == "POST":
-        req = await request.form
-        username = req.get("username")
-        password = req.get("password")
+        form = await request.form()
+        username = form.get("username")
+        password = form.get("password")
 
         if not username or not password:
-            return await render_template(
-                "error.html", error_message="Invalid username or password"
-            )
+            return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid username or password"})
 
         hashed_password = utils.make_md5(f"{password}taikotaiko")
 
-        # Retrieve player information
         ph = PasswordHasher()
         player = glob.players.get(username=username)
         if not player:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
-        # Fetch password hash and status from the database
         res = await glob.db.fetch(
             "SELECT password_hash, status FROM users WHERE id = $1", [player.id]
         )
         if not res:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+            return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
         stored_password_hash = res["password_hash"]
         cached_hashes = glob.cache["hashes"]
 
-        # Verify the password using ph
         if stored_password_hash in cached_hashes:
             if hashed_password != cached_hashes[stored_password_hash]:
-                return await render_template(
-                    "error.html", error_message="Wrong password"
-                )
+                return templates.TemplateResponse(request, "error.html", {"error_message": "Wrong password"})
         else:
             try:
                 ph.verify(stored_password_hash, hashed_password)
             except BaseException:
-                return await render_template(
-                    "error.html", error_message="Wrong password"
-                )
+                return templates.TemplateResponse(request, "error.html", {"error_message": "Wrong password"})
 
-        response = await render_template(
-            "success.html", success_message=Success("Login successful")
-        )
-        response = await make_response(response)
+        response = templates.TemplateResponse(request, "success.html", {"success_message": success_str("Login successful")})
         response.set_cookie(
             "login_state",
-            f'{username}-{player.id}-{utils.make_md5(f"{username}-{player.id}-{glob.config.login_key}")}',
+            f"{username}-{player.id}-{utils.make_md5(f'{username}-{player.id}-{glob.config.login_key}')}",
             max_age=60 * 60 * 24 * 30 * 12,
-        )  # Cookie expires in 1 year
+        )
 
         return response
 
-    return await render_template("web_login.html")
+    return templates.TemplateResponse(request, "web_login.html")

@@ -1,21 +1,21 @@
-from quart import Blueprint
+from fastapi import APIRouter
+
 from objects.beatmap import Beatmap, RankedStatus
-from quart import jsonify
 from objects import glob
 
-bp = Blueprint("map_status", __name__)
+router = APIRouter()
 
-forced_route = "/api/v2/md5/<string:md5>"
+forced_route = "/api/v2/md5"
 
 
-@bp.route("/")
+@router.get("/{md5}")
 async def map_status(md5: str):
-    map = await Beatmap.from_md5(md5)
-    if map is None:
+    bmap = await Beatmap.from_md5(md5)
+    if bmap is None:
         return {"md5": "", "ranked": -1}
-    if map.status == RankedStatus.Whitelisted:
-        map.status = RankedStatus.Ranked
-    if map.status == RankedStatus.Blacklisted:
-        map.status = RankedStatus.Graveyard
-    glob.task_manager.add_task(map.download())
-    return {"md5": md5, "ranked": map.status}
+    if bmap.status == RankedStatus.Whitelisted:
+        bmap.status = RankedStatus.Ranked
+    if bmap.status == RankedStatus.Blacklisted:
+        bmap.status = RankedStatus.Graveyard
+    glob.task_manager.add_task(bmap.download())
+    return {"md5": md5, "ranked": bmap.status}

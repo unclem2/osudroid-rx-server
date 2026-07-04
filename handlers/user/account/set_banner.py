@@ -1,10 +1,13 @@
-from quart import Blueprint, request, render_template
-from objects import glob
 import os
-import utils
-from werkzeug.utils import secure_filename
 
-bp = Blueprint("user_set_banner", __name__)
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+
+from objects import glob
+import utils
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 
 def allowed_file(filename):
@@ -12,60 +15,45 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
 
 
-@bp.route("/", methods=["POST"])
-async def set_banner():
-    # Check if the authentication cookie is present
+@router.post("")
+async def set_banner(request: Request):
     auth_cookie = request.cookies.get("login_state")
     if not auth_cookie:
-        return await render_template("error.html", error_message="Not logged in")
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
 
-    # Validate the cookie format and extract username and player ID
     try:
         username, player_id, auth_hash = auth_cookie.split("-")
         if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
+            utils.check_md5(
+                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+            )
             == False
         ):
-            return await render_template(
-                "error.html", error_message="Invalid login state"
-            )
+            return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
         player_id = int(player_id)
     except ValueError:
-        return await render_template("error.html", error_message="Invalid login state")
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
 
-    if request.method == "POST":
-        files = await request.files
+    form = await request.form()
 
-        # Check if the avatar file is part of the request
-        if "banner" not in files:
-            return await render_template(
-                "error.html", error_message="No banner file provided"
-            )
+    if "banner" not in form:
+        return templates.TemplateResponse(request, "error.html", {"error_message": "No banner file provided"})
 
-        file = files.get("banner")
-        if file.filename == "":
-            return await render_template(
-                "error.html", error_message="No selected file"
-            )
+    file = form.get("banner")
+    if file.filename == "":
+        return templates.TemplateResponse(request, "error.html", {"error_message": "No selected file"})
 
-        # Retrieve player object
-        p = glob.players.get(username=username)
-        if not p or p.id != player_id:
-            return await render_template(
-                "error.html", error_message="Player not found"
-            )
+    p = glob.players.get(username=username)
+    if not p or p.id != player_id:
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
-        # Validate and save the avatar file
-        if file and allowed_file(file.filename):
-            file.filename = f"{p.id}.png"
-            filename = secure_filename(file.filename)
-            file_path = os.path.join("data/banner", filename)
-            await file.save(file_path)
+    if file and allowed_file(file.filename):
+        filename = f"{p.id}.png"
+        file_path = os.path.join("data/banner", filename)
+        contents = await file.read()
+        with open(file_path, "wb") as f:
+            f.write(contents)
 
-            return await render_template(
-                "success.html", success_message="Banner uploaded successfully"
-            )
-        else:
-            return await render_template(
-                "error.html", error_message="Invalid file format"
-            )
+        return templates.TemplateResponse(request, "success.html", {"success_message": "Banner uploaded successfully"})
+    else:
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid file format"})

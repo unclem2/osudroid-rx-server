@@ -1,55 +1,69 @@
 import re
-from quart import Blueprint, request, render_template, make_response
-from objects import glob
-from handlers.response import Failed, Success
-import hashlib
-import utils
-import geoip2.database
-from objects.player import Player
-from argon2 import PasswordHasher
 import os
 import logging
+import hashlib
+
+from fastapi import APIRouter, Request
+from argon2 import PasswordHasher
+import geoip2.database
+
+from objects import glob
+from handlers.response import Failed, success_str
+import utils
+from objects.player import Player
+from fastapi.templating import Jinja2Templates
 
 ph = PasswordHasher()
-bp = Blueprint("register", __name__)
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 php_file = True
 
 
-@bp.route("/", methods=["GET", "POST"])
-async def register():
+@router.api_route("", methods=["GET", "POST"])
+async def register(request: Request):
     if request.method == "POST":
-        params = await request.form
+        form = await request.form()
 
         for args in ["username", "password", "email"]:
-            if not params.get(args, None):
+            if not form.get(args, None):
                 return Failed("Not enough argument.")
 
-        # check username
-        if glob.players.get(username=params["username"]):
+        if glob.players.get(username=form["username"]):
             return Failed("Username already exists.")
 
-        if len(params["username"]) < 2:
+        if len(form["username"]) < 2:
             return Failed("Username must be longer than 2 characters.")
-        
-        if re.fullmatch(r'^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$', params["username"]) is None:
+
+        if (
+            re.fullmatch(
+                r"^[A-Za-z0-9](?:[A-Za-z0-9]|[._](?![._]))+$", form["username"]
+            )
+            is None
+        ):
             return Failed("Username contains invalid characters.")
-        
-        if re.fullmatch(r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])", params["email"]) is None:
+
+        if (
+            re.fullmatch(
+                r"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])",
+                form["email"],
+            )
+            is None
+        ):
             return Failed("Email is not valid.")
 
         try:
             country = None
             if os.path.exists("GeoLite2-Country.mmdb"):
                 with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
-                    ip = request.remote_addr
+                    ip = request.client.host
                     response = reader.country(ip)
                     country = response.country.iso_code
         except Exception as e:
             logging.error(f"Failed to get country from ip: {e}")
             country = None
 
-        pasw = params["password"] + "taikotaiko"
+        pasw = form["password"] + "taikotaiko"
         md5_hash = hashlib.md5()
         md5_hash.update(pasw.encode("utf-8"))
         pasw_hashed = md5_hash.hexdigest()
@@ -62,37 +76,32 @@ async def register():
         """,
             [
                 None,
-                params["username"],
-                utils.make_safe(params["username"]),
+                form["username"],
+                utils.make_safe(form["username"]),
                 ph.hash(pasw_hashed),
                 "okyeah",
                 "NotUsed",
                 None,
                 None,
-                params["email"],
-                utils.make_md5(params["email"]),
+                form["email"],
+                utils.make_md5(form["email"]),
                 0,
-                country
+                country,
             ],
         )
 
-        # also create stats table
         await glob.db.execute("INSERT INTO stats (id) VALUES ($1)", [int(player_id)])
-        # create player
         p = await Player.from_sql(player_id)
         glob.players.add(p)
 
-        response = await render_template(
-            "success.html", success_message=Success("Account Created.")
-        )
-        response = await make_response(response)
-        username = params["username"]
+        response = templates.TemplateResponse(request, "success.html", {"success_message": success_str("Account Created.")})
+        username = form["username"]
         response.set_cookie(
             "login_state",
-            f'{username}-{player_id}-{utils.make_md5(f"{username}-{player_id}-{glob.config.login_key}")}',
+            f"{username}-{player_id}-{utils.make_md5(f'{username}-{player_id}-{glob.config.login_key}')}",
             max_age=60 * 60 * 24 * 30 * 12,
-        )  # Cookie expires in 1 year
-        
+        )
+
         return response
 
-    return await render_template("register.html")
+    return templates.TemplateResponse(request, "register.html")

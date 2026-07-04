@@ -1,13 +1,12 @@
-from quart import Blueprint, jsonify
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 from objects import glob
+from .models.responses import WhitelistResponse
 
-bp = Blueprint("wl", __name__)
+router = APIRouter()
 
 
-@bp.route("/")
+@router.get("", response_model=WhitelistResponse)
 async def whitelist():
-    """
-    one day for sure
-    """
     maps = await glob.db.fetchall("SELECT * FROM maps WHERE status = 5")
-    return jsonify(maps)
+    return JSONResponse(content=maps)

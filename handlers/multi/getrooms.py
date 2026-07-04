@@ -1,10 +1,12 @@
-from quart import Blueprint, request, jsonify
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+
 from objects import glob
 
-bp = Blueprint("getrooms", __name__)
+router = APIRouter()
 
 
-@bp.route("/")
+@router.get("")
 async def get_rooms():
     room_list = []
     for room_info in glob.rooms:
@@ -26,4 +28,4 @@ async def get_rooms():
             }
         )
 
-    return jsonify(room_list)
+    return JSONResponse(content=room_list)

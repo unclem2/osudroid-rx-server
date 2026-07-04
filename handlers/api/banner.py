@@ -1,12 +1,12 @@
-from quart import Blueprint
+from fastapi import APIRouter
 from objects import glob
 
-bp = Blueprint("banner", __name__)
+router = APIRouter()
 
 forced_route = "/api/game/banner.php"
 
 
-@bp.route("/")
+@router.get("", include_in_schema=False)
 async def send_banner():
     data = {
         "Url": glob.config.banner_url,

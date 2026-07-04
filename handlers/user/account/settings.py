@@ -1,25 +1,17 @@
-from glob import glob
-from quart import Blueprint, request, render_template
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+
+from objects import glob
 import utils
 
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
-bp = Blueprint("user_settings", __name__)
 
-
-@bp.route("/")
-async def settings():
+@router.get("")
+async def settings(request: Request):
     login_state = request.cookies.get("login_state")
     if login_state is None:
-        return await render_template("error.html", error_message="Not logged in")
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
 
-    if request.method == "POST":
-        req = await request.form
-        username, player_id, auth_hash = login_state.split("-")
-        if (
-            utils.check_md5(f"{username}-{player_id}-{glob.config.login_key}", auth_hash)
-            == False
-        ):
-            return await render_template(
-                "error.html", error_message="Invalid login state"
-            )
-    return await render_template("account/settings.html")
+    return templates.TemplateResponse(request, "account/settings.html")

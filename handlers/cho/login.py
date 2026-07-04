@@ -1,32 +1,34 @@
 import logging
-from quart import Blueprint, request
-from objects import glob
 import os
-from handlers.response import Failed, Success
-from argon2 import PasswordHasher
 import time
-import utils
+
+from fastapi import APIRouter, Request
+from argon2 import PasswordHasher
 import geoip2.database
+
+from objects import glob
+from handlers.response import Failed, Success
+import utils
 from objects.player import Player
 
 ph = PasswordHasher()
-bp = Blueprint("login", __name__)
+router = APIRouter()
 
 php_file = True
 
 
-@bp.route("/", methods=["POST"])
-async def login():
-    params = await request.form
+@router.post("")
+async def login(request: Request):
+    form = await request.form()
 
-    if "username" not in params or len(params["username"]) == 0:
+    if "username" not in form or len(form["username"]) == 0:
         return Failed("Invalid username.")
 
-    p: Player = glob.players.get(username=params["username"])
+    p: Player = glob.players.get(username=form["username"])
 
     if not p:
         return Failed("User not found.")
-    if int(params["version"]) != int(glob.config.online_version):
+    if int(form["version"]) != int(glob.config.online_version):
         return Failed("This client is outdated")
 
     if glob.config.maintenance == True:
@@ -40,23 +42,21 @@ async def login():
     hashes = glob.cache["hashes"]
 
     if pswd_hash in hashes:
-        if params["password"] != hashes[pswd_hash]:
+        if form["password"] != hashes[pswd_hash]:
             return Failed("Wrong password.")
     else:
         try:
-            ph.verify(pswd_hash, params["password"])
-        except:
+            ph.verify(pswd_hash, form["password"])
+        except Exception:
             return Failed("Wrong password.")
 
-        hashes[pswd_hash] = params["password"]
+        hashes[pswd_hash] = form["password"]
 
     if status != 0:
         return Failed("Banned.")
 
-    # update last ping
     p.last_online = time.time()
 
-    # make uuid if havent
     if not p.uuid:
         p.uuid = utils.make_uuid(p.username)
 
@@ -68,17 +68,17 @@ async def login():
         if p.country == None:
             if os.path.exists("GeoLite2-Country.mmdb"):
                 with geoip2.database.Reader("GeoLite2-Country.mmdb") as reader:
-                    ip = request.remote_addr
+                    ip = request.client.host
                     response = reader.country(ip)
                     country = response.country.iso_code
                     await glob.db.execute(
                         "UPDATE users SET country = $1 WHERE id = $2",
                         [country, p.id],
                     )
-                    p.country = country # duh
+                    p.country = country
     except Exception as e:
         logging.error(f"Failed to get country from ip: {e}")
-    # returns long string of shit
+
     return Success(
         "{id} {uuid} {rank} {legacy_metric} {score} {pp} {acc} {username} {avatar}".format(
             id=p.id,

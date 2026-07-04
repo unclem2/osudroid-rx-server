@@ -1,15 +1,17 @@
-from quart import Blueprint, render_template, request
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
+
 from objects import glob
 from utils import get_countries
 
-bp = Blueprint("user_leaderboard", __name__)
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 
-@bp.route("/")
-async def leaderboard():
-    args = request.args
-    sortby = args.get("sortby", "pp").lower()
-    country = args.get("country", "").upper()
+@router.get("")
+async def leaderboard(request: Request):
+    sortby = request.query_params.get("sortby", "pp").lower()
+    country = request.query_params.get("country", "").upper()
 
     valid_sortby = {"score", "pp"}
     if sortby not in valid_sortby:
@@ -39,15 +41,17 @@ async def leaderboard():
 
     players_stats = await glob.db.fetchall(query, params)
     countries = await get_countries()
-    
-    # Failsafe: ensure countries is a list (even if empty)
+
     if not countries:
         countries = []
 
-    return await render_template(
+    return templates.TemplateResponse(
+        request,
         "leaderboard.html",
-        leaderboard=players_stats,
-        country=country if country else None,
-        countries=countries,
-        sortby=sortby,
+        {
+            "leaderboard": players_stats,
+            "country": country if country else None,
+            "countries": countries,
+            "sortby": sortby,
+        },
     )

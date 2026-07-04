@@ -1,14 +1,16 @@
-from quart import Blueprint, request, jsonify, render_template
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+
 from objects import glob
 from objects.room.utils import read_room_log
 
-bp = Blueprint("room_history", __name__)
+router = APIRouter()
 
 
-@bp.route("/", methods=["GET"])
-async def room_history():
-    data = request.args
-    room_log = read_room_log(data.get("id"))
+@router.get("")
+async def room_history(request: Request):
+    room_id = request.query_params.get("id")
+    room_log = read_room_log(room_id)
     ret = []
     current_beatmap = None
     for i, record in enumerate(room_log):
@@ -21,8 +23,8 @@ async def room_history():
                 {
                     "event": "match",
                     "beatmap": current_beatmap,
-                    "scores": record["data"]
+                    "scores": record["data"],
                 }
             )
 
-    return jsonify(ret)
+    return JSONResponse(content=ret)

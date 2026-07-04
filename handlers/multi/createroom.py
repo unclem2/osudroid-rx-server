@@ -1,4 +1,6 @@
-from quart import Blueprint, request, jsonify
+from fastapi import APIRouter, Request
+from fastapi.responses import JSONResponse
+
 from objects import glob
 from objects.beatmap import Beatmap
 from objects.room.room import Room
@@ -7,15 +9,14 @@ from objects.room.utils import get_id
 from handlers.multi import sio
 from handlers.multi.main_namespace import MultiNamespace
 
+router = APIRouter()
 
-bp = Blueprint("createroom", __name__)
 
-
-@bp.route("/", methods=["POST"])
-async def create_room():
-    data = await request.get_json()
+@router.post("")
+async def create_room(request: Request):
+    data = await request.json()
     if not data:
-        return jsonify({"error": "Invalid request"}), 400
+        return JSONResponse(content={"error": "Invalid request"}, status_code=400)
 
     room_id = get_id()
     room = Room()

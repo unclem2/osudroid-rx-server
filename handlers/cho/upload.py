@@ -1,24 +1,23 @@
-from quart import Blueprint, request
 import os
+
+from fastapi import APIRouter, Request
+
 from handlers.response import Failed, Success
 
-bp = Blueprint("upload", __name__)
+router = APIRouter()
 
 php_file = True
 
 
-@bp.route("/", methods=["POST"])
-async def upload_replay():
-    # Use await with request.files and request.form for asynchronous access
-    files = await request.files
-    form = await request.form
+@router.post("")
+async def upload_replay(request: Request):
+    form = await request.form()
 
-    # Correctly access the file and replayID
-    file = files.get("uploadedfile")
+    file = form.get("uploadedfile")
     replay_id = form.get("replayID")
 
-    path = f"data/replays/{replay_id}.odr"  # doesnt have .odr
-    raw_replay = file.read()
+    path = f"data/replays/{replay_id}.odr"
+    raw_replay = await file.read()
 
     if raw_replay[:2] != b"PK":
         return Failed("Fuck off lol.")
@@ -26,7 +25,7 @@ async def upload_replay():
     if os.path.isfile(path):
         return Failed("File already exists.")
 
-    with open(path, "wb") as file:
-        file.write(raw_replay)
+    with open(path, "wb") as f:
+        f.write(raw_replay)
 
     return Success("Replay uploaded.")

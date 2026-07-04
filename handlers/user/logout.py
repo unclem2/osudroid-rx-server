@@ -1,16 +1,16 @@
-from quart import Blueprint, make_response, render_template
-from handlers.response import Success
+from fastapi import APIRouter, Request
+from fastapi.templating import Jinja2Templates
 
-bp = Blueprint("user_logout", __name__)
+from handlers.response import success_str
+
+router = APIRouter()
+templates = Jinja2Templates(directory="templates")
 
 php_file = True
 
 
-@bp.route("/", methods=["GET"])
-async def logout():
-    response = await render_template(
-        "success.html", success_message=Success("Logout successful")
-    )
-    response = await make_response(response)
+@router.get("")
+async def logout(request: Request):
+    response = templates.TemplateResponse(request, "success.html", {"success_message": success_str("Logout successful")})
     response.delete_cookie("login_state")
     return response

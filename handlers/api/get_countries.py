@@ -1,18 +1,12 @@
-from quart import Blueprint, jsonify
+from fastapi import APIRouter
 import utils
 from handlers.response import ApiResponse
-from quart_schema import validate_response
-from pydantic import BaseModel
-from typing import List
+from .models.responses import CountryListResponse
 
-bp = Blueprint("get_countries", __name__)
+router = APIRouter()
 
 
-@bp.route("/")
-@validate_response(ApiResponse[List[str]], 200)
+@router.get("", response_model=CountryListResponse)
 async def get_countries():
-    """
-    Get a list of all countries.
-    """
     countries = await utils.get_countries()
     return ApiResponse.ok([country for country in countries])

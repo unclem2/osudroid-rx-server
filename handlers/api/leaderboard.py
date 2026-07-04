@@ -1,25 +1,21 @@
-from quart import Blueprint, jsonify, request
+import json
+from typing import Optional
+
+from fastapi import APIRouter, Query
+
 from objects import glob
 from handlers.response import ApiResponse
-from quart_schema import validate_querystring, validate_response
-from typing import List, Optional
-from pydantic import BaseModel, model_validator
 from .models.player import PlayerModel
-import json
+from .models.responses import PlayerListSuccessResponse
 
-bp = Blueprint("leaderboard", __name__)
+router = APIRouter()
 
-class RequestModel(BaseModel):
-    type: str = "pp"
-    country: Optional[str] = None
 
-@bp.route("/")
-@validate_querystring(RequestModel)
-@validate_response(ApiResponse[List[PlayerModel]], 200)
-async def leaderboard(query_args: RequestModel) -> ApiResponse[List[PlayerModel]]:
-    """
-    Get user leaderboard(score, pp, country)
-    """
+@router.get("", response_model=PlayerListSuccessResponse)
+async def leaderboard(
+    type: str = Query("pp"),
+    country: Optional[str] = Query(None),
+):
     query = """
             SELECT
             users.id, 
@@ -41,37 +37,16 @@ async def leaderboard(query_args: RequestModel) -> ApiResponse[List[PlayerModel]
             INNER JOIN stats ON users.id = stats.id
 """
 
-    if query_args.country:
+    if country:
         query += " WHERE users.country = $1"
-    if query_args.type == "score":
+    if type == "score":
         query += " ORDER BY stats.rscore DESC"
     else:
         query += " ORDER BY stats.pp DESC"
-    if query_args.country:
-        players_stats = await glob.db.fetchall(query, [query_args.country.upper()])
+    if country:
+        players_stats = await glob.db.fetchall(query, [country.upper()])
     else:
         players_stats = await glob.db.fetchall(query)
     for player in players_stats:
-        player["stats"] = json.loads(player["stats"])   
-    return ApiResponse.ok(PlayerModel(**player) for player in players_stats)
-
-
-# @bp.route("/country/<string:country>/")
-# async def leaderboard_country(country):
-#     args = request.args
-#     players_stats = (
-#         await glob.db.fetchall(
-#             "SELECT stats.id, stats.country_pp_rank, stats.pp, stats.plays, users.username, users.country "
-#             "FROM stats "
-#             "INNER JOIN users ON stats.id = users.id WHERE country = $1 ORDER BY stats.pp DESC",
-#             [country.upper()],
-#         )
-#         if args.get("type") != "score"
-#         else await glob.db.fetchall(
-#             "SELECT stats.id, stats.country_score_rank, stats.rscore, stats.plays, users.username, users.country "
-#             "FROM stats "
-#             "INNER JOIN users ON stats.id = users.id WHERE country = $1 ORDER BY stats.rscore DESC",
-#             [country.upper()],
-#         )
-#     )
-#     return jsonify(players_stats)
+        player["stats"] = json.loads(player["stats"])
+    return ApiResponse.ok([PlayerModel(**player) for player in players_stats])

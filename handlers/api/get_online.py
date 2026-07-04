@@ -1,16 +1,12 @@
-from quart import Blueprint
+from fastapi import APIRouter
 from objects import glob
 from handlers.response import ApiResponse
-from quart_schema import validate_response
+from .models.responses import OnlineCountResponse
 
-bp = Blueprint("get_online", __name__)
+router = APIRouter()
 
 
-@bp.route("/")
-@validate_response(ApiResponse[int], 200)
+@router.get("", response_model=OnlineCountResponse)
 async def get_online():
-    """
-    Get the number of online players.
-    """
     online_players = [_ for _ in glob.players if _.online]
     return ApiResponse.ok(len(online_players))

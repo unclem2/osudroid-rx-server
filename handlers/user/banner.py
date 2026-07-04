@@ -1,15 +1,17 @@
-from quart import Blueprint, send_file
-import pathlib
+from pathlib import Path
 
-bp = Blueprint("user_banner", __name__)
+from fastapi import APIRouter
+from fastapi.responses import FileResponse
 
-forced_route = "/user/banner/<int:uid>.png"
+router = APIRouter()
+
+forced_route = "/user/banner"
 
 
-@bp.route("/")
+@router.get("/{uid}.png")
 async def banner(uid: int):
-    user_banner = pathlib.Path(f"./data/banner/{uid}.png")
+    user_banner = Path(f"./data/banner/{uid}.png")
     if not user_banner.exists():
-        user_banner = pathlib.Path("./data/banner/default.png")
+        user_banner = Path("./data/banner/default.png")
 
-    return await send_file(user_banner, mimetype="image/png")
+    return FileResponse(user_banner, media_type="image/png")

@@ -1,18 +1,20 @@
-from objects import glob
-from quart import Blueprint, request
 import os
+
+from fastapi import APIRouter, Request
+
+from objects import glob
 from handlers.response import Failed, Success
 
-bp = Blueprint("getrank", __name__)
+router = APIRouter()
 
 php_file = True
 
 
-@bp.route("/", methods=["POST"])
-async def leaderboard():
-    params = await request.form
+@router.post("")
+async def leaderboard(request: Request):
+    form = await request.form()
 
-    if "hash" not in params:
+    if "hash" not in form:
         return Failed("No map hash.")
 
     res = []
@@ -21,15 +23,15 @@ async def leaderboard():
             "SELECT * FROM scores WHERE md5 = $1 AND status = 2 ORDER BY {order_by} DESC".format(
                 order_by="pp" if glob.config.pp_leaderboard else "score"
             ),
-            [params["hash"]],
+            [form["hash"]],
         )
     else:
-        order = params["type"]
+        order = form["type"]
         plays = await glob.db.fetchall(
             "SELECT * FROM scores WHERE md5 = $1 AND status = 2 ORDER BY {order_by} DESC".format(
                 order_by=order
             ),
-            [params["hash"]],
+            [form["hash"]],
         )
     for play in plays if plays else []:
         player = glob.players.get(id=int(play["playerid"]))

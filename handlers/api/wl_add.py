@@ -1,66 +1,50 @@
-from quart import Blueprint, request
+from typing import Optional
+
+from fastapi import APIRouter, Query
+
 from objects import glob
 from objects.beatmap import Beatmap
 from handlers.response import ApiResponse
-from quart_schema import validate_querystring, validate_response, hide
-from pydantic import BaseModel, model_validator
-from pydantic_core import PydanticCustomError
 from .models.beatmap import BeatmapModel
-from typing import Optional
+from .models.responses import BeatmapSuccessResponse
 import utils
 
+router = APIRouter()
 
-bp = Blueprint("wl_add", __name__)
 
-class WhitelistAddRequest(BaseModel):
-    key: str
-    md5: Optional[str] = None
-    bid: Optional[int] = None
+@router.get("", response_model=BeatmapSuccessResponse)
+async def whitelist_add(
+    key: str = Query(...),
+    md5: Optional[str] = Query(None),
+    bid: Optional[int] = Query(None),
+):
+    if not key:
+        return ApiResponse.bad_request("Key must be provided.")
+    if not md5 and not bid:
+        return ApiResponse.bad_request("Either md5 or bid must be provided.")
 
-    @model_validator(mode="before")
-    def validate(cls, values):
-        if not values.get("key"):
-            raise PydanticCustomError(
-                "validation_error",
-                "Key must be provided."
-            )
-        if not values.get("md5") and not values.get("bid"):
-            raise PydanticCustomError(
-                "validation_error",
-                "Either md5 or bid must be provided."
-            )
-        return values
-
-@bp.route("/", methods=["GET"])
-@validate_querystring(WhitelistAddRequest)
-@validate_response(ApiResponse[BeatmapModel], 200)
-@validate_response(ApiResponse[str], 400)
-@validate_response(ApiResponse[str], 403)
-async def whitelist_add(query_args: WhitelistAddRequest) -> ApiResponse[BeatmapModel]:
-    """ 
-    Add a beatmap to the whitelist.
-    """
-    if query_args.key != glob.config.wl_key:
+    if key != glob.config.wl_key:
         return ApiResponse.forbidden("Invalid key.")
-    map = None
-    if query_args.md5 is not None:
-        map = await Beatmap.from_md5(query_args.md5)
-    elif query_args.bid is not None:
-        map = await Beatmap.from_bid(query_args.bid)
-    if map is None:
-        return ApiResponse.not_found("Beatmap not found or missing required attributes.")
-    glob.task_manager.add_task(map.download())
 
-    # made by operagx
+    bmap = None
+    if md5 is not None:
+        bmap = await Beatmap.from_md5(md5)
+    elif bid is not None:
+        bmap = await Beatmap.from_bid(bid)
+    if bmap is None:
+        return ApiResponse.not_found("Beatmap not found or missing required attributes.")
+
+    glob.task_manager.add_task(bmap.download())
+
     await utils.send_webhook(
-        title=f"☆ {round(map.star, 2)} {map.artist} - {map.title} ({map.creator}) [{map.version}]",
-        title_url=f"https://osu.ppy.sh/beatmapsets/{map.set_id}#osu/{map.id}",
-        thumbnail=f"https://b.ppy.sh/thumb/{map.set_id}l.jpg",
-        content=f"**Map Stats: **\n**CS:** {map.cs} | **AR:** {map.ar} | **OD:** {map.od} | **HP:** {map.hp}",
+        title=f"☆ {round(bmap.star, 2)} {bmap.artist} - {bmap.title} ({bmap.creator}) [{bmap.version}]",
+        title_url=f"https://osu.ppy.sh/beatmapsets/{bmap.set_id}#osu/{bmap.id}",
+        thumbnail=f"https://b.ppy.sh/thumb/{bmap.set_id}l.jpg",
+        content=f"**Map Stats: **\n**CS:** {bmap.cs} | **AR:** {bmap.ar} | **OD:** {bmap.od} | **HP:** {bmap.hp}",
         footer="Map added to whitelist...",
         url=glob.config.wl_hook,
         isEmbed=True,
     )
-    await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [map.id])
+    await glob.db.execute("UPDATE maps SET status = 5 WHERE id = $1", [bmap.id])
 
-    return ApiResponse.ok(BeatmapModel(**map.as_json))
+    return ApiResponse.ok(BeatmapModel(**bmap.as_json))
