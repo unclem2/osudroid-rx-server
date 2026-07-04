@@ -55,12 +55,12 @@ async def lifespan(app_instance):
     await glob.db.connect()
     glob.task_manager = TaskManager()
     await init_players()
-    glob.task_manager.add_periodic_task(
-        update_player_stats, glob.config.cron_delay * 60
-    )
-    glob.task_manager.add_periodic_task(
-        update_map_status, glob.config.cron_delay * 60 * 24
-    )
+    # glob.task_manager.add_periodic_task(
+    #     update_player_stats, glob.config.cron_delay * 60
+    # )
+    # glob.task_manager.add_periodic_task(
+    #     update_map_status, glob.config.cron_delay * 60 * 24
+    # )
     yield
     await glob.db.close()
 
@@ -123,7 +123,7 @@ def main():
 
     uvicorn.run(
         app_asgi,
-        host="127.0.0.1",
+        host="0.0.0.0",
         port=glob.config.port,
         log_level="debug",
         access_log=True,

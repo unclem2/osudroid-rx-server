@@ -3,6 +3,9 @@ from objects import glob
 from enum import IntEnum, unique
 from objects.beatmap import Beatmap
 from utils.pp import PPCalculator
+import osudroid_api_wrapper
+import json
+import aiohttp
 
 
 @unique
@@ -138,10 +141,35 @@ class Score:
             s.date = int(data[13])
             s.fc = (data[14] == "true") or (data[14] == "1")  # 1.6.8 Fix
 
-        s.pp = await PPCalculator.from_score(s)
+        s.pp = PPCalculator()
+
+        mods = osudroid_api_wrapper.ModList.from_dict(json.loads(s.mods))
+
+        request = {
+            "md5": s.md5,
+            "miss": s.hmiss,
+            "combo": s.max_combo,
+            "h300": s.h300,
+            "h100": s.h100,
+            "h50": s.h50,
+            "hgeki": s.hgeki,
+            "hkatsu": s.hkatsu,
+            "slidertickhits": s.slidertickhits,
+            "sliderendhits": s.sliderendhits,
+            "mods": mods.as_calculable_mods,
+            }
+
+
+        async with aiohttp.ClientSession() as session:
+            async with session.post(url="http://localhost:9000/api/calculate/score", json=request) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    s.pp.calc_pp = data.get("pp_attributes").get("total", 0)
+                else:
+                    s.pp.calc_pp = 0
 
         if s.bmap and s.pp is not False:
-            await s.pp.calc()
+            # await s.pp.calc()
             await s.calc_status()
             s.global_placement, s.local_placement = await s.calc_lb_placement()
         else:
