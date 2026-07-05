@@ -60,7 +60,7 @@ async def login(request: Request):
     if not p.uuid:
         p.uuid = utils.make_uuid(p.username)
 
-    if os.path.isfile(f"data/avatar/{p.id}.png"):
+    if os.path.isfile(f"/srv/odrx_storage/dev/avatar/{p.id}.png"):
         p.avatar = f"{glob.config.host}/user/avatar/{p.id}.png"
     else:
         p.avatar = f"https://s.gravatar.com/avatar/{p.email_hash}"

@@ -12,7 +12,7 @@ forced_route = "/api/bestpp"
 
 @router.get("/{replay_path}")
 async def view_replay(replay_path: str):
-    path = f"data/replays/{replay_path}"
+    path = f"/srv/odrx_storage/dev/replays/{replay_path}"
 
     if not os.path.isfile(path):
         return Failed("Replay not found.")

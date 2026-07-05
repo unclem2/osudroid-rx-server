@@ -36,7 +36,7 @@ async def leaderboard(request: Request):
     for play in plays if plays else []:
         player = glob.players.get(id=int(play["playerid"]))
 
-        if os.path.isfile(f"data/avatar/{player.id}.png"):
+        if os.path.isfile(f"/srv/odrx_storage/dev/avatar/{player.id}.png"):
             avatar = f"{glob.config.host}/user/avatar/{player.id}.png"
         else:
             avatar = f"https://s.gravatar.com/avatar/{player.email_hash}"

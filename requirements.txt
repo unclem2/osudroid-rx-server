@@ -19,4 +19,4 @@ requests~=2.32.3
 javaobj-py3~=0.4.4
 argon2-cffi>=23.1.0
 pydantic>=2.6.0
-git+https://github.com/unclem2/osudroid-api-wrapper
+osudroid-api-wrapper

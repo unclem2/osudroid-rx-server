@@ -11,13 +11,7 @@ __pycache__/
 data.db
 *.db
 
-data/release/*
-data/replays/*
-data/beatmaps/*
-data/avatar/*
-data/banner/*
-data/replays_old/*
-data/rooms/*
+data
 static/*
 
 # Distribution / packaging
@@ -34,7 +28,7 @@ parts/
 sdist/
 var/
 wheels/
-pip-wheel-metadata/
+pip-wheel-meta/srv/odrx_storage/dev/
 share/python-wheels/
 *.egg-info/
 .installed.cfg
@@ -138,8 +132,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-data/avatar/6.png
-data/avatar/1.png
+/srv/odrx_storage/dev/avatar/6.png
+/srv/odrx_storage/dev/avatar/1.png
 
 tets.py
 1

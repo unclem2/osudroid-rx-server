@@ -42,6 +42,7 @@ submit_hook = os.getenv("SUBMIT_DISCORD", "")
 wl_hook = os.getenv("WL_DISCORD", "")
 wl_key = os.getenv("WL_KEY", "")
 login_key = os.getenv("LOGIN_KEY", "")
+storage_path = os.getenv("STORAGE_PATH", "data")
 
 
 # maybe will be used later

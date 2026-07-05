@@ -49,7 +49,7 @@ async def set_avatar(request: Request):
 
     if file and allowed_file(file.filename):
         filename = f"{p.id}.png"
-        file_path = os.path.join("data/avatar", filename)
+        file_path = os.path.join("/srv/odrx_storage/dev/avatar", filename)
         contents = await file.read()
         with open(file_path, "wb") as f:
             f.write(contents)

@@ -133,7 +133,7 @@ async def submit_play(request: Request):
             file = form.get("replayFile")
             replay_id = score.id
 
-            path = f"data/replays/{replay_id}.odr"
+            path = f"/srv/odrx_storage/dev/replays/{replay_id}.odr"
             raw_replay = await file.read()
 
             if raw_replay[:2] != b"PK":

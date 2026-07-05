@@ -6,7 +6,7 @@ from pathlib import Path
 from objects import glob
 from typing import Optional
 
-beatmap_folder = Path.cwd() / "data/beatmaps"
+beatmap_folder = Path.cwd() / "/srv/odrx_storage/dev/beatmaps"
 
 
 @unique
