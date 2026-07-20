@@ -19,5 +19,9 @@ requests~=2.32.3
 javaobj-py3~=0.4.4
 argon2-cffi>=23.1.0
 pydantic>=2.6.0
+<<<<<<< HEAD
 SQLAlchemy>=2.0.0
 git+https://github.com/unclem2/osudroid-api-wrapper
+=======
+osudroid-api-wrapper
+>>>>>>> 0384a5e50aa8acb4edffaf39ae3958fd60bcf085

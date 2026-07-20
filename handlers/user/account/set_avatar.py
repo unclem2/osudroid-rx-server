@@ -50,8 +50,13 @@ async def set_avatar(request: Request, config=Depends(get_config), player_servic
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
     if file and allowed_file(file.filename):
+<<<<<<< HEAD
         filename = f"{player.id}.png"
         file_path = os.path.join("data/avatar", filename)
+=======
+        filename = f"{p.id}.png"
+        file_path = os.path.join("/srv/odrx_storage/dev/avatar", filename)
+>>>>>>> 0384a5e50aa8acb4edffaf39ae3958fd60bcf085
         contents = await file.read()
         pathlib.Path(file_path).write_bytes(contents)
 

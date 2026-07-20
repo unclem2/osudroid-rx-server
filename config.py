@@ -33,6 +33,7 @@ class Config:
 
     processor_url = "http://localhost:8002"
 
+<<<<<<< HEAD
     __storage_folder = "/srv/odrx_storage/dev/"
     maps_folder = __storage_folder + "maps/"
     replays_folder = __storage_folder + "replays/"
@@ -48,6 +49,16 @@ class Config:
     wl_hook = os.getenv("WL_DISCORD", "")
     wl_key = os.getenv("WL_KEY", "")
     login_key = os.getenv("LOGIN_KEY", "")
+=======
+# External service keys and URLs
+osu_key = os.getenv("OSU_KEY", "")
+db_url = os.getenv("DATABASE_URL", "")
+submit_hook = os.getenv("SUBMIT_DISCORD", "")
+wl_hook = os.getenv("WL_DISCORD", "")
+wl_key = os.getenv("WL_KEY", "")
+login_key = os.getenv("LOGIN_KEY", "")
+storage_path = os.getenv("STORAGE_PATH", "data")
+>>>>>>> 0384a5e50aa8acb4edffaf39ae3958fd60bcf085
 
 
 # maybe will be used later
