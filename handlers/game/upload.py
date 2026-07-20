@@ -19,11 +19,7 @@ async def upload_replay(request: Request, config: Config = Depends(get_config)):
     file = form.get("uploadedfile")
     replay_id = form.get("replayID")
 
-<<<<<<< HEAD:handlers/game/upload.py
     path = f"{config.replays_folder}{replay_id}.odr"
-=======
-    path = f"/srv/odrx_storage/dev/replays/{replay_id}.odr"
->>>>>>> 0384a5e50aa8acb4edffaf39ae3958fd60bcf085:handlers/cho/upload.py
     raw_replay = await file.read()
 
     if raw_replay[:2] != b"PK":
