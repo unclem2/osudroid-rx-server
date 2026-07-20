@@ -8,5 +8,3 @@ class ProcessorBeatmapDifficultyAttributesModel(BaseModel):
     total: float = 0.0
 
     pp_version: str = ""
-
-i used models from pp processor in the server and can just parse json response
