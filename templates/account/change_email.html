@@ -5,7 +5,7 @@
   <div class="flex-1">
     <h3 class="font-semibold text-sm mb-0.5">Change Email</h3>
     <p class="text-xs mb-3" style="color:rgba(221,226,236,0.45)">Update the email address linked to your account.</p>
-    <form method="post" action="{{ url_for('user_change_email.change_email') }}" class="flex flex-wrap gap-3 items-center max-w-sm">
+    <form method="post" action="{{ request.url_for('user_change_email') }}" class="flex flex-wrap gap-3 items-center max-w-sm">
       <input type="email" name="new_email" placeholder="new@email.com" required
              class="flex-1 min-w-0 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
              style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;caret-color:#5b8ef0"

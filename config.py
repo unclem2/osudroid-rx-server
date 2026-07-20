@@ -4,44 +4,50 @@ import json
 
 load_dotenv(override=True)
 
-# Main server configuration
-server_name = "osudroid!relax"
-server_description = (
-    "Server that aims to be a relax mod only version of osu!droid, for those people that like to play RX and wish it were ranked."
-)
-port = int(os.getenv("SERVER_PORT", 8080))
-ip = os.getenv("SERVER_IP")
-domain = os.getenv("SERVER_DOMAIN")
-host = ""  # Internal use only
+class Config:
+    # Main server configuration
+    server_name = "osudroid!relax"
+    server_description = (
+        "Server that aims to be a relax mod only version of osu!droid, for those people that like to play RX and wish it were ranked."
+    )
+    port = int(os.getenv("SERVER_PORT", 8080))
+    ip = os.getenv("SERVER_IP")
+    domain = os.getenv("SERVER_DOMAIN")
+    host = "192.168.100.202"  # Internal use only
 
-# Client configuration
-online_version = 9
-client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.3/osu.droid-1.16.3.250829.-debug-2025-08-29.apk"
-client_version = "1.16.3(250829)"
-client_version_code = 1756470004
-client_changelog = "spectator support"
-banner_url = "https://discord.gg/Ub4nXasaHd"
+    # Client configuration
+    online_version = 10
+    client_link = "https://github.com/unclem2/odrx-client/releases/download/1.16.3/osu.droid-1.16.3.250829.-debug-2025-08-29.apk"
+    client_version = "1.16.3(250829)"
+    client_version_code = 1756470004
+    client_changelog = "spectator support"
+    banner_url = "https://discord.gg/Ub4nXasaHd"
 
-# State toggles
-legacy = False  # Enable to use legacy submit system
-maintenance = False
-disable_submit = False  # Disables play submissions and notifies users
+    # State toggles
+    legacy = False  # Enable to use legacy submit system
+    maintenance = False
+    disable_submit = False  # Disables play submissions and notifies users
 
-# Cron job settings
-cron_delay = 10  # Delay (in minutes) for updating user stats
+    # Cron job settings
+    cron_delay = 10  # Delay (in minutes) for updating user stats
 
-# Ranking system configuration
-pp = True  # Enable pp system
-pp_leaderboard = True  # Show and sort leaderboard by pp
-max_pp_value = 10000  # Max pp value for a play
+    processor_url = "http://localhost:8002"
 
-# External service keys and URLs
-osu_key = os.getenv("OSU_KEY", "")
-db_url = os.getenv("DATABASE_URL", "")
-submit_hook = os.getenv("SUBMIT_DISCORD", "")
-wl_hook = os.getenv("WL_DISCORD", "")
-wl_key = os.getenv("WL_KEY", "")
-login_key = os.getenv("LOGIN_KEY", "")
+    __storage_folder = "/srv/odrx_storage/dev/"
+    maps_folder = __storage_folder + "maps/"
+    replays_folder = __storage_folder + "replays/"
+    banners_folder = __storage_folder + "banners/"
+    avatars_folder = __storage_folder + "avatars/"
+
+    # External service keys and URLs
+    osu_key = os.getenv("OSU_KEY", "")
+    osu_client_id = os.getenv("OSU_CLIENT_ID", "")
+    osu_client_secret= os.getenv("OSU_CLIENT_SECRET", "")
+    db_url = os.getenv("DATABASE_URL", "")
+    submit_hook = os.getenv("SUBMIT_DISCORD", "")
+    wl_hook = os.getenv("WL_DISCORD", "")
+    wl_key = os.getenv("WL_KEY", "")
+    login_key = os.getenv("LOGIN_KEY", "")
 
 
 # maybe will be used later

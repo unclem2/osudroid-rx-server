@@ -1,17 +1,19 @@
 import re
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
-from objects import glob
 import utils
+from objects.dependencies.config import get_config
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-@router.post("")
-async def change_email(request: Request):
+@router.post("", name="user_change_email")
+async def change_email(request: Request, config=Depends(get_config), player_service: PlayerService = Depends(get_player_service)):
     login_state = request.cookies.get("login_state")
     if login_state is None:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
@@ -19,10 +21,9 @@ async def change_email(request: Request):
     req = await request.form()
     username, player_id, auth_hash = login_state.split("-")
     if (
-        utils.check_md5(
-            f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+        not utils.check_md5(
+            f"{username}-{player_id}-{config.login_key}", auth_hash,
         )
-        == False
     ):
         return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
     new_email = req.get("new_email")
@@ -38,27 +39,10 @@ async def change_email(request: Request):
     ):
         return templates.TemplateResponse(request, "error.html", {"error_message": "Email is not valid."})
 
-    player = glob.players.get(id=int(player_id))
+    player = await player_service.from_username(username)
     if not player or player.id != int(player_id):
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
-    res = await glob.db.fetch(
-        "SELECT email, status FROM users WHERE id = $1", [player.id]
-    )
-    if not res:
-        return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
-
-    stored_email = res["email"]
-    if new_email == stored_email:
-        return templates.TemplateResponse(
-            request, "error.html", {"error_message": "New email is the same as the old email"}
-        )
-
-    email_hash = utils.make_md5(f"{new_email}")
-
-    await glob.db.execute(
-        "UPDATE users SET email = $1, email_hash = $2 WHERE id = $3",
-        [new_email, email_hash, player.id],
-    )
+    await player_service.change_email(player.id, new_email)
 
     return templates.TemplateResponse(request, "success.html", {"success_message": "Email changed successfully"})

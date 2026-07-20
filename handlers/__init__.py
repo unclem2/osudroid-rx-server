@@ -1,15 +1,16 @@
-import os
 import importlib
 import logging
+import os
+
 import coloredlogs
 
 coloredlogs.install(level=logging.INFO, format="[%(levelname)s] %(message)s")
 
 
-def load_routers():
+def load_routers():  # noqa: RUF067
     modules = []
     base_dir = os.path.basename(os.path.dirname(__file__))
-    hide_prefixes = ("multi", "cho", "user")
+    hide_prefixes = ("multi", "game", "user")
     for root, _, files in os.walk(base_dir):
         for file in files:
             if file == "__init__.py" or not file.endswith(".py"):
@@ -24,7 +25,7 @@ def load_routers():
                     continue
 
                 router = module.router
-                prefix = path.replace(base_dir, "").replace("cho", "api")
+                prefix = path.replace(base_dir, "").replace("game", "api")
                 if hasattr(module, "php_file"):
                     prefix += ".php"
                 if hasattr(module, "forced_route"):
@@ -36,10 +37,10 @@ def load_routers():
                             route.include_in_schema = False
 
                 logging.info(
-                    f"✔ Loaded: {prefix} → Route: {prefix}"
+                    "✔ Loaded: %s → Route: %s", prefix, prefix,
                 )
                 modules.append((router, prefix))
             except Exception as e:
-                logging.error(f"✘ Failed to load: {import_path}")
-                logging.error(f"  Reason: {e}")
+                logging.exception("✘ Failed to load: %s", import_path)
+                logging.exception("  Reason: %s", e)
     return modules

@@ -3,11 +3,11 @@ import os
 import hashlib
 import discord_webhook
 import uuid
-from objects import glob
+
 
 
 def make_safe(n: str):
-    return n.lower().replace(" ", "_")
+    return n.lower().replace(" ", "")
 
 
 def make_md5(n: str):
@@ -56,11 +56,11 @@ async def send_webhook(
         return print("Error while sending webhook")
 
 
-async def get_countries():
-    countries = await glob.db.fetchall(
-        "SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country"
-    )
-    return [row["country"] for row in countries] if countries else []
+# async def get_countries():
+#     countries = await glob.db.fetchall(
+#         "SELECT DISTINCT country FROM users WHERE country IS NOT NULL ORDER BY country"
+#     )
+#     return [row["country"] for row in countries] if countries else []
 
 
 def is_convertable(value, type):

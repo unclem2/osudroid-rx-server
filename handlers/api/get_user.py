@@ -1,20 +1,18 @@
-from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from objects import glob
-from .models.player import PlayerModel
-from .models.responses import PlayerSuccessResponse
-from objects.player import Player
 from handlers.response import ApiResponse
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 
 
-@router.get("", response_model=PlayerSuccessResponse)
+@router.get("")
 async def get_user(
-    id: Optional[int] = Query(None),
-    username: Optional[str] = Query(None),
+    id: int | None = Query(None),
+    username: str | None = Query(None),
+    player_service: PlayerService = Depends(get_player_service),
 ):
     if not id and not username:
         return ApiResponse.bad_request("Either id or username must be provided.")
@@ -22,11 +20,11 @@ async def get_user(
         return ApiResponse.bad_request("Invalid username.")
 
     if id is not None:
-        player = glob.players.get(id=id)
+        player = await player_service.from_uid(id)
     else:
-        player: Player = glob.players.get(username=username)
+        player = await player_service.from_username(username)
 
     if not player:
         return ApiResponse.not_found("User not found")
 
-    return ApiResponse.ok(PlayerModel(**player.as_json))
+    return ApiResponse.ok(player)

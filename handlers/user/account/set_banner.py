@@ -1,10 +1,13 @@
 import os
+import pathlib
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
-from objects import glob
 import utils
+from objects.dependencies.config import get_config
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
@@ -15,8 +18,8 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
 
 
-@router.post("")
-async def set_banner(request: Request):
+@router.post("", name="user_set_banner")
+async def set_banner(request: Request, config=Depends(get_config), player_service: PlayerService = Depends(get_player_service)):
     auth_cookie = request.cookies.get("login_state")
     if not auth_cookie:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
@@ -25,7 +28,7 @@ async def set_banner(request: Request):
         username, player_id, auth_hash = auth_cookie.split("-")
         if (
             utils.check_md5(
-                f"{username}-{player_id}-{glob.config.login_key}", auth_hash
+                f"{username}-{player_id}-{config.login_key}", auth_hash,
             )
             == False
         ):
@@ -43,17 +46,15 @@ async def set_banner(request: Request):
     if file.filename == "":
         return templates.TemplateResponse(request, "error.html", {"error_message": "No selected file"})
 
-    p = glob.players.get(username=username)
-    if not p or p.id != player_id:
+    player = await player_service.from_username(username)
+    if not player or player.id != player_id:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
     if file and allowed_file(file.filename):
-        filename = f"{p.id}.png"
+        filename = f"{player.id}.png"
         file_path = os.path.join("data/banner", filename)
         contents = await file.read()
-        with open(file_path, "wb") as f:
-            f.write(contents)
+        pathlib.Path(file_path).write_bytes(contents)
 
         return templates.TemplateResponse(request, "success.html", {"success_message": "Banner uploaded successfully"})
-    else:
-        return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid file format"})
+    return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid file format"})

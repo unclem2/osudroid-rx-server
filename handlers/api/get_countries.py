@@ -1,12 +1,13 @@
-from fastapi import APIRouter
-import utils
+from fastapi import APIRouter, Depends
+
 from handlers.response import ApiResponse
-from .models.responses import CountryListResponse
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 
 
-@router.get("", response_model=CountryListResponse)
-async def get_countries():
-    countries = await utils.get_countries()
-    return ApiResponse.ok([country for country in countries])
+@router.get("")
+async def get_countries(player_service: PlayerService = Depends(get_player_service)):
+    countries = await player_service.get_countries_list()
+    return ApiResponse.ok(countries)

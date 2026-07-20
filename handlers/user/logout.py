@@ -6,7 +6,6 @@ from handlers.response import success_str
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-php_file = True
 
 
 @router.get("")

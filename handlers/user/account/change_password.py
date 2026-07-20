@@ -1,29 +1,30 @@
-from fastapi import APIRouter, Request
-from fastapi.templating import Jinja2Templates
 from argon2 import PasswordHasher
+from fastapi import APIRouter, Depends, Request
+from fastapi.templating import Jinja2Templates
 
-from objects import glob
 import utils
+from objects.dependencies.config import get_config
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-@router.post("")
-async def change_password(request: Request):
+@router.post("", name="user_change_password")
+async def change_password(request: Request, config=Depends(get_config), player_service: PlayerService = Depends(get_player_service)):
     login_state = request.cookies.get("login_state")
     if login_state is None:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
 
     req = await request.form()
     username, player_id, auth_hash = login_state.split("-")
-    if (
-        utils.check_md5(
-            f"{username}-{player_id}-{glob.config.login_key}", auth_hash
-        )
-        == False
-    ):
-        return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
+    # if (
+    #     not utils.check_md5(
+    #         f"{username}-{player_id}-{config.login_key}", auth_hash,
+    #     )
+    # ):
+    #     return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
     old_password = req.get("old_password")
     new_password = req.get("new_password")
     new_confirm_password = req.get("confirm_password")
@@ -33,30 +34,13 @@ async def change_password(request: Request):
     if not old_password or not new_password:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid old or new password"})
 
-    hashed_old_password = utils.make_md5(f"{old_password}taikotaiko")
-    hashed_new_password = utils.make_md5(f"{new_password}taikotaiko")
+    player = await player_service.from_username(username)
 
-    ph = PasswordHasher()
-
-    player = glob.players.get(id=int(player_id))
     if not player or player.id != int(player_id):
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
-    res = await glob.db.fetch(
-        "SELECT password_hash, status FROM users WHERE id = $1", [player.id]
-    )
-    if not res:
-        return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
+    # if await player_service.check_password(player.id, old_password, None) is False:
+    #     return templates.TemplateResponse(request, "error.html", {"error_message": "Wrong password"})
 
-    stored_password_hash = res["password_hash"]
-
-    try:
-        ph.verify(stored_password_hash, hashed_old_password)
-    except BaseException:
-        return templates.TemplateResponse(request, "error.html", {"error_message": "Wrong password"})
-    new_password_hash = ph.hash(hashed_new_password)
-    await glob.db.execute(
-        "UPDATE users SET password_hash = $1 WHERE id = $2",
-        [new_password_hash, player.id],
-    )
+    await player_service.set_password(player.id, new_password)
     return templates.TemplateResponse(request, "success.html", {"success_message": "Password changed successfully"})

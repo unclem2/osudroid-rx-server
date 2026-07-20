@@ -1,30 +1,25 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from objects import glob
-from objects.score import Score
 from handlers.response import ApiResponse
-from .models.score import ScoreModel
-from .models.responses import ScoreSuccessResponse
+from objects.dependencies.services import get_score_service
+from objects.services.score import ScoreService
 
 router = APIRouter()
 
 
-@router.get("", response_model=ScoreSuccessResponse)
+@router.get("")
 async def recent(
     id: int = Query(...),
     offset: int = Query(0),
+    score_service: ScoreService = Depends(get_score_service),
 ):
     if offset < 0:
         return ApiResponse.bad_request(
             "Offset must be greater than or equal to 0."
         )
 
-    recent_id = await glob.db.fetch(
-        'SELECT id FROM scores WHERE "playerid" = $1 '
-        "ORDER BY id DESC OFFSET $2",
-        [id, offset],
-    )
-    if not recent_id:
+    score = await score_service.recent_score(id, offset)
+    if not score:
         return ApiResponse.not_found("No recent score found.")
-    score = await Score.from_sql(recent_id["id"])
-    return ApiResponse.ok(ScoreModel(**score.as_json))
+
+    return ApiResponse.ok(score)

@@ -1,50 +1,33 @@
-from typing import Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from handlers.api.models.score import ScoreModel
-from handlers.api.models.responses import ScoreListSuccessResponse
-from objects import glob
-from objects.beatmap import Beatmap
 from handlers.response import ApiResponse
-from objects.score import Score
+from objects.dependencies.services import get_beatmap_service, get_score_service
+from objects.services.beatmap import BeatmapService
+from objects.services.score import ScoreService
 
 router = APIRouter()
 
 
-@router.get("", response_model=ScoreListSuccessResponse)
+@router.get("")
 async def beatmap_leaderboard(
-    md5: Optional[str] = Query(None),
-    bid: Optional[int] = Query(None),
+    md5: str | None = Query(None),
+    bid: int | None = Query(None),
+    beatmap_service: BeatmapService = Depends(get_beatmap_service),
+    score_service: ScoreService = Depends(get_score_service),
 ):
     if not md5 and not bid:
         return ApiResponse.bad_request(
-            "Either 'md5' or 'bid' must be provided to retrieve a beatmap."
+            "Either 'md5' or 'bid' must be provided to retrieve a beatmap.",
         )
 
     if md5:
-        bmap = await Beatmap.from_md5(md5)
+        beatmap = await beatmap_service.from_md5(md5)
     elif bid:
-        bmap = await Beatmap.from_bid(bid)
+        beatmap = await beatmap_service.from_id(bid)
 
-    if bmap is None:
+    if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
 
-    await bmap.recalc_lb_placements()
-
-    beatmap_lb = await glob.db.fetchall(
-        """SELECT * FROM scores WHERE md5 = $1 AND global_placement IS NOT NULL
-           ORDER BY global_placement ASC""",
-        [bmap.md5],
-    )
-    if not beatmap_lb:
-        return ApiResponse.not_found(
-            "No leaderboard entries found for this beatmap"
-        )
-
-    leaderboard = []
-    for score_data in beatmap_lb:
-        score = await Score.from_sql(0, score_data)
-        if score:
-            leaderboard.append(ScoreModel(**score.as_json))
+    leaderboard = await score_service.beatmap_scores(beatmap.md5)
     return ApiResponse.ok(leaderboard)

@@ -13,10 +13,12 @@
   <!-- Controls -->
   <div class="flex flex-wrap gap-3 mb-5">
 
+    <!-- Search -->
     <div class="relative flex-1 min-w-48">
-      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm"
+      <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-sm pointer-events-none"
          style="color:rgba(221,226,236,0.35)"></i>
       <input type="text" id="search-input" placeholder="Search player..."
+             value="{{ search or '' }}"
              class="w-full pl-9 pr-4 py-2.5 rounded-xl text-sm outline-none transition-colors"
              style="background:#1e2535;border:1px solid rgba(93,142,240,0.2);color:#dde2ec;
                     caret-color:#5b8ef0"
@@ -51,7 +53,7 @@
     </div>
 
     <!-- Sort: By PP -->
-    <a href="?sortby=pp{% if country %}&country={{ country }}{% endif %}"
+    <a href="?sortby=pp{% if country %}&country={{ country }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}"
        class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
        style="background:{{ '#5b8ef0' if sortby == 'pp' else '#1e2535' }};
               color:{{ '#fff' if sortby == 'pp' else '#dde2ec' }};
@@ -60,7 +62,7 @@
     </a>
 
     <!-- Sort: By Score -->
-    <a href="?sortby=score{% if country %}&country={{ country }}{% endif %}"
+    <a href="?sortby=score{% if country %}&country={{ country }}{% endif %}{% if search %}&search={{ search | urlencode }}{% endif %}"
        class="px-4 py-2.5 rounded-xl text-sm font-medium transition-all"
        style="background:{{ '#5b8ef0' if sortby == 'score' else '#1e2535' }};
               color:{{ '#fff' if sortby == 'score' else '#dde2ec' }};
@@ -96,9 +98,7 @@
 
           <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer"
               style="border-color:rgba(93,142,240,0.08)"
-              data-name="{{ player.username|lower }}"
-              data-rank="{{ r }}"
-              onclick="window.location='/user/profile.php?id={{ player.id }}'">
+              onclick="window.location='/user/profile?id={{ player.id }}'">
 
             <td class="px-4 py-3">
               {% if r == 1 %}
@@ -126,18 +126,18 @@
             <td class="px-4 py-3 text-right">
               {% if sortby == 'pp' %}
                 <span class="text-sm font-bold" style="color:#5b8ef0">
-                  {{ player.pp|int }}pp
+                  {{ player.stats.pp|int }}pp
                 </span>
               {% else %}
                 <span class="text-sm font-bold" style="color:#34d399">
-                  {{ "{:,}".format(player.rscore) }}
+                  {{ "{:,}".format(player.stats.ranked_score) }}
                 </span>
               {% endif %}
             </td>
 
             <td class="px-4 py-3 text-right">
               <span class="text-sm" style="color:rgba(221,226,236,0.6)">
-                {{ player.plays }}
+                {{ player.stats.playcount }}
               </span>
             </td>
 
@@ -148,20 +148,39 @@
     </div>
   </div>
 
-  <!-- Pagination -->
+  <!-- Server-side Pagination -->
+  {% set base_params = "sortby=" ~ sortby ~ ("&country=" ~ country if country else "") ~ ("&search=" ~ (search | urlencode) if search else "") %}
+
   <div class="flex items-center justify-center gap-3 mt-5">
-    <button id="prev-page"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+    {% if page > 1 %}
+    <a href="?{{ base_params }}&offset={{ (page - 2) * limit }}&limit={{ limit }}"
+       class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+       style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
+      <i class="fas fa-chevron-left mr-1"></i>Previous
+    </a>
+    {% else %}
+    <button disabled
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all opacity-40 cursor-not-allowed"
             style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
       <i class="fas fa-chevron-left mr-1"></i>Previous
     </button>
-    <span id="page-info" class="text-sm"
-          style="color:rgba(221,226,236,0.5)">Page 1</span>
-    <button id="next-page"
-            class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+    {% endif %}
+
+    <span class="text-sm" style="color:rgba(221,226,236,0.5)">Page {{ page }} of {{ total_pages }}</span>
+
+    {% if page < total_pages %}
+    <a href="?{{ base_params }}&offset={{ page * limit }}&limit={{ limit }}"
+       class="px-4 py-2 rounded-xl text-sm font-medium transition-all"
+       style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
+      Next<i class="fas fa-chevron-right ml-1"></i>
+    </a>
+    {% else %}
+    <button disabled
+            class="px-4 py-2 rounded-xl text-sm font-medium transition-all opacity-40 cursor-not-allowed"
             style="background:#1e2535;color:#dde2ec;border:1px solid rgba(93,142,240,0.2)">
       Next<i class="fas fa-chevron-right ml-1"></i>
     </button>
+    {% endif %}
   </div>
 
 </div>
@@ -174,50 +193,28 @@ function applyCountry(code) {
   } else {
     url.searchParams.delete('country');
   }
+  url.searchParams.delete('offset');
   window.location.href = url.toString();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const tbody = document.getElementById('leaderboard-body');
   const searchInput = document.getElementById('search-input');
-  const prevBtn = document.getElementById('prev-page');
-  const nextBtn = document.getElementById('next-page');
-  const pageInfo = document.getElementById('page-info');
+  let debounce;
 
-  const PER_PAGE = 15;
-  let currentPage = 1;
-  const allRows = Array.from(tbody.querySelectorAll('tr'));
-
-  function getFilteredRows() {
-    const q = searchInput.value.toLowerCase().trim();
-    const searchActive = q.length > 0;
-    return allRows.filter(row => {
-      const name = row.dataset.name;
-      const rank = parseInt(row.dataset.rank || "0");
-      if (rank === 0 && !searchActive) return false;
-      return name.includes(q);
-    });
-  }
-
-  function render() {
-    const filteredRows = getFilteredRows();
-    const start = (currentPage - 1) * PER_PAGE;
-    const end = start + PER_PAGE;
-    allRows.forEach(r => r.style.display = 'none');
-    filteredRows.slice(start, end).forEach(r => r.style.display = '');
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = end >= filteredRows.length;
-    const totalPages = Math.max(1, Math.ceil(filteredRows.length / PER_PAGE));
-    pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
-  }
-
-  searchInput.addEventListener('input', () => { currentPage = 1; render(); });
-  prevBtn.addEventListener('click', () => { if (currentPage > 1) { currentPage--; render(); } });
-  nextBtn.addEventListener('click', () => {
-    if (currentPage * PER_PAGE < getFilteredRows().length) { currentPage++; render(); }
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const url = new URL(window.location.href);
+      const q = searchInput.value.trim();
+      if (q) {
+        url.searchParams.set('search', q);
+      } else {
+        url.searchParams.delete('search');
+      }
+      url.searchParams.delete('offset');
+      window.location.href = url.toString();
+    }, 400);
   });
-
-  render();
 });
 </script>
 

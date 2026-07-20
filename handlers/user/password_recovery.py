@@ -8,7 +8,7 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from argon2 import PasswordHasher
 
-from objects import glob
+
 import utils
 
 router = APIRouter()

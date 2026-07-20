@@ -1,25 +1,26 @@
-from typing import List
+from fastapi import APIRouter, Depends, Query
 
-from fastapi import APIRouter, Query
-
-from objects import glob
-from objects.player import Player
-from objects.score import Score
 from handlers.response import ApiResponse
-from .models.score import ScoreModel
-from .models.responses import ScoreListSuccessResponse
+from objects.dependencies.services import get_player_service, get_score_service
+from objects.services.player import PlayerService
+from objects.services.score import ScoreService
 
 router = APIRouter()
 
 
-@router.get("", response_model=ScoreListSuccessResponse)
-async def get_scores(
+@router.get("")
+async def top_scores(
     id: int = Query(...),
     limit: int = Query(100),
+    player_service: PlayerService = Depends(get_player_service),
+    score_service: ScoreService = Depends(get_score_service),
 ):
     if limit < 1 or limit > 100:
         return ApiResponse.bad_request("Limit must be between 1 and 100.")
 
-    player: Player = glob.players.get(id=id)
-    scores: List[Score] = await player.top_scores(limit=limit)
-    return ApiResponse.ok([ScoreModel(**score.as_json) for score in scores])
+    player = await player_service.from_uid(id)
+    if not player:
+        return ApiResponse.not_found("User not found")
+
+    scores = await score_service.player_top_scores(id, limit)
+    return ApiResponse.ok(scores)

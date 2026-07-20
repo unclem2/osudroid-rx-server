@@ -1,23 +1,28 @@
-from typing import List, Optional
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from handlers.api.models.score import ScoreModel
-from handlers.api.models.responses import ScoreListSuccessResponse
-from objects import glob
-from objects.beatmap import Beatmap
 from handlers.response import ApiResponse
-from objects.score import Score
+from objects.dependencies.services import (
+    get_beatmap_service,
+    get_player_service,
+    get_score_service,
+)
+from objects.services.beatmap import BeatmapService
+from objects.services.player import PlayerService
+from objects.services.score import ScoreService
 
 router = APIRouter()
 
 
-@router.get("", response_model=ScoreListSuccessResponse)
+@router.get("")
 async def get_beatmap_scores(
-    md5: Optional[str] = Query(None),
-    bid: Optional[int] = Query(None),
-    uid: Optional[int] = Query(None),
-    username: Optional[str] = Query(None),
+    md5: str | None = Query(None),
+    bid: int | None = Query(None),
+    uid: int | None = Query(None),
+    username: str | None = Query(None),
+    beatmap_service: BeatmapService = Depends(get_beatmap_service),
+    player_service: PlayerService = Depends(get_player_service),
+    score_service: ScoreService = Depends(get_score_service),
 ):
     if not md5 and not bid:
         return ApiResponse.bad_request("Either 'md5' or 'bid' must be provided.")
@@ -25,32 +30,23 @@ async def get_beatmap_scores(
         return ApiResponse.bad_request("Either 'uid' or 'username' must be provided.")
 
     if md5:
-        bmap = await Beatmap.from_md5(md5)
+        bmap = await beatmap_service.from_md5(md5)
     elif bid:
-        bmap = await Beatmap.from_bid(bid)
+        bmap = await beatmap_service.from_id(bid)
 
     if bmap is None:
         return ApiResponse.not_found("Beatmap not found")
 
     if uid:
-        player = glob.players.get(id=uid)
+        player = await player_service.from_uid(uid)
     elif username:
-        player = glob.players.get(username=username)
+        player = await player_service.from_username(username)
 
     if player is None:
         return ApiResponse.not_found("Player not found")
 
-    scores = await glob.db.fetchall(
-        """SELECT * FROM scores WHERE md5 = $1 AND playerid = $2
-           ORDER BY local_placement ASC""",
-        [bmap.md5, player.id],
-    )
+    scores = await score_service.player_beatmap_scores(player.id, bmap.md5)
     if not scores:
         return ApiResponse.not_found("No scores found.")
-    leaderboard = []
-    for score in scores:
-        score_obj = await Score.from_sql(0, score)
-        if score_obj:
-            leaderboard.append(ScoreModel(**score_obj.as_json))
 
-    return ApiResponse.ok(leaderboard)
+    return ApiResponse.ok(scores)

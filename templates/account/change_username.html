@@ -5,7 +5,7 @@
   <div class="flex-1">
     <h3 class="font-semibold text-sm mb-0.5">Change Username</h3>
     <p class="text-xs mb-3" style="color:rgba(221,226,236,0.45)">3–20 characters, letters, numbers, and underscores only.</p>
-    <form method="post" action="{{ url_for('user_change_username.change_username') }}" class="flex flex-wrap gap-3 items-center max-w-sm">
+    <form method="post" action="{{ request.url_for('user_change_username') }}" class="flex flex-wrap gap-3 items-center max-w-sm">
       <input type="text" name="new_username" placeholder="New username" required
              minlength="3" maxlength="20" pattern="^[a-zA-Z0-9_]+$"
              class="flex-1 min-w-0 px-4 py-2.5 rounded-xl text-sm outline-none transition-colors"

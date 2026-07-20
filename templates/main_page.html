@@ -71,6 +71,67 @@
   </div>
 </div>
 
+{% if top_scores %}
+<div class="relative z-10 w-full max-w-2xl mx-auto px-4 pb-16">
+  <div class="rounded-2xl overflow-hidden shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+    <div class="h-1 w-full" style="background:linear-gradient(to right,#5b8ef0,#818cf8)"></div>
+    <div class="p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-1 h-6 rounded-full" style="background:#5b8ef0"></div>
+        <h2 class="text-lg font-bold">Top Scores</h2>
+      </div>
+
+      <div class="space-y-2" id="top-scores-list">
+        {% for score in top_scores %}
+        <div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group cursor-pointer"
+             style="background:linear-gradient(rgba(30, 37, 53, 0.85), rgba(30, 37, 53, 0.85)), url('{{ score.beatmap.map_cover }}');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"
+             onclick="window.location.href='{{ score.beatmap.map_link }}'">
+
+          <!-- Rank number -->
+          <div class="w-7 flex-shrink-0 text-center text-xs font-bold" style="color:rgba(221,226,236,0.3)">
+            #{{ loop.index }}
+          </div>
+
+          <!-- Grade -->
+          <div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"
+               style="background:rgba(93,142,240,0.1);color:
+               {%- if score.grade in ('SS', 'S') %}#fbbf24
+               {%- elif score.grade in ('XH', 'SH') %}#cbd5e1
+               {%- elif score.grade == 'A' %}#4ade80
+               {%- elif score.grade == 'B' %}#60a5fa
+               {%- elif score.grade == 'C' %}#fb923c
+               {%- else %}#f87171{% endif -%}">
+            {%- if score.grade == 'XH' %}SS{%- elif score.grade == 'SH' %}S{%- else %}{{ score.grade }}{%- endif %}
+          </div>
+
+          <!-- Player + Map -->
+          <div class="flex-1 min-w-0">
+            <div class="text-sm font-medium truncate">{{ score.beatmap.full }}</div>
+            <div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">
+              <a href="/user/profile?id={{ score.player_id }}" class="hover:underline" style="color:rgba(221,226,236,0.6)" onclick="event.stopPropagation()">{{ score.player.username }}</a>
+              &bull;
+              {% if score.mods and score.mods != '' %}{{ score.mods.as_standard_mods }} &bull; {% endif %}{{ score.max_combo }}x
+            </div>
+          </div>
+
+          <!-- PP + Acc -->
+          <div class="flex-shrink-0 text-right">
+            <div class="text-sm font-bold" style="color:#5b8ef0">{{ score.pp | round(2) }}pp</div>
+            <div class="text-xs" style="color:rgba(221,226,236,0.5)">{{ score.accuracy | round(2) }}%</div>
+          </div>
+
+          <!-- Date -->
+          <div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">
+            <span class="score-date" data-ts="{{ score.date }}"></span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <style>
   @keyframes floatUp {
     from { transform: translateY(100vh) scale(0.8); opacity: 0; }
@@ -79,4 +140,22 @@
     to { transform: translateY(-10vh) scale(1.2); opacity: 0; }
   }
 </style>
+
+<script>
+  document.querySelectorAll('.score-date').forEach(function(el) {
+    var ts = el.dataset.ts;
+    if (!ts) return;
+    var date = new Date(/^\d+$/.test(ts) ? ts : ts);
+    if (isNaN(date.getTime())) return;
+    var diff = Math.floor((Date.now() - date) / 1000);
+    var label;
+    if (diff < 60)           label = diff + 's ago';
+    else if (diff < 3600)    label = Math.floor(diff / 60) + 'm ago';
+    else if (diff < 86400)   label = Math.floor(diff / 3600) + 'h ago';
+    else if (diff < 2592000) label = Math.floor(diff / 86400) + 'd ago';
+    else label = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    el.textContent = label;
+    el.title = date.toLocaleString();
+  });
+</script>
 {% endblock %}

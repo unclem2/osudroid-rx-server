@@ -1,12 +1,13 @@
-from fastapi import APIRouter
-from objects import glob
+from fastapi import APIRouter, Depends
+
 from handlers.response import ApiResponse
-from .models.responses import OnlineCountResponse
+from objects.dependencies.services import get_player_service
+from objects.services.player import PlayerService
 
 router = APIRouter()
 
 
-@router.get("", response_model=OnlineCountResponse)
-async def get_online():
-    online_players = [_ for _ in glob.players if _.online]
-    return ApiResponse.ok(len(online_players))
+@router.get("")
+async def get_online(player_service: PlayerService = Depends(get_player_service)):
+    count = await player_service.get_online_players_count()
+    return ApiResponse.ok(count)
