@@ -27,7 +27,7 @@ async def lifespan(app_instance):
     await init(engine)
     func, dep = await init_player_compose(app_instance)
 
-    # app_instance.state.task_manager.add_task(func, dep)
+    app_instance.state.task_manager.add_task(func, dep)
 
     # app_instance.state.task_manager.add_periodic_task(
     #     update_map_status, config.cron_delay * 60 * 24

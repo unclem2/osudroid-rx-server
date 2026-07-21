@@ -4,7 +4,9 @@ from objects.dependencies.clients import get_osu_api_client, get_processor
 from objects.dependencies.config import get_config
 from objects.dependencies.repositories import (
     get_beatmap_repository,
+    get_leaderboard_repository,
     get_player_repository,
+    get_player_storage,
     get_score_repository,
 )
 from objects.services.beatmap import BeatmapService
@@ -21,9 +23,11 @@ def get_beatmap_service(repository=Depends(get_beatmap_repository), config=Depen
     )
 
 
-def get_player_service(player_repository=Depends(get_player_repository), score_repository=Depends(get_score_repository)) -> PlayerService:
+def get_player_service(player_repository=Depends(get_player_repository), leaderboard_repository=Depends(get_leaderboard_repository), player_storage=Depends(get_player_storage), score_repository=Depends(get_score_repository)) -> PlayerService:
     return PlayerService(
         player_repository=player_repository,
+        leaderboard_repository=leaderboard_repository,
+        player_storage=player_storage,
         score_repository=score_repository,
     )
 

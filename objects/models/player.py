@@ -13,7 +13,7 @@ class PlayerModel(BaseModel):
     score_rank: int = Field(default=0)  # Calculated
     score_country_rank: int = Field(default=0)  # Calculated
     playing: str | None = Field(default=None)  # Calculated
-    stats: StatsModel = StatsModel()
+    stats: StatsModel = Field(default=StatsModel(), exclude=True)
 
     def db_dump(self) -> dict:
         stats_dump = self.stats.db_dump()
