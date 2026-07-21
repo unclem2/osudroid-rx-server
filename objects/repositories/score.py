@@ -25,18 +25,7 @@ class ScoreRepository:
         score = await self.session.get(ScoreSchema, score_id)
         return self._serizalize(score) if score else None
 
-    async def beatmap_scores_bid(self, beatmap_id: int, order_by: str = "score") -> list[ScoreModel]:
-        stmt = (
-            select(ScoreSchema)
-            .where(ScoreSchema.beatmap_id == beatmap_id, ScoreSchema.status == SubmissionStatus.BEST)
-            .order_by(getattr(ScoreSchema, order_by).desc())
-        )
-
-        result = await self.session.execute(stmt)
-        scores = result.scalars().all()
-        return [self._serizalize(score) for score in scores]
-
-    async def beatmap_scores_md5(self, beatmap_md5: str, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
+    async def beatmap_scores(self, beatmap_md5: str, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
         stmt = (
             select(ScoreSchema)
             .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == SubmissionStatus.BEST)
