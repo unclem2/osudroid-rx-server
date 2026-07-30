@@ -39,7 +39,7 @@ async def login():
     pswd_hash = res["password_hash"]
     device_id = res["device_id"]
 
-    if not device_id or device_id != params.get("deviceID"):
+    if params.get("deviceID") and params.get("deviceID") != device_id:
         await glob.db.execute(
             "UPDATE users SET device_id = $1 WHERE id = $2",
             [params.get("deviceID"), p.id],
