@@ -33,10 +33,18 @@ async def login():
         return Failed("Maintenance")
 
     res = await glob.db.fetch(
-        "SELECT password_hash, status FROM users WHERE id = $1", [p.id]
+        "SELECT password_hash, status, device_id FROM users WHERE id = $1", [p.id]
     )
     status = res["status"]
     pswd_hash = res["password_hash"]
+    device_id = res["device_id"]
+
+    if not device_id or device_id != params.get("deviceID"):
+        await glob.db.execute(
+            "UPDATE users SET device_id = $1 WHERE id = $2",
+            [params.get("deviceID"), p.id],
+        )
+
     hashes = glob.cache["hashes"]
 
     if pswd_hash in hashes:
