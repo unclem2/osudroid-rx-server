@@ -164,3 +164,5 @@ class PlayerService:  # noqa: PLR0904
         players = await self.player_repository.get_everyone()
         for player in players:
             await self.update_stats(player)
+
+    

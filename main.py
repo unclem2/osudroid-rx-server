@@ -56,6 +56,7 @@ app.state.osu_api_client = osu_api_client
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     start_time = time.perf_counter()
+    # logging.debug(await request.form())
     response = await call_next(request)
     duration = time.perf_counter() - start_time
     logging.debug(f"request {request.method} {request.url.path} took {duration}s")
@@ -77,7 +78,7 @@ def main():
         app,
         host="0.0.0.0",
         port=config.port,
-        log_level="debug",
+        log_level="info",
         access_log=True,
 
     )

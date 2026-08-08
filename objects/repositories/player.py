@@ -1,5 +1,5 @@
 from redis.asyncio import Redis
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,7 +8,7 @@ from objects.schemas.player import PlayerSchema
 from objects.schemas.stats import StatsSchema
 
 
-class PlayerRepository:  # noqa: PLR0904
+class PlayerRepository:
     def __init__(self, session: AsyncSession, redis: Redis) -> None:
         self.session = session
         self.redis = redis
@@ -28,7 +28,8 @@ class PlayerRepository:  # noqa: PLR0904
         return model
 
     async def from_username(self, username: str) -> PlayerModel | None:
-        player = await self.session.get(PlayerSchema, username)
+        player_query = await self.session.execute(select(PlayerSchema).where(PlayerSchema.username == username))
+        player = player_query.scalar_one_or_none()
         model = self._serizalize(player) if player else None
 
         return model
@@ -85,7 +86,6 @@ class PlayerRepository:  # noqa: PLR0904
     async def change_username(self, player_id: int, new_username: str) -> PlayerModel | None:
         player = await self.session.get(PlayerSchema, player_id)
         if player:
-            old_username = player.username
             player.username = new_username
             await self.session.commit()
             return self._serizalize(player)
@@ -109,6 +109,16 @@ class PlayerRepository:  # noqa: PLR0904
     async def get_everyone(self) -> list[PlayerModel]:
         response = await self.session.execute(select(PlayerSchema))
         players = response.scalars().all()
-        
+
         return [self._serizalize(player) for player in players]
-        
+
+    async def set_device_id(self, player_id, device_id: str):
+        player = await self.session.get(PlayerSchema, player_id)
+        if player:
+            player.device_id = device_id
+            await self.session.commit()
+
+    async def get_device_id(self, player_id: int):
+        player = await self.session.get(PlayerSchema, player_id)
+        return player.device_id if player else None
+    
