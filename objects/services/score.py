@@ -49,6 +49,9 @@ class ScoreService:
     async def from_submit(self, submit_string: str) -> ScoreModel | None:
         score_data = submit_string.split(" ")
 
+        if len(score_data) < 18:
+            return None
+
         score = ScoreModel()
 
         username = score_data[17]  # legacy 13

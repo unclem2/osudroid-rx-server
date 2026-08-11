@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field
 
 from objects.enums.ranked_status import RankedStatus
 
@@ -13,7 +13,7 @@ class BeatmapModel(BaseModel):
     title: str = ""
     version: str = ""
     creator: str = ""
-    last_update: datetime = datetime.now()
+    last_update: datetime = Field(default_factory=datetime.now)
     total_length: int = 0
     max_combo: int = 0
     status: RankedStatus = RankedStatus.WIP

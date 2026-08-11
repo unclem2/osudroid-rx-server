@@ -8,6 +8,8 @@ from objects.models.score import ScoreModel
 from objects.schemas.beatmap import BeatmapSchema
 from objects.schemas.score import ScoreSchema
 
+ALLOWED_ORDER_BY = {"score", "pp", "date", "accuracy", "max_combo", "id"}
+
 
 class ScoreRepository:
     def __init__(self, session: AsyncSession, redis: asyncio.Redis) -> None:
@@ -26,6 +28,8 @@ class ScoreRepository:
         return self._serizalize(score) if score else None
 
     async def beatmap_scores(self, beatmap_md5: str, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
+        if order_by not in ALLOWED_ORDER_BY:
+            order_by = "score"
         stmt = (
             select(ScoreSchema)
             .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == SubmissionStatus.BEST)
@@ -37,6 +41,8 @@ class ScoreRepository:
         return [self._serizalize(score) for score in scores]
 
     async def player_scores(self, player_id: int, status: str, order_by: str = "date", limit: int = 100) -> list[ScoreModel]:
+        if order_by not in ALLOWED_ORDER_BY:
+            order_by = "date"
         stmt = (
             select(ScoreSchema)
             .where(
@@ -69,6 +75,8 @@ class ScoreRepository:
         return [self._serizalize(score) for score in scores]
 
     async def player_first_places(self, player_id: int, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
+        if order_by not in ALLOWED_ORDER_BY:
+            order_by = "score"
         maps_played_by_user = (
             select(ScoreSchema.md5)
             .where(
@@ -134,7 +142,7 @@ class ScoreRepository:
             ScoreSchema.player_id == score.player_id,
             ScoreSchema.md5 == score.md5,
             ScoreSchema.status == SubmissionStatus.BEST,
-        )
+        ).with_for_update()
         response = await self.session.execute(prev_best_query)
         prev_best = response.scalar_one_or_none()
         if prev_best:

@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from osudroid_api_wrapper import ModList
-from pydantic import BaseModel, ConfigDict, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 from objects.enums.submission_status import SubmissionStatus
 from objects.models.beatmap import BeatmapModel
@@ -32,7 +32,7 @@ class ScoreModel(BaseModel):
     pp: float = 0.0
     fc: bool | None = None
     status: SubmissionStatus = SubmissionStatus.FAILED
-    date: datetime = datetime.now()
+    date: datetime = Field(default_factory=datetime.now)
     pp_version: str = ""
 
     @field_serializer("mods")

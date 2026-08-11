@@ -15,7 +15,7 @@ class PlayerStorage:
         await self.redis.set(f"main:player:{player.id}:data", player.model_dump_json(exclude={"pp_rank", "pp_country_rank", "score_rank", "score_country_rank", "playing"}))
 
     async def get_player(self, player_id: int) -> PlayerModel | None:
-        player = await self.redis.get(f"main:level:{player_id}:data")
+        player = await self.redis.get(f"main:player:{player_id}:data")
         return PlayerModel.model_validate_json(player) if player else None
 
     async def set_level(self, player: PlayerModel) -> None:
@@ -51,5 +51,7 @@ class PlayerStorage:
         return float(last_online) if last_online else None
 
     async def get_online_player_count(self) -> int:
-        keys = await self.redis.keys("main:player:*:playing")
-        return len(keys)
+        count = 0
+        async for _ in self.redis.scan_iter("main:player:*:playing"):
+            count += 1
+        return count

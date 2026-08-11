@@ -1,5 +1,5 @@
 import logging
-import pathlib
+import os
 import time
 
 from fastapi import APIRouter, Depends, Request
@@ -23,13 +23,18 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
     if "userID" not in form:
         return Failed("Not enough argument.")
 
-    player = await player_service.from_uid(int(form["userID"]))
+    try:
+        player = await player_service.from_uid(int(form["userID"]))
+    except (ValueError, TypeError):
+        return Failed("Invalid userID.")
     if not player:
         return Failed("Player not found, report to server admin.")
 
     await player_service.set_last_online(player.id, time.time())
 
-    if "ssid" in form and form["ssid"] != await player_service.get_uuid(player.id):
+    if "ssid" not in form:
+        return Failed("Missing ssid.")
+    if form["ssid"] != await player_service.get_uuid(player.id):
         return Failed("Server restart, please relogin.")
 
     if config.disable_submit:
@@ -55,18 +60,28 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
         await player_service.update_stats(player)
 
         file = form.get("replayFile")
+        if not file:
+            return Failed("No replay file provided.")
+
         replay_id = score.id
 
-        path = f"{config.replays_folder}{replay_id}.odr"
+        replays_dir = os.path.realpath(config.replays_folder)
+        path = os.path.realpath(os.path.join(replays_dir, f"{replay_id}.odr"))
+
+        if not path.startswith(replays_dir + os.sep):
+            return Failed("Invalid replay path.")
+
         raw_replay = await file.read()
 
         if raw_replay[:2] != b"PK":
             return Failed("Fuck off lol.")
 
-        if pathlib.Path(path).is_file():
+        try:
+            fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+            with os.fdopen(fd, "wb") as f:
+                f.write(raw_replay)
+        except FileExistsError:
             return Failed("File already exists.")
-
-        pathlib.Path(path).write_bytes(raw_replay)
         return Success(
             f"{int(player.pp_rank)} {player.stats.ranked_score} {player.stats.accuracy / 100} {await score_service.score_global_placement(score)} {player.stats.pp}",
         )

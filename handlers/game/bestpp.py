@@ -14,7 +14,11 @@ forced_route = "/api/bestpp"
 
 @router.get("/{replay_path}")
 async def view_replay(replay_path: str, config: Config = Depends(get_config)):
-    path = f"{config.replays_folder}{replay_path}"
+    replays_dir = os.path.realpath(config.replays_folder)
+    path = os.path.realpath(os.path.join(replays_dir, replay_path))
+
+    if not path.startswith(replays_dir + os.sep) and path != replays_dir:
+        return Failed("Invalid replay path.")
 
     if not os.path.isfile(path):
         return Failed("Replay not found.")

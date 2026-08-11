@@ -51,7 +51,7 @@ async def set_avatar(request: Request, config=Depends(get_config), player_servic
 
     if file and allowed_file(file.filename):
         filename = f"{player.id}.png"
-        file_path = os.path.join("data/avatar", filename)
+        file_path = os.path.join(config.avatars_folder, filename)
         contents = await file.read()
         pathlib.Path(file_path).write_bytes(contents)
 

@@ -146,7 +146,7 @@ class PlayerService:  # noqa: PLR0904
         password_crypted = await self.player_repository.get_password(player_id)
         try:
             return PasswordHasher().verify(password_crypted, hashed_password)
-        except:
+        except Exception:
             return False
 
     async def set_password(self, player_id: int, new_password: str) -> None:

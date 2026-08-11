@@ -27,11 +27,11 @@ async def register(request: Request, player_service: PlayerService = Depends(get
             if not form.get(args, None):
                 return Failed("Not enough argument.")
 
-        if await player_service.from_username(form["username"]):
-            return Failed("Username already exists.")
-
         if len(form["username"]) < 2:
             return Failed("Username must be longer than 2 characters.")
+
+        if await player_service.from_username(form["username"]):
+            return Failed("Username already exists.")
 
         if (
             re.fullmatch(

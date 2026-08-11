@@ -49,6 +49,9 @@ class Config:
     wl_key = os.getenv("WL_KEY", "")
     login_key = os.getenv("LOGIN_KEY", "")
 
+    ssl_certfile = os.getenv("SSL_CERTFILE", "")
+    ssl_keyfile = os.getenv("SSL_KEYFILE", "")
+
 # not finished
 
 # class ConfigValue():

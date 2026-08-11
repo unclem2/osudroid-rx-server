@@ -4,6 +4,8 @@ import hashlib
 import discord_webhook
 import uuid
 
+logger = logging.getLogger(__name__)
+
 
 
 def make_safe(n: str):
@@ -39,21 +41,21 @@ async def send_webhook(
     webhook = discord_webhook.AsyncDiscordWebhook(url=url)
     if isEmbed is not False:
         embed = discord_webhook.DiscordEmbed(title=title, description=content)
-        embed.set_url(title_url) if title_url != None else ""
-        embed.set_thumbnail(thumbnail) if thumbnail != None else ""
-        embed.set_footer(footer) if footer != None else ""
+        embed.set_url(title_url) if title_url is not None else ""
+        embed.set_thumbnail(thumbnail) if thumbnail is not None else ""
+        embed.set_footer(footer) if footer is not None else ""
         webhook.add_embed(embed)
         try:
             await webhook.execute()
         except Exception:
-            return print("Error while sending webhook")
-        return print("Embed Webhook sent successfully")
+            return logger.error("Error while sending webhook")
+        return logger.info("Embed Webhook sent successfully")
     webhook.set_content(content)
     try:
         await webhook.execute()
-        print("Webhook sent successfully ")
+        logger.info("Webhook sent successfully ")
     except Exception:
-        return print("Error while sending webhook")
+        return logger.error("Error while sending webhook")
 
 
 # async def get_countries():

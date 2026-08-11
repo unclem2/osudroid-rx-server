@@ -7,6 +7,8 @@ from objects.services.player import PlayerService
 
 router = APIRouter()
 
+ALLOWED_LEADERBOARD_TYPES = {"pp", "score"}
+
 
 @router.get("")
 async def leaderboard(
@@ -16,5 +18,7 @@ async def leaderboard(
     offset: int = Query(0),
     player_service: PlayerService = Depends(get_player_service),
 ):
+    if type not in ALLOWED_LEADERBOARD_TYPES:
+        type = "pp"
     players = await player_service.get_leaderboard(type, country, limit, offset)
     return ApiResponse.ok(players)

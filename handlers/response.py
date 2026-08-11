@@ -1,4 +1,8 @@
+import logging
+
 from fastapi.responses import JSONResponse, HTMLResponse
+
+logger = logging.getLogger(__name__)
 
 
 def _serialize(data):
@@ -16,12 +20,12 @@ def args_join(args):
 
 
 def Success(*args):
-    print(f"SUCCESS\n" + args_join(args))
+    logger.info("SUCCESS\n" + args_join(args))
     return HTMLResponse("SUCCESS\n" + args_join(args))
 
 
 def Failed(*args):
-    print("FAILED\n" + args_join(args))
+    logger.warning("FAILED\n" + args_join(args))
     return HTMLResponse("FAILED\n" + args_join(args))
 
 

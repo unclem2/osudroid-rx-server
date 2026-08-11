@@ -1,4 +1,5 @@
 
+import os
 import pathlib
 
 from fastapi import APIRouter, Depends, Request
@@ -19,7 +20,15 @@ async def upload_replay(request: Request, config: Config = Depends(get_config)):
     file = form.get("uploadedfile")
     replay_id = form.get("replayID")
 
-    path = f"{config.replays_folder}{replay_id}.odr"
+    if not replay_id or not str(replay_id).isdigit():
+        return Failed("Invalid replay ID.")
+
+    replays_dir = os.path.realpath(config.replays_folder)
+    path = os.path.realpath(os.path.join(replays_dir, f"{replay_id}.odr"))
+
+    if not path.startswith(replays_dir + os.sep):
+        return Failed("Invalid replay path.")
+
     raw_replay = await file.read()
 
     if raw_replay[:2] != b"PK":

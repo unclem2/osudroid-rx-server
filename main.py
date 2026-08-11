@@ -65,7 +65,8 @@ async def add_process_time_header(request: Request, call_next):
 
 @app.exception_handler(500)
 async def server_fucked(request: Request, exc: Exception):
-    return Failed(f"припыли нахуй: {exc!r}")
+    logging.exception("Internal server error")
+    return Failed("Internal server error")
 
 
 def main():
@@ -80,7 +81,6 @@ def main():
         port=config.port,
         log_level="info",
         access_log=True,
-
     )
 
 

@@ -38,7 +38,7 @@ async def login(request: Request, player_service: PlayerService = Depends(get_pl
     status = await player_service.get_status(player.id)
 
     # verify password
-    if not await player_service.check_password(player.id, None, form["password"]):
+    if not await player_service.check_password(player.id, form["password"], None):
         return Failed("Invalid password.")
 
     if status != 0:
@@ -51,11 +51,11 @@ async def login(request: Request, player_service: PlayerService = Depends(get_pl
 
 
     avatar = f"{config.host}/user/avatar/0.png"
-    if pathlib.Path(f"/srv/odrx_storage/avatar/{player.id}.png").is_file():
+    if pathlib.Path(f"{config.avatars_folder}{player.id}.png").is_file():
         avatar = f"{config.host}/user/avatar/{player.id}.png"
 
 
-    if player.country == None:
+    if player.country is None:
         country = request.headers.get("CF-IPCountry", None)
         if country:
             await player_service.set_country(player.id, country)

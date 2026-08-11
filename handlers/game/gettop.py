@@ -13,7 +13,10 @@ php_file = True
 async def view_score(request: Request, score_service: ScoreService = Depends(get_score_service)):
     form = await request.form()
 
-    score = await score_service.from_id(int(form["playID"]))
+    try:
+        score = await score_service.from_id(int(form["playID"]))
+    except (ValueError, TypeError):
+        return Failed("Invalid playID.")
     if score:
         return Success(score.droid_string)
 

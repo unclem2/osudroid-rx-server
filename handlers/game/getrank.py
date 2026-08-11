@@ -22,7 +22,7 @@ async def leaderboard(request: Request, score_service: ScoreService = Depends(ge
     if "hash" not in form:
         return Failed("No map hash.")
 
-    scores = await score_service.beatmap_scores_md5(form["hash"], order_by=form["type"])
+    scores = await score_service.beatmap_scores(form["hash"], order_by=form["type"])
     for score in scores or []:
 
         if pathlib.Path(f"data/avatar/{score.player.id}.png").is_file():

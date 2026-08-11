@@ -1,4 +1,5 @@
 
+import os
 import pathlib
 
 from fastapi import APIRouter, Depends
@@ -15,7 +16,11 @@ forced_route = "/api/upload"
 
 @router.get("/{replay_path}")
 async def view_replay(replay_path: str, config: Config = Depends(get_config)):
-    path = f"{config.replays_folder}{replay_path}"
+    replays_dir = os.path.realpath(config.replays_folder)
+    path = os.path.realpath(os.path.join(replays_dir, replay_path))
+
+    if not path.startswith(replays_dir + os.sep) and path != replays_dir:
+        return Failed("Invalid replay path.")
 
     if not pathlib.Path(path).is_file():
         return Failed("Replay not found.")

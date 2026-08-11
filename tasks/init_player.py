@@ -15,11 +15,11 @@ async def init_players(player_service: PlayerService) -> None:
 
 
 async def compose(app_instance) -> tuple[Callable, PlayerService]:
-    async with sessionmaker() as session:
-        player_repository = PlayerRepository(session, app_instance.state.redis)
-        score_repository = ScoreRepository(session, app_instance.state.redis)
-        lb_repository = LeaderboardRepository(session, app_instance.state.redis)
-        player_storage = PlayerStorage(session, app_instance.state.redis)
+    session = sessionmaker()
+    player_repository = PlayerRepository(session, app_instance.state.redis)
+    score_repository = ScoreRepository(session, app_instance.state.redis)
+    lb_repository = LeaderboardRepository(session, app_instance.state.redis)
+    player_storage = PlayerStorage(session, app_instance.state.redis)
     player_service = PlayerService(player_repository, lb_repository, player_storage, score_repository)
 
     return init_players, player_service
