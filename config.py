@@ -30,6 +30,7 @@ class Config:
 
     # Cron job settings
     cron_delay = 10  # Delay (in minutes) for updating user stats
+    recalc_interval = 60  # Delay (in minutes) for score recalculation
 
     processor_url = "http://localhost:8002"
 

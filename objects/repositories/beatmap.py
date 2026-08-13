@@ -63,6 +63,13 @@ class BeatmapRepository:
         beatmaps = result.scalars().all()
         return [self._serizalize(beatmap) for beatmap in beatmaps]
 
+    async def get_outdated(self, current_version: str) -> list[BeatmapModel]:
+        result = await self.session.execute(
+            select(BeatmapSchema).where(BeatmapSchema.pp_version != current_version),
+        )
+        beatmaps = result.scalars().all()
+        return [self._serizalize(beatmap) for beatmap in beatmaps]
+
     async def save(self, beatmap: BeatmapModel) -> None:
         stmt = (
             insert(BeatmapSchema)
@@ -78,6 +85,7 @@ class BeatmapRepository:
                 total_length=beatmap.total_length,
                 max_combo=beatmap.max_combo,
                 bpm=beatmap.bpm,
+                status=beatmap.status,
                 ar=beatmap.ar,
                 cs=beatmap.cs,
                 od=beatmap.od,

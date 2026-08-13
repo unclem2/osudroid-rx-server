@@ -117,6 +117,19 @@ class ScoreRepository:
         scores = result.scalars().all()
         return [self._serizalize(score) for score in scores]
 
+    async def get_outdated(self, current_version: str) -> list[ScoreModel]:
+        stmt = select(ScoreSchema).where(ScoreSchema.pp_version != current_version)
+        result = await self.session.execute(stmt)
+        scores = result.scalars().all()
+        return [self._serizalize(score) for score in scores]
+
+    async def update_pp(self, score_id: int, pp: float, pp_version: str) -> None:
+        score = await self.session.get(ScoreSchema, score_id)
+        if score:
+            score.pp = pp
+            score.pp_version = pp_version
+            await self.session.commit()
+
     async def save(self, score: ScoreModel) -> ScoreModel:
         schema = self._deserialize(score)
         self.session.add(schema)

@@ -14,7 +14,7 @@ import utils
 from config import Config
 from handlers.response import Failed
 from objects.db import engine, init
-from tasks import init_player_compose
+from tasks import init_player_compose, recalc_compose
 from utils.tasks import TaskManager
 
 config = Config()
@@ -24,14 +24,16 @@ config = Config()
 async def lifespan(app_instance):
     utils.check_folder()
     app_instance.state.task_manager = TaskManager()
+    app_instance.state.config = config
     await init(engine)
     func, dep = await init_player_compose(app_instance)
 
     app_instance.state.task_manager.add_task(func, dep)
 
-    # app_instance.state.task_manager.add_periodic_task(
-    #     update_map_status, config.cron_delay * 60 * 24
-    # )
+    recalc_func, recalc_dep = await recalc_compose(app_instance)
+    app_instance.state.task_manager.add_periodic_task(
+        recalc_func, config.recalc_interval * 60, recalc_dep
+    )
     yield
 
 

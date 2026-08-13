@@ -17,10 +17,14 @@ class TaskManager:
         async def wrapper():
             while True:
                 logging.info(f"[TaskManager] Executing periodic task: {coro.__name__}")
-                await coro(*args, **kwargs)
+                try:
+                    await coro(*args, **kwargs)
+                except Exception:
+                    logging.exception(f"[TaskManager] Periodic task {coro.__name__} failed")
                 await asyncio.sleep(interval)
 
         task = asyncio.create_task(wrapper())
+        task.set_name(f"Periodic-{coro.__name__}")
         return task
 
 
