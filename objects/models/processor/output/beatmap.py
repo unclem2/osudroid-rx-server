@@ -22,6 +22,6 @@ class ProcessorBeatmapModel(BaseModel):
     bpm: float = 0.0
     attributes: ProcessorBeatmapAttributesModel | None = ProcessorBeatmapAttributesModel()
     star: ProcessorBeatmapDifficultyAttributesModel | None = ProcessorBeatmapDifficultyAttributesModel()
-    status: RankedStatus = RankedStatus.Pending
+    status: RankedStatus | None = RankedStatus.Pending
 
     model_config = ConfigDict(from_attributes=True)

@@ -13,6 +13,17 @@ from objects.models.processor.output.score import ProcessorScoreModel
 from objects.models.score import ScoreModel
 
 
+_session: aiohttp.ClientSession | None = None
+
+
+def _get_session() -> aiohttp.ClientSession:
+    """Return a process-wide shared session with a reused connection pool."""
+    global _session
+    if _session is None or _session.closed:
+        _session = aiohttp.ClientSession()
+    return _session
+
+
 class ProcessorClient:
     def __init__(self, config: Config):
         self.base_url = config.processor_url
@@ -49,26 +60,24 @@ class ProcessorClient:
 
     async def id_get_beatmap(self, beatmap_id: int) -> BeatmapModel | None:
         url = f"{self.base_url}/api/beatmap/get_beatmap/{beatmap_id}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    return None
-                data = await response.json()
+        async with _get_session().get(url) as response:
+            if response.status != 200:
+                return None
+            data = await response.json()
 
         return self._make_model(data)
 
     async def md5_get_beatmap(self, md5: str) -> BeatmapModel | None:
         url = f"{self.base_url}/api/beatmap/get_beatmap/md5/{md5}"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    return None
-                data = await response.json()
+        async with _get_session().get(url) as response:
+            if response.status != 200:
+                return None
+            data = await response.json()
 
         return self._make_model(data)
 
     async def calculate_score(self, model: ScoreModel) -> ProcessorPerformanceAttributesModel | None:
-        url = f"{self.base_url}/api/calculate/score"
+        url = f"{self.base_url}/api/calculate/score/"
         calc_req_model = ProcessorCalculateRequestModel(
             md5=model.md5,
             miss=model.hmiss,
@@ -82,11 +91,10 @@ class ProcessorClient:
             sliderendhits=model.sliderendhits,
             mods=model.mods.as_calculable_mods,
         )
-        async with aiohttp.ClientSession() as session:
-            async with session.post(url, json=calc_req_model.model_dump()) as response:
-                if response.status != 200:
-                    return None
-                data = await response.json()
+        async with _get_session().post(url, json=calc_req_model.model_dump()) as response:
+            if response.status != 200:
+                return None
+            data = await response.json()
 
         response_model = ProcessorScoreModel.model_validate(data)
 
@@ -94,10 +102,9 @@ class ProcessorClient:
 
     async def get_pp_version(self):
         url = f"{self.base_url}/metadata/pp_version"
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                if response.status != 200:
-                    return None
-                data = await response.text()
+        async with _get_session().get(url) as response:
+            if response.status != 200:
+                return None
+            data = await response.json()
 
         return data
