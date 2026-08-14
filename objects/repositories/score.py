@@ -3,7 +3,7 @@ from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 
-from objects.enums.submission_status import SubmissionStatus
+from objects.enums.score_status import ScoreStatus
 from objects.models.score import ScoreModel
 from objects.schemas.beatmap import BeatmapSchema
 from objects.schemas.score import ScoreSchema
@@ -32,7 +32,7 @@ class ScoreRepository:
             order_by = "score"
         stmt = (
             select(ScoreSchema)
-            .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == SubmissionStatus.BEST)
+            .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == ScoreStatus.BEST)
             .order_by(getattr(ScoreSchema, order_by).desc())
         )
 
@@ -47,7 +47,7 @@ class ScoreRepository:
             select(ScoreSchema)
             .where(
                 ScoreSchema.player_id == player_id,
-                ScoreSchema.status == SubmissionStatus.BEST if status == "best" else ScoreSchema.status.in_([SubmissionStatus.BEST, SubmissionStatus.SUBMITTED]),
+                ScoreSchema.status == ScoreStatus.BEST if status == "best" else ScoreSchema.status.in_([ScoreStatus.BEST, ScoreStatus.SUBMITTED]),
             ).order_by(getattr(ScoreSchema, order_by).desc())
         )
         if limit != -1:
@@ -61,7 +61,7 @@ class ScoreRepository:
             select(ScoreSchema)
             .where(
                 ScoreSchema.player_id == player_id,
-                ScoreSchema.status == SubmissionStatus.BEST,
+                ScoreSchema.status == ScoreStatus.BEST,
                 ScoreSchema.md5.in_(
                     select(BeatmapSchema.md5).where(BeatmapSchema.status.in_([1, 2, 4, 5])),
                 ),
@@ -81,7 +81,7 @@ class ScoreRepository:
             select(ScoreSchema.md5)
             .where(
                 ScoreSchema.player_id == player_id,
-                ScoreSchema.status == SubmissionStatus.BEST,
+                ScoreSchema.status == ScoreStatus.BEST,
             )
         )
 
@@ -90,7 +90,7 @@ class ScoreRepository:
             .where(
                 and_(
                     ScoreSchema.md5.in_(maps_played_by_user),
-                    ScoreSchema.status == SubmissionStatus.BEST,
+                    ScoreSchema.status == ScoreStatus.BEST,
                 ),
             )
         )
@@ -148,25 +148,25 @@ class ScoreRepository:
         await self.session.commit()
         return self._serizalize(schema)
 
-    async def calc_status(self, score: ScoreModel) -> SubmissionStatus:
-
-        resp_status = SubmissionStatus.SUBMITTED
+    async def calc_status(self, score: ScoreModel) -> ScoreStatus:
+        
+        resp_status = ScoreStatus.SUBMITTED
         prev_best_query = select(ScoreSchema).where(
             ScoreSchema.player_id == score.player_id,
             ScoreSchema.md5 == score.md5,
-            ScoreSchema.status == SubmissionStatus.BEST,
+            ScoreSchema.status == ScoreStatus.BEST,
         ).with_for_update()
         response = await self.session.execute(prev_best_query)
         prev_best = response.scalar_one_or_none()
         if prev_best:
             if score.pp > prev_best.pp:
-                resp_status = SubmissionStatus.BEST
-                prev_best.status = SubmissionStatus.SUBMITTED
+                resp_status = ScoreStatus.BEST
+                prev_best.status = ScoreStatus.SUBMITTED
                 await self.session.commit()
             else:
-                resp_status = SubmissionStatus.SUBMITTED
+                resp_status = ScoreStatus.SUBMITTED
         else:
-            resp_status = SubmissionStatus.BEST
+            resp_status = ScoreStatus.BEST
         return resp_status
 
     async def player_beatmap_scores(self, player_id: int, beatmap_md5: str, order_by: str = "local_placement") -> list[ScoreModel]:
@@ -198,7 +198,7 @@ class ScoreRepository:
         stmt = (
             select(ScoreSchema)
             .where(
-                ScoreSchema.status == SubmissionStatus.BEST,
+                ScoreSchema.status == ScoreStatus.BEST,
                 ScoreSchema.md5.in_(
                     select(BeatmapSchema.md5).where(BeatmapSchema.status.in_([1, 2, 4, 5])),
                 ),
@@ -211,13 +211,13 @@ class ScoreRepository:
         return [self._serizalize(score) for score in scores]
 
     async def score_global_placement(self, score: ScoreModel) -> int:
-        if score.status != SubmissionStatus.BEST:
+        if score.status != ScoreStatus.BEST:
             return 0
         stmt = (
             select(ScoreSchema)
             .where(
                 ScoreSchema.md5 == score.md5,
-                ScoreSchema.status == SubmissionStatus.BEST,
+                ScoreSchema.status == ScoreStatus.BEST,
                 ScoreSchema.pp > score.pp,
             )
         )

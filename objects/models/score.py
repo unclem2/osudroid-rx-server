@@ -4,7 +4,7 @@ from datetime import datetime
 from osudroid_api_wrapper import ModList
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
-from objects.enums.submission_status import SubmissionStatus
+from objects.enums.score_status import ScoreStatus
 from objects.models.beatmap import BeatmapModel
 from objects.models.player import PlayerModel
 
@@ -31,7 +31,7 @@ class ScoreModel(BaseModel):
     mods: ModList = ModList()
     pp: float = 0.0
     fc: bool | None = None
-    status: SubmissionStatus = SubmissionStatus.FAILED
+    status: ScoreStatus = ScoreStatus.FAILED
     date: datetime = Field(default_factory=datetime.now)
     pp_version: str = ""
 

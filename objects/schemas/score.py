@@ -4,7 +4,7 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DateTime, SmallInteger
 
-from objects.enums.submission_status import SubmissionStatus
+from objects.enums.score_status import ScoreStatus
 from objects.schemas.base import Base
 
 
@@ -31,7 +31,7 @@ class ScoreSchema(Base):
     hmiss: Mapped[int] = mapped_column()
     mods: Mapped[str] = mapped_column()
     pp: Mapped[float] = mapped_column()
-    status: Mapped[SubmissionStatus] = mapped_column(
+    status: Mapped[ScoreStatus] = mapped_column(
         SmallInteger, nullable=False, index=True,
     )  # статус скора
     fc: Mapped[bool] = mapped_column()

@@ -36,7 +36,7 @@ class PlayerService:  # noqa: PLR0904
         return model
 
     async def update_stats(self, player: PlayerModel) -> None:
-        all_scores = await self.score_repository.player_scores(player.id, "best", "date", -1)
+        all_scores = await self.score_repository.player_scores(player.id, "all", "date", -1)
         top_scores = await self.score_repository.player_top_scores(player.id, 100)
 
         stats = StatsModel()

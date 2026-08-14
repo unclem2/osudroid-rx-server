@@ -8,7 +8,10 @@ from sqlalchemy.orm import noload
 
 from objects.clients.processor import ProcessorClient
 from objects.db import sessionmaker
-from objects.enums.submission_status import SubmissionStatus
+from objects.enums.score_status import ScoreStatus
+from objects.models.processor.output.performance_attrs import (
+    ProcessorPerformanceAttributesModel,
+)
 from objects.models.score import ScoreModel
 from objects.repositories.beatmap import BeatmapRepository
 from objects.repositories.leaderboard import LeaderboardRepository
@@ -18,12 +21,14 @@ from objects.repositories.score import ScoreRepository
 from objects.schemas.score import ScoreSchema
 from objects.services.beatmap import BeatmapService
 from objects.services.player import PlayerService
+from objects.services.score import ScoreService
 
 logger = logging.getLogger(__name__)
 
 # Bound concurrency for http calls to the pp processor
 _PROCESSOR_CONCURRENCY = 8
 _pp_semaphore = asyncio.Semaphore(_PROCESSOR_CONCURRENCY)
+
 
 # Only the score columns required by the processor service need a Pydantic model;
 # building one from an ORM row avoids loading joined beatmap/player rows.
@@ -56,9 +61,13 @@ def _to_score_model(row: ScoreSchema) -> ScoreModel:
     )
 
 
-async def _calculate_pp(processor_client: ProcessorClient, row: ScoreSchema):
+async def _calculate_pp(score_service: ScoreService, processor_client: ProcessorClient, row: ScoreSchema) -> ProcessorPerformanceAttributesModel | None:
     async with _pp_semaphore:
-        return await processor_client.calculate_score(_to_score_model(row))
+        model = _to_score_model(row)
+        if score_service.is_ranked(model):
+            return await processor_client.calculate_score(model)
+    return None
+
 
 # Simple in-memory state tracker for external monitoring/logs
 recalc_state: dict = {
@@ -124,7 +133,7 @@ async def recalc_beatmaps(beatmap_service: BeatmapService, current_version: str)
     return recalculed
 
 
-async def recalc_scores(processor_client: ProcessorClient, score_repository: ScoreRepository, current_version: str) -> tuple[int, set[int]]:
+async def recalc_scores(score_service: ScoreService, processor_client: ProcessorClient, score_repository: ScoreRepository, current_version: str) -> tuple[int, set[int]]:
     session = score_repository.session
 
     # one lightweight query: md5s of maps that have any outdated score
@@ -133,8 +142,8 @@ async def recalc_scores(processor_client: ProcessorClient, score_repository: Sco
         .where(
             ScoreSchema.md5.in_(
                 select(ScoreSchema.md5)
-                .where(ScoreSchema.pp_version != current_version)
-            )
+                .where(ScoreSchema.pp_version != current_version),
+            ),
         )
         .options(
             noload(ScoreSchema.beatmap),
@@ -147,7 +156,6 @@ async def recalc_scores(processor_client: ProcessorClient, score_repository: Sco
     by_map: dict[str, list[ScoreSchema]] = {}
     for row in rows:
         by_map.setdefault(row.md5, []).append(row)
-
 
     total_maps = len(by_map)
     total_scores = len(rows)
@@ -167,11 +175,11 @@ async def recalc_scores(processor_client: ProcessorClient, score_repository: Sco
             map_affected: set[int] = set()
             outdated = [
                 score for score in map_scores
-                if score.status != SubmissionStatus.FAILED and score.pp_version != current_version
+                if score.status != ScoreStatus.FAILED and score.pp_version != current_version
             ]
 
             # recalc pp for outdated scores in parallel
-            results = await asyncio.gather(*(_calculate_pp(processor_client, score) for score in outdated))
+            results = await asyncio.gather(*(_calculate_pp(score_service, processor_client, score) for score in outdated))
             for score, pp_attrs in zip(outdated, results):
                 if pp_attrs is not None:
                     score.pp = pp_attrs.total
@@ -181,15 +189,15 @@ async def recalc_scores(processor_client: ProcessorClient, score_repository: Sco
 
             # recompute per-map placements: one BEST per player (highest pp), others SUBMITTED
             old_status = {score.id: score.status for score in map_scores}
-            active = [score for score in map_scores if score.status != SubmissionStatus.FAILED]
+            active = [score for score in map_scores if score.status != ScoreStatus.FAILED]
             active.sort(key=lambda score: score.pp or 0.0, reverse=True)
             seen_players: set[int] = set()
             for score in active:
                 if score.player_id not in seen_players:
-                    score.status = SubmissionStatus.BEST
+                    score.status = ScoreStatus.BEST
                     seen_players.add(score.player_id)
                 else:
-                    score.status = SubmissionStatus.SUBMITTED
+                    score.status = ScoreStatus.SUBMITTED
 
             # players whose status changed need stats too
             for score in map_scores:
@@ -272,6 +280,8 @@ async def recalc(app_instance):
     osu_api_client = app_instance.state.osu_api_client
     beatmap_service = BeatmapService(beatmap_repository, app_instance.state.config, processor_client, osu_api_client)
 
+    score_service = ScoreService(score_repository, player_service, beatmap_service, processor_client)  # BeatmapService will be set later
+
     current_version = await processor_client.get_pp_version()
     if not current_version:
         logger.error("Failed to get pp_version from processor. Aborting recalc.")
@@ -280,7 +290,7 @@ async def recalc(app_instance):
     logger.info("Current pp_version: %s", current_version)
 
     # await recalc_beatmaps(beatmap_service, current_version)
-    _, affected_players = await recalc_scores(processor_client, score_repository, current_version)
+    _, affected_players = await recalc_scores(score_service, processor_client, score_repository, current_version)
     await update_affected_stats(player_service, player_repository, affected_players)
 
     # finalize state

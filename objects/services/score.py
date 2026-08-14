@@ -10,7 +10,7 @@ from objects.models.processor.output.performance_attrs import (
 )
 from objects.models.score import ScoreModel
 from objects.repositories.score import ScoreRepository
-from objects.schemas.score import SubmissionStatus
+from objects.schemas.score import ScoreStatus
 from objects.services.beatmap import BeatmapService
 from objects.services.player import PlayerService
 
@@ -85,10 +85,10 @@ class ScoreService:
         if pp_attrs:
             score.pp = pp_attrs.total
             score.pp_version = pp_attrs.pp_version
-            score.status = await self.score_repository.calc_status(score)
+            score.status = await self.calc_status(score)
         else:
             score.pp = 0.0
-            score.status = SubmissionStatus.SUBMITTED
+            score.status = ScoreStatus.SUBMITTED
 
         return score
 
@@ -133,3 +133,25 @@ class ScoreService:
 
         response: ProcessorPerformanceAttributesModel | None = await self.processor_client.calculate_score(model)
         return response
+
+    def is_ranked(self, score: ScoreModel) -> bool:
+        if score.mods.get_mod("RX"):
+            return False
+
+        if score.mods.get_mod("WU") or score.mods.get_mod("WD") or score.mods.get_mod("AP"):
+            return False
+
+        if (
+            da := score.mods.get_mod("DA")
+        ) and (
+            setting := da.settings.get_setting("cs")
+            or da.settings.get_setting("od")
+        ) and setting.value is not None:
+            return False
+
+        return True
+        
+    async def calc_status(self, score: ScoreModel) -> ScoreStatus:
+        if not self.is_ranked(score):
+            return ScoreStatus.UNRANKED
+        return await self.score_repository.calc_status(score)
