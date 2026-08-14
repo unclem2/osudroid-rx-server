@@ -86,6 +86,8 @@ class ScoreService:
             score.pp = pp_attrs.total
             score.pp_version = pp_attrs.pp_version
             score.status = await self.calc_status(score)
+            if score.status == ScoreStatus.UNRANKED:
+                score.pp = 0.0
         else:
             score.pp = 0.0
             score.status = ScoreStatus.SUBMITTED

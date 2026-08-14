@@ -3,7 +3,7 @@ import logging
 import time
 from collections.abc import Callable
 
-from sqlalchemy import select
+from sqlalchemy import select, and_
 from sqlalchemy.orm import noload
 
 from objects.clients.processor import ProcessorClient
@@ -142,7 +142,7 @@ async def recalc_scores(score_service: ScoreService, processor_client: Processor
         .where(
             ScoreSchema.md5.in_(
                 select(ScoreSchema.md5)
-                .where(ScoreSchema.pp_version != current_version),
+                .where(ScoreSchema.pp_version != current_version, ScoreSchema.status.notin_([ScoreStatus.FAILED, ScoreStatus.DELISTED])),
             ),
         )
         .options(
@@ -175,7 +175,7 @@ async def recalc_scores(score_service: ScoreService, processor_client: Processor
             map_affected: set[int] = set()
             outdated = [
                 score for score in map_scores
-                if score.status != ScoreStatus.FAILED and score.pp_version != current_version
+                if score.pp_version != current_version
             ]
 
             # recalc pp for outdated scores in parallel
@@ -188,11 +188,25 @@ async def recalc_scores(score_service: ScoreService, processor_client: Processor
                     map_affected.add(score.player_id)
 
             # recompute per-map placements: one BEST per player (highest pp), others SUBMITTED
+            # unranked scores get UNRANKED status and are excluded from placement ranking
             old_status = {score.id: score.status for score in map_scores}
-            active = [score for score in map_scores if score.status != ScoreStatus.FAILED]
-            active.sort(key=lambda score: score.pp or 0.0, reverse=True)
+
+            ranked_active = []
+            for score in map_scores:
+                model = _to_score_model(score)
+                if not score_service.is_ranked(model):
+                    if score.status != ScoreStatus.UNRANKED:
+                        score.status = ScoreStatus.UNRANKED
+                    # update pp_version even for unranked to avoid reprocessing
+                    if score.pp_version != current_version:
+                        score.pp_version = current_version
+                    score.pp = 0
+                    continue
+                ranked_active.append(score)
+
+            ranked_active.sort(key=lambda score: score.pp or 0.0, reverse=True)
             seen_players: set[int] = set()
-            for score in active:
+            for score in ranked_active:
                 if score.player_id not in seen_players:
                     score.status = ScoreStatus.BEST
                     seen_players.add(score.player_id)
