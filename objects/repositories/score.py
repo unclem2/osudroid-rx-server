@@ -2,6 +2,8 @@ from redis import asyncio
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
+from sqlalchemy.orm import noload
+
 
 from objects.enums.score_status import ScoreStatus
 from objects.models.score import ScoreModel
@@ -118,7 +120,14 @@ class ScoreRepository:
         return [self._serizalize(score) for score in scores]
 
     async def get_outdated(self, current_version: str) -> list[ScoreModel]:
-        stmt = select(ScoreSchema).where(ScoreSchema.pp_version != current_version)
+        stmt = (
+        select(ScoreSchema)
+        .where(ScoreSchema.pp_version != current_version, ScoreSchema.status.not_in([ScoreStatus.FAILED, ScoreStatus.DELISTED]))
+        .options(
+                noload(ScoreSchema.beatmap),
+                noload(ScoreSchema.player),
+            )
+        )
         result = await self.session.execute(stmt)
         scores = result.scalars().all()
         return [self._serizalize(score) for score in scores]
@@ -224,3 +233,35 @@ class ScoreRepository:
         result = await self.session.execute(stmt)
         scores = result.scalars().all()
         return len(scores) + 1
+
+    async def batch_update(self, updates: dict[int, dict]) -> None:
+        if not updates:
+            return
+        ids = list(updates.keys())
+        CHUNK = 900
+        for i in range(0, len(ids), CHUNK):
+            chunk_ids = ids[i : i + CHUNK]
+            schemas = (
+                await self.session.execute(
+                    select(ScoreSchema).where(ScoreSchema.id.in_(chunk_ids))
+                )
+            ).scalars().all()
+            for schema in schemas:
+                for key, value in updates[schema.id].items():
+                    setattr(schema, key, value)
+        await self.session.commit()
+
+    async def scores_by_md5(self, md5: str) -> list[ScoreModel]:
+        stmt = (
+            select(ScoreSchema)
+            .where(
+                ScoreSchema.md5 == md5,
+                ScoreSchema.status.not_in([ScoreStatus.FAILED, ScoreStatus.DELISTED]),
+            )
+            .options(noload(ScoreSchema.beatmap), noload(ScoreSchema.player))
+        )
+        result = await self.session.execute(stmt)
+        scores = result.scalars().all()
+        return [self._serizalize(score) for score in scores]
+
+

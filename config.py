@@ -32,7 +32,7 @@ class Config:
     cron_delay = 10  # Delay (in minutes) for updating user stats
     recalc_interval = 60  # Delay (in minutes) for score recalculation
 
-    processor_url = "http://localhost:8002"
+    processor_url = os.getenv("PROCESSOR_URL", "http://localhost:8002")
 
     __storage_folder = "/srv/odrx_storage/dev/"
     maps_folder = __storage_folder + "maps/"

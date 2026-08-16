@@ -45,8 +45,8 @@ class ScoreModel(BaseModel):
             mods = json.loads(mods)
         return ModList.from_dict(mods)
 
-    beatmap: BeatmapModel = BeatmapModel()
-    player: PlayerModel = PlayerModel()
+    beatmap: BeatmapModel | None = None
+    player: PlayerModel | None = None
 
     def db_dump(self):
         score = self.model_dump(exclude={"beatmap", "player"})

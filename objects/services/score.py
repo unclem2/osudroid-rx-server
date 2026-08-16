@@ -152,8 +152,24 @@ class ScoreService:
             return False
 
         return True
-        
+
     async def calc_status(self, score: ScoreModel) -> ScoreStatus:
         if not self.is_ranked(score):
             return ScoreStatus.UNRANKED
         return await self.score_repository.calc_status(score)
+
+    async def get_outdated(self, current_version: str) -> dict[str, list[ScoreModel]]:
+        scores = await self.score_repository.get_outdated(current_version)
+        grouped_by_md5 = {}
+        for score in scores:
+            if score.md5 not in grouped_by_md5:
+                grouped_by_md5[score.md5] = []
+            grouped_by_md5[score.md5].append(score)
+        sorted_by_size = dict(sorted(grouped_by_md5.items(), key=lambda x: len(x[1]), reverse=True))
+        return sorted_by_size
+
+    async def batch_update(self, updates: dict[int, dict]) -> None:
+        await self.score_repository.batch_update(updates)
+
+    async def scores_by_md5(self, md5: str) -> list[ScoreModel]:
+        return await self.score_repository.scores_by_md5(md5)
