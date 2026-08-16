@@ -137,7 +137,7 @@ class ScoreService:
         return response
 
     def is_ranked(self, score: ScoreModel) -> bool:
-        if score.mods.get_mod("RX"):
+        if score.mods.get_mod("RX") is None:
             return False
 
         if score.mods.get_mod("WU") or score.mods.get_mod("WD") or score.mods.get_mod("AP"):
