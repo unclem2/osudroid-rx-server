@@ -122,3 +122,10 @@ class PlayerRepository:
         player = await self.session.get(PlayerSchema, player_id)
         return player.device_id if player else None
     
+    async def id_list_from_query(self, query: str, order_by: str, country: str | None, limit: int = 100, offset: int = 0) -> list[int] | None:
+        stmt = select(PlayerSchema.id).where(PlayerSchema.username.ilike(f"%{query}%"))
+        if country:
+            stmt = stmt.where(PlayerSchema.country == country)
+        stmt = stmt.offset(offset).limit(limit)
+        response = await self.session.execute(stmt)
+        return response.scalars().all()

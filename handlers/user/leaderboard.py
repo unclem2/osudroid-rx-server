@@ -39,15 +39,13 @@ async def leaderboard(request: Request, player_service: PlayerService = Depends(
 
     if search:
         search_lower = search.lower()
-        total_count = await player_service.get_leaderboard_count(sortby, country_filter)
-        all_players = await player_service.get_leaderboard(sortby, country_filter, total_count, 0)
-        players = [p for p in all_players if search_lower in p.username.lower()]
-        total = len(players)
+        all_players = await player_service.list_from_query(sortby, country_filter, limit, offset, search_lower)
+        total = len(all_players)
         total_pages = max(1, -(-total // limit))
         current_page = (offset // limit) + 1
         current_page = max(1, min(current_page, total_pages))
         offset = (current_page - 1) * limit
-        players = players[offset:offset + limit]
+        players = all_players[offset:offset + limit]
     else:
         total = await player_service.get_leaderboard_count(sortby, country_filter)
         total_pages = max(1, -(-total // limit))

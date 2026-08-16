@@ -165,4 +165,8 @@ class PlayerService:  # noqa: PLR0904
         for player in players:
             await self.update_stats(player)
 
-    
+    async def list_from_query(self, order_by: str = "pp", country: str | None = None, limit: int = 100, offset: int = 0, query: str = "") -> list[PlayerModel]:
+        player_ids = await self.player_repository.id_list_from_query(query, order_by, country, limit, offset)
+        if not player_ids:
+            return []
+        return [await self.from_uid(player_id) for player_id in player_ids]  # ty: ignore[invalid-return-type] can be ignored because if we have id from repo method then we have a player in db

@@ -133,7 +133,7 @@ async def recalc_beatmaps(beatmap_service: BeatmapService, current_version: str)
     return recalculed
 
 
-async def recalc_scores(score_service: ScoreService, processor_client: ProcessorClient, score_repository: ScoreRepository, current_version: str) -> tuple[int, set[int]]:
+async def recalc_scores(score_service: ScoreService, processor_client: ProcessorClient, score_repository: ScoreRepository, beatmap_service: BeatmapService, current_version: str) -> tuple[int, set[int]]:
     session = score_repository.session
 
     # one lightweight query: md5s of maps that have any outdated score
@@ -157,6 +157,9 @@ async def recalc_scores(score_service: ScoreService, processor_client: Processor
     for row in rows:
         by_map.setdefault(row.md5, []).append(row)
 
+    by_map = dict(sorted(by_map.items(), key = lambda item: len(item[1]), reverse=True))
+
+
     total_maps = len(by_map)
     total_scores = len(rows)
     logger.info("Found %d scores across %d maps with outdated pp_version.", total_scores, total_maps)
@@ -177,6 +180,17 @@ async def recalc_scores(score_service: ScoreService, processor_client: Processor
                 score for score in map_scores
                 if score.pp_version != current_version
             ]
+
+            # check if beatmap exists, delist scores if not
+            beatmap = await beatmap_service.from_md5(md5)
+            if not beatmap:
+                for score in map_scores:
+                    if score.status != ScoreStatus.DELISTED:
+                        score.status = ScoreStatus.DELISTED
+                        map_affected.add(score.player_id)
+                await session.commit()
+                affected_player_ids.update(map_affected)
+                continue
 
             # recalc pp for outdated scores in parallel
             results = await asyncio.gather(*(_calculate_pp(score_service, processor_client, score) for score in outdated))
@@ -304,7 +318,7 @@ async def recalc(app_instance):
     logger.info("Current pp_version: %s", current_version)
 
     # await recalc_beatmaps(beatmap_service, current_version)
-    _, affected_players = await recalc_scores(score_service, processor_client, score_repository, current_version)
+    _, affected_players = await recalc_scores(score_service, processor_client, score_repository, beatmap_service, current_version)
     await update_affected_stats(player_service, player_repository, affected_players)
 
     # finalize state
