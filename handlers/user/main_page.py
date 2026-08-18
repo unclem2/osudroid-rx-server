@@ -6,6 +6,7 @@ from objects.dependencies.config import get_config
 from objects.dependencies.services import get_player_service, get_score_service
 from objects.services.player import PlayerService
 from objects.services.score import ScoreService
+from objects.services.recalc import RecalcService
 
 templates = Jinja2Templates(directory="templates")
 

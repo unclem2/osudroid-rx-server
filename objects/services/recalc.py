@@ -13,6 +13,7 @@ from objects.repositories.score import ScoreRepository
 from objects.services.beatmap import BeatmapService
 from objects.services.player import PlayerService
 from objects.services.score import ScoreService
+from config import Config
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,21 @@ class RecalcService:
         score_service = ScoreService(score_repo, player_service, beatmap_service, self.processor_client)
 
         return score_service, beatmap_service, player_service, score_repo, beatmap_repo
+
+    @staticmethod
+    async def get_recalc_state() -> dict[str, int]:
+        async with sessionmaker() as session:
+            score_repo = ScoreRepository(session, None)
+            processor_client = ProcessorClient(Config())
+            pp_version = await processor_client.get_pp_version()
+
+            outdated_scores_count = await score_repo.outdated_count(pp_version)
+            total_scores_count = await score_repo.total_count()
+            return {
+                "outdated_scores": outdated_scores_count,
+                "total_scores": total_scores_count,
+            }
+
 
     async def _calculate_pp(self, score: ScoreModel):
         async with self._semaphore:

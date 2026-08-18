@@ -2,16 +2,15 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
-from objects.dependencies.services import get_player_service, get_score_service
+from objects.dependencies.services import get_player_service
 from objects.services.player import PlayerService
-from objects.services.score import ScoreService
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
 @router.get("")
-async def profile(request: Request, player_service: PlayerService = Depends(get_player_service), score_service: ScoreService = Depends(get_score_service)):
+async def profile(request: Request, player_service: PlayerService = Depends(get_player_service)):
     params = request.query_params
     player_id = None
     try:
@@ -31,22 +30,13 @@ async def profile(request: Request, player_service: PlayerService = Depends(get_
     if not player:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
-    recent_scores = await score_service.player_scores(player.id, "all", limit=100)
-
-    top_scores = await score_service.player_top_scores(player_id)
-
-    first_place_scores = await score_service.player_first_places(player_id, order_by="date")
-
     avatar = f"/user/avatar/{player_id}.png"
     return templates.TemplateResponse(
         request,
         "profile.html",
         {
-            "player_stats": player.stats,
-            "recent_scores": recent_scores,
-            "top_scores": top_scores,
-            "first_place_scores": first_place_scores,
             "player": player,
+            "player_stats": player.stats,
             "level": player.stats.level,
             "avatar_url": avatar,
         },

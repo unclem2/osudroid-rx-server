@@ -1,5 +1,5 @@
 from redis import asyncio
-from sqlalchemy import and_, select
+from sqlalchemy import and_, select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm import noload
@@ -264,4 +264,21 @@ class ScoreRepository:
         scores = result.scalars().all()
         return [self._serizalize(score) for score in scores]
 
+    async def outdated_count(self, current_version: str) -> int:
+        stmt = (
+            select(func.count())
+            .select_from(ScoreSchema)
+            .where(
+                ScoreSchema.pp_version != current_version,
+                ScoreSchema.status.not_in([ScoreStatus.FAILED, ScoreStatus.DELISTED]),
+            )
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()
 
+    async def total_count(self) -> int:
+        stmt = select(func.count()).select_from(ScoreSchema).where(
+            ScoreSchema.status.not_in([ScoreStatus.FAILED, ScoreStatus.DELISTED])
+        )
+        result = await self.session.execute(stmt)
+        return result.scalar_one()

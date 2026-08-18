@@ -166,6 +166,23 @@
   </div>
 </nav>
 
+<div id="recalc-banner" class="hidden" style="background:linear-gradient(90deg,rgba(251,191,36,0.12),rgba(251,146,60,0.12));border-bottom:1px solid rgba(251,191,36,0.2)">
+  <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-center gap-2 text-sm" style="color:#fbbf24">
+    <i class="fas fa-sync-alt animate-spin" style="font-size:0.75rem"></i>
+    <span id="recalc-text">Recalculating scores...</span>
+  </div>
+</div>
+
+<script>
+  fetch('/api/get_recalc_state').then(function(r){return r.json()}).then(function(res){
+    if(res.status==='success' && res.data.outdated_scores > 0){
+      var b=document.getElementById('recalc-banner');
+      document.getElementById('recalc-text').textContent='Recalculating '+res.data.outdated_scores+' outdated scores...';
+      b.classList.remove('hidden');
+    }
+  }).catch(function(){});
+</script>
+
 <main class="flex-1">
   {% block content %}{% endblock %}
 </main>

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field, computed_field
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer
 
 from objects.enums.ranked_status import RankedStatus
 
@@ -26,6 +26,10 @@ class BeatmapModel(BaseModel):
     pp_version: str = ""
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("last_update")
+    def serialize_last_update(self, last_update: datetime) -> str:
+        return last_update.isoformat()
 
     @computed_field
     @property

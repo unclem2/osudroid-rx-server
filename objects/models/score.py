@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 from osudroid_api_wrapper import ModList
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_serializer, field_validator
 
 from objects.enums.score_status import ScoreStatus
 from objects.models.beatmap import BeatmapModel
@@ -29,6 +29,11 @@ class ScoreModel(BaseModel):
     h50: int = 0
     hmiss: int = 0
     mods: ModList = ModList()
+
+    @computed_field
+    @property
+    def standard_mods(self) -> str:
+        return self.mods.as_standard_mods
     pp: float = 0.0
     fc: bool | None = None
     status: ScoreStatus = ScoreStatus.FAILED
@@ -38,6 +43,10 @@ class ScoreModel(BaseModel):
     @field_serializer("mods")
     def serialize_mods(self, mods: ModList) -> str:
         return mods.as_json_string
+
+    @field_serializer("date")
+    def serialize_date(self, date: datetime) -> str:
+        return date.isoformat()
 
     @field_validator("mods", mode="before")
     def deserialize_mods(cls, mods: str | list[dict]) -> ModList:
