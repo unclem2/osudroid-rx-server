@@ -102,6 +102,97 @@
 
 </div>
 
+<div id="score-modal" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeScoreModal()">
+  <div class="absolute inset-0 flex items-center justify-center p-4" onclick="event.stopPropagation()">
+    <div class="rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="background:#1e2535;border:1px solid rgba(93,142,240,0.25);box-shadow:0 25px 60px rgba(0,0,0,0.6)">
+      <!-- Header -->
+      <div class="relative">
+        <img id="modal-cover" src="" alt="" class="w-full h-36 object-cover rounded-t-2xl" style="display:none">
+        <div id="modal-cover-gradient" class="absolute inset-0 rounded-t-2xl" style="background:linear-gradient(to bottom,transparent 30%,#1e2535);display:none"></div>
+        <button onclick="closeScoreModal()" class="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-lg transition-colors" style="background:rgba(0,0,0,0.5);color:#dde2ec;border:none;cursor:pointer;font-size:1rem">
+          <i class="fas fa-times"></i>
+        </button>
+        <div id="modal-header-text" class="relative z-10 px-5 pt-4 pb-2">
+          <div id="modal-grade" class="inline-flex items-center justify-center w-12 h-12 rounded-xl text-lg font-bold mb-2" style="background:rgba(93,142,240,0.1)"></div>
+          <div id="modal-map" class="text-base font-semibold truncate"></div>
+          <div id="modal-creator" class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)"></div>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="px-5 pb-5 space-y-4">
+        <!-- Main stats -->
+        <div class="grid grid-cols-3 gap-3">
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.4)">PP</div>
+            <div id="modal-pp" class="text-lg font-bold" style="color:#5b8ef0"></div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.4)">Score</div>
+            <div id="modal-score-val" class="text-lg font-bold"></div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.4)">Accuracy</div>
+            <div id="modal-acc" class="text-lg font-bold" style="color:#a78bfa"></div>
+          </div>
+        </div>
+
+        <!-- Combo & Mods -->
+        <div class="flex items-center gap-3">
+          <div class="flex-1 rounded-xl p-3" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.4)">Max Combo</div>
+            <div id="modal-combo" class="text-sm font-bold"></div>
+          </div>
+          <div class="flex-1 rounded-xl p-3" style="background:#161c27">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.4)">Mods</div>
+            <div id="modal-mods" class="text-sm font-bold" style="color:#fbbf24"></div>
+          </div>
+        </div>
+
+        <!-- Hit stats -->
+        <div class="rounded-xl p-3" style="background:#161c27">
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.4)">Hit Stats</div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <div><div style="color:rgba(221,226,236,0.4)">300</div><div id="modal-h300" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">100</div><div id="modal-h100" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">50</div><div id="modal-h50" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">Miss</div><div id="modal-hmiss" class="font-bold" style="color:#f87171"></div></div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs mt-2">
+            <div><div style="color:rgba(221,226,236,0.4)">Geki</div><div id="modal-hgeki" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">Katu</div><div id="modal-hkatsu" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">Slider Tick</div><div id="modal-slidertick" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">Slider End</div><div id="modal-sliderend" class="font-bold"></div></div>
+          </div>
+        </div>
+
+        <!-- Map info -->
+        <div class="rounded-xl p-3" style="background:#161c27">
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.4)">Beatmap Info</div>
+          <div class="grid grid-cols-3 gap-2 text-center text-xs">
+            <div><div style="color:rgba(221,226,236,0.4)">Stars</div><div id="modal-stars" class="font-bold" style="color:#fbbf24"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">BPM</div><div id="modal-bpm" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">Length</div><div id="modal-length" class="font-bold"></div></div>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs mt-2">
+            <div><div style="color:rgba(221,226,236,0.4)">CS</div><div id="modal-cs" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">AR</div><div id="modal-ar" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">OD</div><div id="modal-od" class="font-bold"></div></div>
+            <div><div style="color:rgba(221,226,236,0.4)">HP</div><div id="modal-hp" class="font-bold"></div></div>
+          </div>
+        </div>
+
+        <!-- Date & link -->
+        <div class="flex items-center justify-between text-xs" style="color:rgba(221,226,236,0.4)">
+          <span id="modal-date"></span>
+          <span id="modal-score-id" style="color:rgba(221,226,236,0.3)"></span>
+          <a id="modal-map-link" href="#" target="_blank" class="underline transition-colors" style="color:#5b8ef0">View on osu!</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <style>.score-hidden { display: none; }</style>
 
 <script>
@@ -122,6 +213,66 @@ function displayGrade(grade) {
   if (grade === 'XH') return 'SS';
   if (grade === 'SH') return 'S';
   return grade;
+}
+
+function openScoreModal(score) {
+  var b = score.beatmap || {};
+  var cover = b.map_cover || '';
+  var coverImg = document.getElementById('modal-cover');
+  var coverGrad = document.getElementById('modal-cover-gradient');
+  if (cover) {
+    coverImg.src = cover;
+    coverImg.alt = b.full || '';
+    coverImg.style.display = 'block';
+    coverGrad.style.display = 'block';
+  } else {
+    coverImg.style.display = 'none';
+    coverGrad.style.display = 'none';
+  }
+
+  var gradeEl = document.getElementById('modal-grade');
+  gradeEl.textContent = displayGrade(score.grade);
+  gradeEl.style.color = gradeColor(score.grade);
+
+  document.getElementById('modal-map').textContent = b.full || 'Unknown map';
+  document.getElementById('modal-creator').textContent = b.creator ? 'by ' + b.creator : '';
+  document.getElementById('modal-pp').textContent = (Math.round(score.pp * 100) / 100) + 'pp';
+  document.getElementById('modal-score-val').textContent = score.score.toLocaleString();
+  document.getElementById('modal-acc').textContent = (Math.round(score.accuracy * 100) / 100) + '%';
+  document.getElementById('modal-combo').textContent = score.max_combo + 'x';
+  document.getElementById('modal-mods').textContent = modsString(score.standard_mods) || 'None';
+  document.getElementById('modal-h300').textContent = score.h300;
+  document.getElementById('modal-h100').textContent = score.h100;
+  document.getElementById('modal-h50').textContent = score.h50;
+  document.getElementById('modal-hmiss').textContent = score.hmiss;
+  document.getElementById('modal-hgeki').textContent = score.hgeki;
+  document.getElementById('modal-hkatsu').textContent = score.hkatsu;
+  document.getElementById('modal-slidertick').textContent = score.slidertickhits >= 0 ? score.slidertickhits : '-';
+  document.getElementById('modal-sliderend').textContent = score.sliderendhits >= 0 ? score.sliderendhits : '-';
+  document.getElementById('modal-stars').textContent = b.star ? b.star.toFixed(2) : '-';
+  document.getElementById('modal-bpm').textContent = b.bpm || '-';
+  document.getElementById('modal-length').textContent = b.total_length ? formatLength(b.total_length) : '-';
+  document.getElementById('modal-cs').textContent = b.cs ? b.cs.toFixed(1) : '-';
+  document.getElementById('modal-ar').textContent = b.ar ? b.ar.toFixed(1) : '-';
+  document.getElementById('modal-od').textContent = b.od ? b.od.toFixed(1) : '-';
+  document.getElementById('modal-hp').textContent = b.hp ? b.hp.toFixed(1) : '-';
+  document.getElementById('modal-date').textContent = score.date ? new Date(score.date).toLocaleString() : '';
+  document.getElementById('modal-score-id').textContent = score.id ? '#' + score.id : '';
+  document.getElementById('modal-map-link').href = b.map_link || '#';
+
+  document.getElementById('score-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeScoreModal() {
+  document.getElementById('score-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function formatLength(seconds) {
+  var m = Math.floor(seconds / 60);
+  var s = seconds % 60;
+  return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
 function timeAgo(dateStr) {
@@ -150,13 +301,12 @@ function renderScore(score, index, isTop, hidden) {
   var modsHtml = mods ? mods + ' &bull; ' : '';
   var rankHtml = isTop ? '<div class="w-7 flex-shrink-0 text-center text-xs font-bold" style="color:rgba(221,226,236,0.3)">#' + (index + 1) + '</div>' : '';
   var coverUrl = score.beatmap && score.beatmap.map_cover ? score.beatmap.map_cover : '';
-  var mapLink = score.beatmap && score.beatmap.map_link ? score.beatmap.map_link : '#';
   var mapFull = score.beatmap && score.beatmap.full ? score.beatmap.full : 'Unknown map';
   var hiddenClass = hidden ? ' score-hidden' : '';
 
   return '<div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group cursor-pointer score-item' + hiddenClass + '"' +
     ' style="background:linear-gradient(rgba(30,37,53,0.85),rgba(30,37,53,0.85)),url(\'' + coverUrl + '\');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"' +
-    ' onclick="window.location.href=\'' + mapLink + '\'">' +
+    ' onclick="openScoreModal(JSON.parse(this.dataset.score))" data-score=\'' + JSON.stringify(score).replace(/'/g, "&#39;") + '\'>' +
     rankHtml +
     '<div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"' +
       ' style="background:rgba(93,142,240,0.1);color:' + gradeColor(score.grade) + '">' +
@@ -249,5 +399,9 @@ async function loadScores() {
 }
 
 document.addEventListener('DOMContentLoaded', loadScores);
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeScoreModal();
+});
 </script>
 {% endblock %}
