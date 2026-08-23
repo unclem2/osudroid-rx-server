@@ -61,7 +61,8 @@ class BeatmapService:
                     return
                 content = await response.text()
 
-        pathlib.Path(f"{self.config.maps_folder}{beatmap.id}.osu").write_text(content, encoding="utf-8")
+        path = pathlib.Path(f"{self.config.maps_folder}{beatmap.id}.osu")
+        path.write_text(content, encoding="utf-8")
 
     async def recalc_get(self, beatmap_model: BeatmapModel) -> BeatmapModel | None:
         beatmap = await self.processor_client.md5_get_beatmap(beatmap_model.md5)

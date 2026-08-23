@@ -95,7 +95,7 @@ class RecalcService:
             if not score:
                 return None
 
-            pp_attrs = await self.processor_client.calculate_score(score)
+            pp_attrs = await self._calculate_pp(score)
             if pp_attrs:
                 score.pp = pp_attrs.total
                 score.pp_version = pp_attrs.pp_version
@@ -109,18 +109,25 @@ class RecalcService:
             await score_service.update(score)
             return score
 
-    async def recalc_beatmap(self, md5: str) -> set[int]:
+    async def recalc_beatmap(self, md5: str, scores: list[ScoreModel] | None, current_version: str = "") -> set[int]:
         """Recalculate all scores for a beatmap. Returns affected player IDs."""
         async with sessionmaker() as session:
             score_service, beatmap_service, _, score_repo, _ = self._create_services(session)
 
-            beatmap = await beatmap_service.from_md5(md5)
-            if not beatmap:
-                return set()
-
-            all_scores = await score_service.scores_by_md5(md5)
+            all_scores = await score_service.scores_by_md5(md5) if scores is None else scores
             if not all_scores:
                 return set()
+
+            beatmap = await beatmap_service.from_md5_api(md5)
+            if not beatmap:
+                score_updates = {}
+                affected = set()
+                for score in all_scores:
+                    score_updates.setdefault(score.id, {})
+                    affected.add(score.player_id)
+                    score_updates[score.id]["status"] = ScoreStatus.DELISTED
+                await score_repo.batch_update(score_updates)
+                return affected
 
             # Calculate PP
             results = await asyncio.gather(
@@ -131,6 +138,7 @@ class RecalcService:
             for score, result in zip(all_scores, results):
                 if isinstance(result, BaseException):
                     logger.warning("PP calc failed for score %d: %s", score.id, result)
+                    # score_updates[score.id]["status"] = ScoreStatus.DELISTED
                     continue
                 if result is not None:
                     score_updates.setdefault(score.id, {})
@@ -150,10 +158,15 @@ class RecalcService:
                         score_updates[score.id]["status"] = new_status
                     score_updates.setdefault(score.id, {})
                     score_updates[score.id]["pp"] = 0
+                    if current_version:
+                        score_updates[score.id]["pp_version"] = current_version
                     continue
                 ranked_active.append(score)
 
-            ranked_active.sort(key=lambda s: s.pp or 0.0, reverse=True)
+            ranked_active.sort(
+                key=lambda s: score_updates.get(s.id, {}).get("pp", s.pp or 0.0),
+                reverse=True,
+            )
             seen_players: set[int] = set()
             for score in ranked_active:
                 if score.player_id not in seen_players:
@@ -250,7 +263,7 @@ class RecalcService:
 
         for map_index, (md5, map_scores) in enumerate(by_md5.items(), 1):
             try:
-                players = await self.recalc_beatmap(md5)
+                players = await self.recalc_beatmap(md5, map_scores, current_version)
                 affected_players.update(players)
             except Exception:
                 logger.exception("Failed to recalc map %s", md5)
