@@ -1,3 +1,4 @@
+import logging
 import hashlib
 
 from argon2 import PasswordHasher
@@ -164,6 +165,7 @@ class PlayerService:  # noqa: PLR0904
         players = await self.player_repository.get_everyone()
         for player in players:
             await self.update_stats(player)
+            logging.debug(f"[Init] {player.id} - {player.username}")
 
     async def list_from_query(self, order_by: str = "pp", country: str | None = None, limit: int = 100, offset: int = 0, query: str = "") -> list[PlayerModel]:
         player_ids = await self.player_repository.id_list_from_query(query, order_by, country, limit, offset)

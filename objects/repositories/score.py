@@ -151,7 +151,7 @@ class ScoreRepository:
         if not schema:
             raise ValueError(f"Score with id {score.id} does not exist.")
 
-        for key, value in score.model_dump().items():
+        for key, value in score.db_dump().items():
             setattr(schema, key, value)
 
         await self.session.commit()
@@ -164,7 +164,7 @@ class ScoreRepository:
             ScoreSchema.player_id == score.player_id,
             ScoreSchema.md5 == score.md5,
             ScoreSchema.status == ScoreStatus.BEST,
-        ).with_for_update()
+        ).with_for_update(of=ScoreSchema)
         response = await self.session.execute(prev_best_query)
         prev_best = response.scalar_one_or_none()
         if prev_best:

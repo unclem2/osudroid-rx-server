@@ -87,17 +87,13 @@ class RecalcService:
             _, _, _, _, beatmap_repo = self._create_services(session)
             return await beatmap_repo.get_outdated(current_version)
 
-    async def recalc_score(self, score_id: int) -> bool:
+    async def recalc_score(self, score_id: int) -> ScoreModel | None:
         async with sessionmaker() as session:
-            score_service, beatmap_service, _, _, _ = self._create_services(session)
+            score_service, _, _, _, _ = self._create_services(session)
 
             score = await score_service.from_id(score_id)
             if not score:
-                return False
-
-            beatmap = await beatmap_service.from_md5(score.md5)
-            if not beatmap:
-                return False
+                return None
 
             pp_attrs = await self.processor_client.calculate_score(score)
             if pp_attrs:
@@ -110,8 +106,8 @@ class RecalcService:
             if score.status == ScoreStatus.UNRANKED:
                 score.pp = 0.0
 
-            await score_service.save(score)
-            return True
+            await score_service.update(score)
+            return score
 
     async def recalc_beatmap(self, md5: str) -> set[int]:
         """Recalculate all scores for a beatmap. Returns affected player IDs."""

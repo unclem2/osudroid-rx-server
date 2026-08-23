@@ -97,6 +97,9 @@ class ScoreService:
     async def save(self, score: ScoreModel) -> ScoreModel:
         return await self.score_repository.save(score)
 
+    async def update(self, score: ScoreModel) -> ScoreModel:
+        return await self.score_repository.update(score)
+
     async def score_global_placement(self, score: ScoreModel) -> int:
         return await self.score_repository.score_global_placement(score)
 

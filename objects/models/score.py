@@ -58,7 +58,8 @@ class ScoreModel(BaseModel):
     player: PlayerModel | None = None
 
     def db_dump(self):
-        score = self.model_dump(exclude={"beatmap", "player"})
+        score = self.model_dump(exclude={"beatmap", "player", "standard_mods", "date"})
+        score["date"] = self.date
         return score
 
     @property
