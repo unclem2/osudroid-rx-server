@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class ProcessorCalculateRequestModel(BaseModel):
     beatmap_id: int | None = None
     md5: str | None = None
-    acc: float | None = 100
+    acc: float | None = None
     miss: int | None = 0
     combo: int | None = None
     h300: int | None = None
