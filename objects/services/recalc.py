@@ -18,6 +18,7 @@ from config import Config
 logger = logging.getLogger(__name__)
 
 _PROCESSOR_CONCURRENCY = 8
+_MAP_CONCURRENCY = 4
 
 
 def is_ranked(score: ScoreModel) -> bool:
@@ -42,6 +43,7 @@ class RecalcService:
         self.osu_api_client = osu_api_client
         self.redis = redis
         self._semaphore = asyncio.Semaphore(_PROCESSOR_CONCURRENCY)
+        self._map_semaphore = asyncio.Semaphore(_MAP_CONCURRENCY)
 
     def _create_services(self, session) -> tuple[ScoreService, BeatmapService, PlayerService, ScoreRepository, BeatmapRepository]:
         score_repo = ScoreRepository(session, self.redis)
@@ -260,15 +262,23 @@ class RecalcService:
         logger.info("Found %d scores across %d outdated maps.", total_scores, total_maps)
 
         affected_players: set[int] = set()
+        completed = 0
 
-        for map_index, (md5, map_scores) in enumerate(by_md5.items(), 1):
-            try:
-                players = await self.recalc_beatmap(md5, map_scores, current_version)
-                affected_players.update(players)
-            except Exception:
-                logger.exception("Failed to recalc map %s", md5)
-            if map_index % 50 == 0:
-                logger.info("Scores: %d/%d", map_index, total_maps)
+        async def _process_map(md5: str, map_scores: list[ScoreModel]):
+            nonlocal completed
+            async with self._map_semaphore:
+                try:
+                    players = await self.recalc_beatmap(md5, map_scores, current_version)
+                    affected_players.update(players)
+                except Exception:
+                    logger.exception("Failed to recalc map %s", md5)
+                completed += 1
+                if completed % 50 == 0:
+                    logger.info("Scores: %d/%d", completed, total_maps)
+
+        await asyncio.gather(
+            *(_process_map(md5, scores) for md5, scores in by_md5.items())
+        )
 
         logger.info("Affected %d players across %d maps.", len(affected_players), total_maps)
         return affected_players
@@ -280,13 +290,21 @@ class RecalcService:
         logger.info("Updating stats for %d players...", len(player_ids))
 
         updated = 0
-        for i, pid in enumerate(player_ids, 1):
-            try:
-                if await self.recalc_player(pid):
-                    updated += 1
-            except Exception:
-                logger.exception("Failed to update stats for player %d", pid)
-            if i % 50 == 0:
-                logger.info("Stats: %d/%d", i, len(player_ids))
+        completed = 0
+        total = len(player_ids)
 
-        logger.info("Updated stats for %d/%d players.", updated, len(player_ids))
+        async def _update_player(pid: int):
+            nonlocal updated, completed
+            async with self._map_semaphore:
+                try:
+                    if await self.recalc_player(pid):
+                        updated += 1
+                except Exception:
+                    logger.exception("Failed to update stats for player %d", pid)
+                completed += 1
+                if completed % 50 == 0:
+                    logger.info("Stats: %d/%d", completed, total)
+
+        await asyncio.gather(*(_update_player(pid) for pid in player_ids))
+
+        logger.info("Updated stats for %d/%d players.", updated, total)

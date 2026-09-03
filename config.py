@@ -35,7 +35,7 @@ class Config:
     processor_url = os.getenv("PROCESSOR_URL", "http://localhost:8002")
 
     __storage_folder = "/srv/odrx_storage/dev/"
-    maps_folder = __storage_folder + "maps/"
+    maps_folder = __storage_folder + "beatmaps/"
     replays_folder = __storage_folder + "replays/"
     banners_folder = __storage_folder + "banners/"
     avatars_folder = __storage_folder + "avatars/"

@@ -237,18 +237,15 @@ class ScoreRepository:
     async def batch_update(self, updates: dict[int, dict]) -> None:
         if not updates:
             return
-        ids = list(updates.keys())
-        CHUNK = 900
-        for i in range(0, len(ids), CHUNK):
-            chunk_ids = ids[i : i + CHUNK]
-            schemas = (
+        from sqlalchemy import update as sa_update
+
+        for score_id, values in updates.items():
+            if values:
                 await self.session.execute(
-                    select(ScoreSchema).where(ScoreSchema.id.in_(chunk_ids))
+                    sa_update(ScoreSchema)
+                    .where(ScoreSchema.id == score_id)
+                    .values(**values)
                 )
-            ).scalars().all()
-            for schema in schemas:
-                for key, value in updates[schema.id].items():
-                    setattr(schema, key, value)
         await self.session.commit()
 
     async def scores_by_md5(self, md5: str) -> list[ScoreModel]:

@@ -35,6 +35,6 @@ class BeatmapSchema(Base):
     od: Mapped[float] = mapped_column()
     hp: Mapped[float] = mapped_column()
     star: Mapped[float] = mapped_column()
-    pp_version: Mapped[str] = mapped_column()
+    pp_version: Mapped[str] = mapped_column(index=True)
 
     

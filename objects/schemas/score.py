@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import DateTime, SmallInteger
 
@@ -36,7 +36,11 @@ class ScoreSchema(Base):
     )  # статус скора
     fc: Mapped[bool] = mapped_column()
     date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    pp_version: Mapped[str] = mapped_column()
+    pp_version: Mapped[str] = mapped_column(index=True)
 
     beatmap = relationship("BeatmapSchema", lazy="joined")
     player = relationship("PlayerSchema", lazy="joined")
+
+    __table_args__ = (
+        Index("ix_scores_pp_version_status", "pp_version", "status"),
+    )
