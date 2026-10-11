@@ -15,8 +15,6 @@ ph = PasswordHasher()
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-php_file = True
-
 
 @router.api_route("", methods=["GET", "POST"])
 async def register(request: Request, player_service: PlayerService = Depends(get_player_service), config: Config = Depends(get_config)):
