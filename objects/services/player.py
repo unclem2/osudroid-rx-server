@@ -141,7 +141,6 @@ class PlayerService:  # noqa: PLR0904
         email_hash = hashlib.md5(email.encode()).hexdigest()
 
         player = await self.player_repository.new(username, new_password_crypted, device_id, email_hash)
-        await self.player_repository.create_stats(player.id)
         await self.player_storage.set_level(player)
         return player
 

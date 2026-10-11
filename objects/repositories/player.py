@@ -48,9 +48,14 @@ class PlayerRepository:
             )
             .returning(PlayerSchema)
         )
+
         result = await self.session.execute(stmt)
         await self.session.commit()
-        player = result.scalar_one()
+        player_id = result.scalar_one().id
+
+        await self.create_stats(player_id)
+
+        player = await self.session.get(PlayerSchema, player_id)
         model = self._serizalize(player)
 
         return model
