@@ -44,6 +44,7 @@ class PlayerRepository:
                 email_hash=email_hash,
                 clan_id=-1,
                 status=0,
+                country="",
             )
             .returning(PlayerSchema)
         )
