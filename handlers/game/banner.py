@@ -13,4 +13,4 @@ async def send_banner(config: Config = Depends(get_config)):
         "Url": config.banner_url,
         "ImageLink": f"{config.host}/static/banner.png",
     }
-    return f"{data}"
+    return data

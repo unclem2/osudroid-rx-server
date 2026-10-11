@@ -13,7 +13,7 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.api_route("", methods=["GET", "POST"])
-async def web_login(request: Request, config=Depends(get_config), player_service: PlayerService = Depends(get_player_service)):
+async def login(request: Request, config=Depends(get_config), player_service: PlayerService = Depends(get_player_service)):
     login_state = request.cookies.get("login_state")
     if login_state is not None:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Already logged in"})
@@ -42,4 +42,4 @@ async def web_login(request: Request, config=Depends(get_config), player_service
 
         return response
 
-    return templates.TemplateResponse(request, "web_login.html")
+    return templates.TemplateResponse(request, "login.html")

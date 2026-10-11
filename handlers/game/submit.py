@@ -30,8 +30,6 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
     if not player:
         return Failed("Player not found, report to server admin.")
 
-    await player_service.set_last_online(player.id, time.time())
-
     if "ssid" not in form:
         return Failed("Missing ssid.")
     if form["ssid"] != await player_service.get_uuid(player.id):
@@ -40,9 +38,9 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
     if config.disable_submit:
         return Failed("Score submission is disable right now.")
 
-    if md5 := form.get("hash", None):
-        logging.info("Changed %s playing to %s", player, md5)
-        await player_service.set_playing(player.id, md5)
+    # if md5 := form.get("hash", None):
+    #     # logging.info("Changed %s playing to %s", player, md5)
+    #     # await player_service.set_playing(player.id, md5)
 
     if play_data := form.get("data"):
         score = await score_service.from_submit(play_data)

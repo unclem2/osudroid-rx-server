@@ -27,4 +27,4 @@ async def send_update(config: Config = Depends(get_config)):
         "link": config.client_link,
         "changelog": config.client_changelog,
     }
-    return f"{data}"
+    return data

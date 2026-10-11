@@ -2,6 +2,7 @@ from osudroid_api_wrapper.classes.base.player import Player
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from objects.enums.player_state import PlayerState
 from objects.models.player import PlayerModel
 from objects.schemas.player import PlayerSchema
 
@@ -50,8 +51,20 @@ class PlayerStorage:
         last_online = await self.redis.get(f"main:player:{player_id}:last_online")
         return float(last_online) if last_online else None
 
+    async def get_player_state(self, player_id: int) -> PlayerState:
+        state = await self.redis.get(f"main:player:{player_id}:player_state")
+        return PlayerState(int(state)) if state else PlayerState.OFFLINE
+
+    async def set_player_state(self, player_id: int, player_state: PlayerState) -> None:
+        await self.redis.set(f"main:player:{player_id}:player_state", player_state.value)
+
     async def get_online_player_count(self) -> int:
         count = 0
-        async for _ in self.redis.scan_iter("main:player:*:playing"):
-            count += 1
+        cursor = None
+        while cursor != 0:
+            cursor, keys = await self.redis.scan(
+                cursor=cursor or 0, match="main:player:*:player_state", count=100,
+            )
+            state_values = await self.redis.mget(keys)
+            count += sum(1 for value in state_values if value is not None and int(value) != PlayerState.OFFLINE)
         return count

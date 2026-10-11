@@ -38,11 +38,28 @@
           {% endif %}
         </div>
         <div class="flex items-center gap-3 text-sm" style="color:rgba(221,226,236,0.55)">
-          <span><i class="fas fa-hashtag mr-1"></i>{{ "-" if player.pp_rank == 0 else player.pp_rank }} / {{ "-" if player.country_pp_rank == 0 else player.country_pp_rank }}</span>
+          <span><i class="fas fa-hashtag mr-1"></i>{{ "-" if player.pp_rank == 0 else player.pp_rank }} / {{ "-" if player.pp_country_rank == 0 else player.pp_country_rank }}</span>
           <span>Lv. {{ level }}</span>
-          {% if player.online %}
+          {% if player.online_state.player_state == 1 %}
           <span class="flex items-center gap-1" style="color:#4ade80">
-            <i class="fas fa-circle text-xs animate-pulse"></i>Playing
+            <i class="fas fa-circle text-xs animate-pulse"></i>
+            {% if current_beatmap %}
+            Playing <a href="{{ current_beatmap.map_link }}" target="_blank" class="underline hover:opacity-80" style="color:#4ade80">{{ current_beatmap.artist }} - {{ current_beatmap.title }}</a>
+            {% else %}
+            Playing
+            {% endif %}
+          </span>
+          {% elif player.online_state.player_state == 2 %}
+          <span class="flex items-center gap-1" style="color:#fbbf24">
+            <i class="fas fa-pause-circle text-xs"></i>Paused
+          </span>
+          {% elif player.online_state.player_state == 3 %}
+          <span class="flex items-center gap-1" style="color:#94a3b8">
+            <i class="fas fa-moon text-xs"></i>Idle
+          </span>
+          {% elif player.online_state.last_online %}
+          <span class="flex items-center gap-1" style="color:rgba(221,226,236,0.35)">
+            <i class="fas fa-circle text-xs"></i>Last seen <span id="last-online"></span>
           </span>
           {% endif %}
         </div>
@@ -197,6 +214,7 @@
 
 <script>
 var PLAYER_ID = {{ player.id }};
+var LAST_ONLINE = {{ player.online_state.last_online or 0 }};
 
 function gradeColor(grade) {
   switch(grade) {
@@ -398,7 +416,13 @@ async function loadScores() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', loadScores);
+document.addEventListener('DOMContentLoaded', function() {
+  loadScores();
+  var el = document.getElementById('last-online');
+  if (el && LAST_ONLINE > 0) {
+    el.innerHTML = timeAgo(new Date(LAST_ONLINE * 1000).toISOString());
+  }
+});
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeScoreModal();

@@ -38,13 +38,11 @@ async def login(request: Request, player_service: PlayerService = Depends(get_pl
     status = await player_service.get_status(player.id)
 
     # verify password
-    if not await player_service.check_password(player.id, form["password"], None):
+    if not await player_service.check_password(player.id, None, form["password"]):
         return Failed("Invalid password.")
 
     if status != 0:
         return Failed("Banned.")
-
-    await player_service.set_last_online(player.id, time.time())
 
     if not await player_service.get_uuid(player.id):
         await player_service.set_uuid(player.id, utils.make_uuid(player.username))

@@ -62,8 +62,8 @@ class ScoreService:
         score.player_id = player.id
         score.player = player
 
-        if player.playing:
-            score.md5 = player.playing
+        if player.online_state.playing:
+            score.md5 = player.online_state.playing
 
         beatmap = await self.beatmap_service.from_md5(score.md5)
         if not beatmap:

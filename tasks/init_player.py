@@ -1,9 +1,9 @@
-from objects.repositories.player_storage import PlayerStorage
-from objects.repositories.leaderboard import LeaderboardRepository
 from collections.abc import Callable
 
 from objects.db import sessionmaker
+from objects.repositories.leaderboard import LeaderboardRepository
 from objects.repositories.player import PlayerRepository
+from objects.repositories.player_storage import PlayerStorage
 from objects.repositories.score import ScoreRepository
 from objects.services.player import PlayerService
 

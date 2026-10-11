@@ -23,7 +23,10 @@ class PlayerService:  # noqa: PLR0904
         if model:
             model.pp_rank, model.score_rank, model.pp_country_rank, model.score_country_rank = await self.leaderboard_repository.get_leaderboard_placement(model)
             model.stats.level = await self.player_storage.get_level(model.id)
-            model.playing = await self.player_storage.get_playing(model.id)
+
+            model.online_state.playing = await self.player_storage.get_playing(model.id)
+            model.online_state.player_state = await self.player_storage.get_player_state(model.id)
+            model.online_state.last_online = await self.player_storage.get_last_online(model.id)
 
         return model
 
@@ -32,13 +35,16 @@ class PlayerService:  # noqa: PLR0904
         if model:
             model.pp_rank, model.score_rank, model.pp_country_rank, model.score_country_rank = await self.leaderboard_repository.get_leaderboard_placement(model)
             model.stats.level = await self.player_storage.get_level(model.id)
-            model.playing = await self.player_storage.get_playing(model.id)
+
+            model.online_state.playing = await self.player_storage.get_playing(model.id)
+            model.online_state.player_state = await self.player_storage.get_player_state(model.id)
+            model.online_state.last_online = await self.player_storage.get_last_online(model.id)
 
         return model
 
     async def update_stats(self, player: PlayerModel) -> None:
         all_scores = await self.score_repository.player_scores(player.id, "all", "date", -1)
-        top_scores = await self.score_repository.player_top_scores(player.id, 100)
+        top_scores = await self.score_repository.player_top_scores(player.id, -1)
 
         stats = StatsModel()
         stats.total_score = sum(score.score for score in all_scores)
@@ -49,6 +55,8 @@ class PlayerService:  # noqa: PLR0904
         total_pp = 0
         for i, score in enumerate(top_scores):
             total_pp += score.pp * (0.95 ** i)
+            if i == 99:
+                break
         stats.pp = total_pp
 
         def level_formula(i):

@@ -2,7 +2,8 @@
 from fastapi import APIRouter, Depends, Request
 from fastapi.templating import Jinja2Templates
 
-from objects.dependencies.services import get_player_service
+from objects.dependencies.services import get_beatmap_service, get_player_service
+from objects.services.beatmap import BeatmapService
 from objects.services.player import PlayerService
 
 router = APIRouter()
@@ -10,7 +11,11 @@ templates = Jinja2Templates(directory="templates")
 
 
 @router.get("")
-async def profile(request: Request, player_service: PlayerService = Depends(get_player_service)):
+async def profile(
+    request: Request,
+    player_service: PlayerService = Depends(get_player_service),
+    beatmap_service: BeatmapService = Depends(get_beatmap_service),
+):
     params = request.query_params
     player_id = None
     try:
@@ -30,6 +35,10 @@ async def profile(request: Request, player_service: PlayerService = Depends(get_
     if not player:
         return templates.TemplateResponse(request, "error.html", {"error_message": "Player not found"})
 
+    current_beatmap = None
+    if player.online_state.playing:
+        current_beatmap = await beatmap_service.from_md5(player.online_state.playing)
+
     avatar = f"/user/avatar/{player_id}.png"
     return templates.TemplateResponse(
         request,
@@ -39,5 +48,6 @@ async def profile(request: Request, player_service: PlayerService = Depends(get_
             "player_stats": player.stats,
             "level": player.stats.level,
             "avatar_url": avatar,
+            "current_beatmap": current_beatmap,
         },
     )
