@@ -43,6 +43,7 @@ class PlayerRepository:
                 device_id=device_id,
                 email_hash=email_hash,
                 clan_id=-1,
+                status=0,
             )
             .returning(PlayerSchema)
         )
