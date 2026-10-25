@@ -56,6 +56,8 @@ async def register(request: Request, player_service: PlayerService = Depends(get
             "login_state",
             f"{username}-{player.id}-{utils.make_md5(f'{username}-{player.id}-{config.login_key}')}",
             max_age=60 * 60 * 24 * 30 * 12,
+            httponly=True,
+            samesite="lax",
         )
 
         return response

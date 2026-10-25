@@ -36,6 +36,7 @@ class ScoreRepository:
             select(ScoreSchema)
             .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == ScoreStatus.BEST)
             .order_by(getattr(ScoreSchema, order_by).desc())
+            .limit(limit)
         )
 
         result = await self.session.execute(stmt)
@@ -178,14 +179,16 @@ class ScoreRepository:
             resp_status = ScoreStatus.BEST
         return resp_status
 
-    async def player_beatmap_scores(self, player_id: int, beatmap_md5: str, order_by: str = "local_placement") -> list[ScoreModel]:
+    async def player_beatmap_scores(self, player_id: int, beatmap_md5: str, order_by: str = "score") -> list[ScoreModel]:
+        if order_by not in ALLOWED_ORDER_BY:
+            order_by = "score"
         stmt = (
             select(ScoreSchema)
             .where(
                 ScoreSchema.player_id == player_id,
                 ScoreSchema.md5 == beatmap_md5,
             )
-            .order_by(getattr(ScoreSchema, order_by).asc())
+            .order_by(getattr(ScoreSchema, order_by).desc())
         )
         result = await self.session.execute(stmt)
         scores = result.scalars().all()

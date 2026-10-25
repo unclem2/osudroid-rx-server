@@ -53,7 +53,7 @@ async def login(request: Request, player_service: PlayerService = Depends(get_pl
         avatar = f"{config.host}/user/avatar/{player.id}.png"
 
 
-    if player.country is None:
+    if not player.country:
         country = request.headers.get("CF-IPCountry", None)
         if country:
             await player_service.set_country(player.id, country)

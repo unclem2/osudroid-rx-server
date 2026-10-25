@@ -103,6 +103,23 @@ class ProcessorClient:
             try:
                 session = self._get_session()
                 async with session.request(method, endpoint, **kwargs) as response:
+                    # Handle rate limiting
+                    if response.status == 429:
+                        retry_after = int(response.headers.get("Retry-After", 5))
+                        log.warning(
+                            "Processor rate limit exceeded [%s %s], waiting %ds (attempt %d/%d)",
+                            method, endpoint, retry_after, attempt + 1, _MAX_RETRIES + 1,
+                        )
+                        if attempt < _MAX_RETRIES:
+                            await asyncio.sleep(retry_after)
+                            continue
+                        else:
+                            log.error(
+                                "Processor rate limit exceeded after %d attempts [%s %s]",
+                                _MAX_RETRIES + 1, method, endpoint,
+                            )
+                            return None
+                    
                     if response.status != 200:
                         log.warning(
                             "Processor API non-200 status [%s %s]: %s",
@@ -143,8 +160,10 @@ class ProcessorClient:
             h50=model.h50,
             hgeki=model.hgeki,
             hkatsu=model.hkatsu,
-            slidertickhits=model.slidertickhits,
-            sliderendhits=model.sliderendhits,
+            slidertickhits=None if model.slidertickhits < 0 else model.slidertickhits,
+            sliderendhits=None if model.sliderendhits < 0 else model.sliderendhits,
+            sliderheadhits=None if model.sliderheadhits < 0 else model.sliderheadhits,
+            sliderrepeathits=None if model.sliderrepeathits < 0 else model.sliderrepeathits,
             mods=model.mods.as_calculable_mods,
         )
 

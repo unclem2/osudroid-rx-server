@@ -38,6 +38,8 @@ async def login(request: Request, config=Depends(get_config), player_service: Pl
             "login_state",
             f"{username}-{player.id}-{utils.make_md5(f'{username}-{player.id}-{config.login_key}')}",
             max_age=60 * 60 * 24 * 30 * 12,
+            httponly=True,
+            samesite="lax",
         )
 
         return response

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 import coloredlogs
 import redis.asyncio
 from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from ossapi import OssapiAsync
@@ -35,6 +36,10 @@ async def lifespan(app_instance):
         recalc_func, config.recalc_interval * 60, recalc_dep
     )
     yield
+    # Cleanup
+    await engine.dispose()
+    await r.aclose()
+    logging.info("Resources closed")
 
 
 templates = Jinja2Templates(directory="templates")
@@ -62,6 +67,17 @@ async def add_process_time_header(request: Request, call_next):
     response = await call_next(request)
     duration = time.perf_counter() - start_time
     logging.debug(f"request {request.method} {request.url.path} took {duration}s")
+    return response
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' https://cdnjs.cloudflare.com;"
     return response
 
 

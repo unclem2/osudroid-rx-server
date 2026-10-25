@@ -20,5 +20,9 @@ async def leaderboard(
 ):
     if type not in ALLOWED_LEADERBOARD_TYPES:
         type = "pp"
+    if limit < 1 or limit > 500:
+        return ApiResponse.bad_request("Limit must be between 1 and 500.")
+    if offset < 0:
+        return ApiResponse.bad_request("Offset must be >= 0.")
     players = await player_service.get_leaderboard(type, country, limit, offset)
     return ApiResponse.ok(players)

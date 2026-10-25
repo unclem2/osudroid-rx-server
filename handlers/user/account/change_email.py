@@ -19,7 +19,10 @@ async def change_email(request: Request, config=Depends(get_config), player_serv
         return templates.TemplateResponse(request, "error.html", {"error_message": "Not logged in"})
 
     req = await request.form()
-    username, player_id, auth_hash = login_state.split("-")
+    try:
+        username, player_id, auth_hash = login_state.split("-")
+    except ValueError:
+        return templates.TemplateResponse(request, "error.html", {"error_message": "Invalid login state"})
     if (
         not utils.check_md5(
             f"{username}-{player_id}-{config.login_key}", auth_hash,

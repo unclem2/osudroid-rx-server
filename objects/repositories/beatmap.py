@@ -21,9 +21,11 @@ class BeatmapRepository:
         return BeatmapSchema(**model.model_dump())
 
     async def from_md5(self, md5: str) -> BeatmapModel | None:
-        cached_beatmap = await self.redis.get(f"main:beatmap:{md5}")
+        cached_beatmap = await self.redis.get(f"main:beatmap:md5:{md5}")
         if cached_beatmap:
-            return BeatmapModel.model_validate_json(cached_beatmap)
+            model = BeatmapModel.model_validate_json(cached_beatmap)
+            if model.md5 == md5:
+                return model
 
         result = await self.session.execute(
             select(BeatmapSchema).where(BeatmapSchema.md5 == md5),
@@ -32,29 +34,40 @@ class BeatmapRepository:
 
         model = self._serizalize(beatmap) if beatmap else None
         if model:
-            await self.redis.set(f"main:beatmap:{md5}", ex=3600, value=model.model_dump_json())
-            await self.redis.set(f"main:beatmap:{model.id}", ex=3600, value=model.model_dump_json())
+            payload = model.model_dump_json()
+            await self.redis.set(f"main:beatmap:md5:{md5}", ex=3600, value=payload)
+            await self.redis.set(f"main:beatmap:id:{model.id}", ex=3600, value=payload)
         return model
 
     async def from_id(self, beatmap_id: int) -> BeatmapModel | None:
-        cached_beatmap = await self.redis.get(f"main:beatmap:{beatmap_id}")
+        cached_beatmap = await self.redis.get(f"main:beatmap:id:{beatmap_id}")
         if cached_beatmap:
-            return BeatmapModel.model_validate_json(cached_beatmap)
+            model = BeatmapModel.model_validate_json(cached_beatmap)
+            if model.id == beatmap_id:
+                return model
 
         beatmap = await self.session.get(BeatmapSchema, beatmap_id)
 
         model = self._serizalize(beatmap) if beatmap else None
         if model:
-            await self.redis.set(f"main:beatmap:{beatmap_id}", ex=3600, value=model.model_dump_json())
-            await self.redis.set(f"main:beatmap:{model.md5}", ex=3600, value=model.model_dump_json())
+            payload = model.model_dump_json()
+            await self.redis.set(f"main:beatmap:id:{beatmap_id}", ex=3600, value=payload)
+            await self.redis.set(f"main:beatmap:md5:{model.md5}", ex=3600, value=payload)
         return model
 
-    async def change_ranked_status(self, beatmap: BeatmapModel, status: RankedStatus) -> None:
-        beatmap.status = status
+    async def change_ranked_status(
+        self, beatmap: BeatmapModel, status: RankedStatus
+    ) -> None:
+        schema = await self.session.get(BeatmapSchema, beatmap.id)
+        if not schema:
+            return
+        schema.status = status
         await self.session.commit()
 
-        await self.redis.set(f"main:beatmap:{beatmap.md5}", ex=3600, value=beatmap.model_dump_json())
-        await self.redis.set(f"main:beatmap:{beatmap.id}", ex=3600, value=beatmap.model_dump_json())
+        beatmap.status = status
+        payload = beatmap.model_dump_json()
+        await self.redis.set(f"main:beatmap:md5:{beatmap.md5}", ex=3600, value=payload)
+        await self.redis.set(f"main:beatmap:id:{beatmap.id}", ex=3600, value=payload)
 
     async def get_wip_maps(self) -> list[BeatmapModel]:
         result = await self.session.execute(
@@ -71,6 +84,12 @@ class BeatmapRepository:
         return [self._serizalize(beatmap) for beatmap in beatmaps]
 
     async def save(self, beatmap: BeatmapModel) -> None:
+        # md5 карты может измениться при апдейте (from_id_api/recalc пишут ту же
+        # строку по id), поэтому снимаем и ключ прежнего md5, а не только нового.
+        previous_md5 = await self.session.scalar(
+            select(BeatmapSchema.md5).where(BeatmapSchema.id == beatmap.id),
+        )
+
         stmt = (
             insert(BeatmapSchema)
             .values(
@@ -117,3 +136,8 @@ class BeatmapRepository:
         )
         await self.session.execute(stmt)
         await self.session.commit()
+
+        stale_keys = [f"main:beatmap:id:{beatmap.id}", f"main:beatmap:md5:{beatmap.md5}"]
+        if previous_md5 and previous_md5 != beatmap.md5:
+            stale_keys.append(f"main:beatmap:md5:{previous_md5}")
+        await self.redis.delete(*stale_keys)

@@ -52,7 +52,7 @@ async def set_banner(request: Request, config=Depends(get_config), player_servic
 
     if file and allowed_file(file.filename):
         filename = f"{player.id}.png"
-        file_path = os.path.join("data/banner", filename)
+        file_path = os.path.join(config.banners_folder, filename)
         contents = await file.read()
         pathlib.Path(file_path).write_bytes(contents)
 

@@ -8,7 +8,7 @@ class PlayerSchema(Base):
     __tablename__ = "players"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    username: Mapped[str] = mapped_column(nullable=False, index=True)
+    username: Mapped[str] = mapped_column(nullable=False, index=True, unique=True)
     clan_id: Mapped[int] = mapped_column(index=True)
     password_hash: Mapped[str] = mapped_column(nullable=False)
     device_id: Mapped[str] = mapped_column()

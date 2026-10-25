@@ -43,7 +43,7 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
     #     # await player_service.set_playing(player.id, md5)
 
     if play_data := form.get("data"):
-        score = await score_service.from_submit(play_data)
+        score = await score_service.from_submit(play_data, player.id)
         if not score:
             return Failed("Failed to read score data.")
 

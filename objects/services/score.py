@@ -46,7 +46,7 @@ class ScoreService:
     async def recent_score(self, player_id: int, offset: int = 0) -> ScoreModel | None:
         return await self.score_repository.recent_score(player_id, offset)
 
-    async def from_submit(self, submit_string: str) -> ScoreModel | None:
+    async def from_submit(self, submit_string: str, player_id: int) -> ScoreModel | None:
         score_data = submit_string.split(" ")
 
         if len(score_data) < 18:
@@ -54,10 +54,13 @@ class ScoreService:
 
         score = ScoreModel()
 
-        username = score_data[17]  # legacy 13
-        player = await self.player_service.from_username(username)
+        player = await self.player_service.from_uid(player_id)
         if not player:
-            return None  # Player not found(pretty much impossible case)
+            return None  # Player not found
+
+        # Проверяем, что username из данных совпадает с авторизованным игроком
+        if score_data[17] != player.username:
+            return None  # Username mismatch - possible spoofing attempt
 
         score.player_id = player.id
         score.player = player
@@ -122,9 +125,10 @@ class ScoreService:
     ) -> ProcessorPerformanceAttributesModel | None:
         model = ScoreModel()
         model.beatmap = beatmap
-        model.mods = mods
+        model.md5 = beatmap.md5
+        model.mods = ModList.from_dict(mods) if isinstance(mods, list) else mods
         model.accuracy = acc
-        model.miss = miss
+        model.hmiss = miss
         model.max_combo = combo
         model.h300 = h300
         model.h100 = h100

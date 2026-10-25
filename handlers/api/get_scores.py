@@ -15,8 +15,10 @@ async def get_scores(
     player_service: PlayerService = Depends(get_player_service),
     score_service: ScoreService = Depends(get_score_service),
 ):
-    if limit < -1:
-        return ApiResponse.bad_request("Limit must be greater than -1.")
+    if limit == -1:
+        limit = 10000  # Cap at 10k even for "all"
+    if limit < 1 or limit > 10000:
+        return ApiResponse.bad_request("Limit must be between 1 and 10000.")
 
     player = await player_service.from_uid(id)
     if not player:

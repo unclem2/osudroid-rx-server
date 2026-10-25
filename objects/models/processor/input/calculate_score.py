@@ -14,5 +14,7 @@ class ProcessorCalculateRequestModel(BaseModel):
     hkatsu: int | None = None
     slidertickhits: int | None = None
     sliderendhits: int | None = None
+    sliderheadhits: int | None = None
+    sliderrepeathits: int | None = None
     mods: list[dict] = []
 

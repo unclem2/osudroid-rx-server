@@ -25,7 +25,7 @@ async def leaderboard(request: Request, score_service: ScoreService = Depends(ge
     scores = await score_service.beatmap_scores(form["hash"], order_by=form["type"])
     for score in scores or []:
 
-        if pathlib.Path(f"data/avatar/{score.player.id}.png").is_file():
+        if pathlib.Path(f"{config.avatars_folder}{score.player.id}.png").is_file():
             avatar = f"{config.host}/user/avatar/{score.player.id}.png"
         else:
             avatar = f"{config.host}/user/avatar/0.png"

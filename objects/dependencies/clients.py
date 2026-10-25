@@ -1,3 +1,5 @@
+from typing import AsyncGenerator
+
 from fastapi import Depends, Request
 from ossapi import OssapiAsync
 from redis import asyncio
@@ -10,8 +12,12 @@ def get_redis(request: Request) -> asyncio.Redis:
     return request.app.state.redis
 
 
-def get_processor(config=Depends(get_config)) -> ProcessorClient:
-    return ProcessorClient(config=config)
+async def get_processor(config=Depends(get_config)) -> AsyncGenerator[ProcessorClient, None]:
+    client = ProcessorClient(config=config)
+    try:
+        yield client
+    finally:
+        await client.close()
 
 
 def get_osu_api_client(request: Request) -> OssapiAsync:

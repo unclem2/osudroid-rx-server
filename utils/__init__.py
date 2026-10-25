@@ -21,7 +21,7 @@ def make_uuid(username: str = ""):
 
 
 def check_folder():
-    required_folders = ["replays", "beatmaps"]
+    required_folders = ["replays", "beatmaps", "avatars", "banners"]
 
     if not os.path.isdir("data"):
         os.mkdir("data")

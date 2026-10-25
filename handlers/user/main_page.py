@@ -29,8 +29,8 @@ async def index(request: Request, config: Config = Depends(get_config), player_s
         request,
         "main_page.html",
         {
-            "players": await player_service.get_online_players_count(),
-            "online": await player_service.get_player_count(),
+            "players": await player_service.get_player_count(),
+            "online": await player_service.get_online_players_count(),
             "title": title,
             "changelog": changelog,
             "download_link": download_link,

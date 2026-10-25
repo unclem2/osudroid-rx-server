@@ -4,11 +4,12 @@ import logging
 # i plan to expand this later
 class TaskManager:
     def __init__(self):
-        pass
+        self.tasks: list[asyncio.Task] = []
 
     def add_task(self, coro, *args, **kwargs):
         task = asyncio.create_task(coro(*args, **kwargs))
         task.set_name(f"Task-{coro.__name__}")
+        self.tasks.append(task)
         logging.info(f"[TaskManager] Executing task: {task.get_name()}")
         task.add_done_callback(lambda t: logging.info(f"[TaskManager] Task {t.get_name()} completed with result: {t.result()}"))
         return task
@@ -25,6 +26,7 @@ class TaskManager:
 
         task = asyncio.create_task(wrapper())
         task.set_name(f"Periodic-{coro.__name__}")
+        self.tasks.append(task)
         return task
 
 
