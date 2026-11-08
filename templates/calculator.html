@@ -1,0 +1,478 @@
+{% extends "base.html" %}
+
+{% block title %}PP Calculator — od!rx{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="flex items-center gap-3 mb-6">
+    <div class="w-1 h-6 rounded-full" style="background:#5b8ef0"></div>
+    <h1 class="text-2xl font-bold"><i class="fas fa-calculator mr-2 opacity-70"></i>PP Calculator</h1>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- ============ INPUT FORM ============ -->
+    <div class="rounded-2xl overflow-hidden shadow-2xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      <div class="h-1 w-full" style="background:linear-gradient(to right,#5b8ef0,#818cf8)"></div>
+      <div class="p-6 space-y-6">
+
+        <!-- Beatmap -->
+        <div>
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.45)">Beatmap</div>
+          <div class="flex gap-2 mb-2">
+            <button id="tab-md5" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:#5b8ef0;color:#fff">By MD5</button>
+            <button id="tab-bid" class="mod-tab px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:#161c27;color:rgba(221,226,236,0.6)">By ID</button>
+          </div>
+          <div class="flex gap-2">
+            <input id="map-input" type="text" placeholder="32-char map md5"
+                   class="flex-1 px-3 py-2 rounded-lg text-sm font-mono outline-none focus:ring-1"
+                   style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
+            <button id="load-map" class="px-4 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity"
+                    style="background:rgba(93,142,240,0.15);color:#5b8ef0">
+              <i class="fas fa-search"></i> Load
+            </button>
+          </div>
+          <div id="map-info" class="hidden mt-3 rounded-xl p-3" style="background:#161c27;border:1px solid rgba(93,142,240,0.15)">
+            <div class="flex items-start gap-3">
+              <img id="map-cover" class="w-16 h-11 rounded object-cover flex-shrink-0" src="" alt="">
+              <div class="min-w-0 flex-1">
+                <div id="map-title" class="text-sm font-medium truncate"></div>
+                <div id="map-meta" class="text-xs mt-0.5" style="color:rgba(221,226,236,0.45)"></div>
+              </div>
+              <a id="map-link" href="#" target="_blank" rel="noopener" class="text-xs flex-shrink-0 hover:underline" style="color:#5b8ef0">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mods -->
+        <div>
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.45)">Mods</div>
+          <div class="space-y-2" id="mods-group">
+            <div class="flex flex-wrap gap-1.5">
+              <label class="mod-chip"><input type="checkbox" value="HD"><span>HD</span></label>
+              <label class="mod-chip"><input type="checkbox" value="HR"><span>HR</span></label>
+              <label class="mod-chip"><input type="checkbox" value="DT"><span>DT</span></label>
+              <label class="mod-chip"><input type="checkbox" value="NC"><span>NC</span></label>
+              <label class="mod-chip"><input type="checkbox" value="HT"><span>HT</span></label>
+              <label class="mod-chip"><input type="checkbox" value="FL"><span>FL</span></label>
+              <label class="mod-chip"><input type="checkbox" value="EZ"><span>EZ</span></label>
+              <label class="mod-chip"><input type="checkbox" value="NF"><span>NF</span></label>
+              <label class="mod-chip"><input type="checkbox" value="SD"><span>SD</span></label>
+              <label class="mod-chip"><input type="checkbox" value="PF"><span>PF</span></label>
+              <label class="mod-chip"><input type="checkbox" value="RX"><span>RX</span></label>
+              <label class="mod-chip"><input type="checkbox" value="AP"><span>AP</span></label>
+              <label class="mod-chip"><input type="checkbox" value="V2"><span>V2</span></label>
+              <label class="mod-chip"><input type="checkbox" value="DA"><span>DA</span></label>
+              <label class="mod-chip"><input type="checkbox" value="CS"><span>CS</span></label>
+              <label class="mod-chip"><input type="checkbox" value="WU"><span>WU</span></label>
+              <label class="mod-chip"><input type="checkbox" value="WD"><span>WD</span></label>
+              <label class="mod-chip"><input type="checkbox" value="AT"><span>AT</span></label>
+              <label class="mod-chip"><input type="checkbox" value="RE"><span>RE</span></label>
+              <label class="mod-chip"><input type="checkbox" value="PR"><span>PR</span></label>
+              <label class="mod-chip"><input type="checkbox" value="TC"><span>TC</span></label>
+              <label class="mod-chip"><input type="checkbox" value="MR"><span>MR</span></label>
+              <label class="mod-chip"><input type="checkbox" value="RD"><span>RD</span></label>
+              <label class="mod-chip"><input type="checkbox" value="AD"><span>AD</span></label>
+              <label class="mod-chip"><input type="checkbox" value="FR"><span>FR</span></label>
+              <label class="mod-chip"><input type="checkbox" value="MU"><span>MU</span></label>
+              <label class="mod-chip"><input type="checkbox" value="SY"><span>SY</span></label>
+            </div>
+
+            <!-- DA settings -->
+            <div id="da-settings" class="hidden grid grid-cols-2 gap-2 pt-1">
+              <div>
+                <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">DA CS</div>
+                <input id="da-cs" type="number" step="0.1" min="0" max="10" placeholder="e.g. 4"
+                       class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
+              </div>
+              <div>
+                <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">DA OD</div>
+                <input id="da-od" type="number" step="0.1" min="0" max="10" placeholder="e.g. 9"
+                       class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
+              </div>
+            </div>
+
+            <!-- Custom speed rate -->
+            <div id="cs-settings" class="hidden pt-1">
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">CS RATE MULTIPLIER (e.g. 1.5)</div>
+              <input id="cs-rate" type="number" step="0.05" min="0.5" max="3" placeholder="1.5"
+                     class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
+            </div>
+          </div>
+        </div>
+
+        <!-- Score inputs -->
+        <div>
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.45)">Score</div>
+          <div class="grid grid-cols-3 gap-2">
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Accuracy %</div>
+              <input id="in-acc" type="number" step="0.01" min="0" max="100" value="100" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Combo</div>
+              <input id="in-combo" type="number" min="0" placeholder="max" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Miss</div>
+              <input id="in-miss" type="number" min="0" value="0" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">300</div>
+              <input id="in-h300" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">100</div>
+              <input id="in-h100" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">50</div>
+              <input id="in-h50" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Geki</div>
+              <input id="in-hgeki" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Katu</div>
+              <input id="in-hkatsu" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div class="flex items-end pb-1">
+              <button id="use-hits" class="text-[11px] hover:underline" style="color:#5b8ef0">use hits →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slider hits -->
+        <div>
+          <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.45)">Slider Hits</div>
+          <div class="grid grid-cols-4 gap-2">
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Head</div>
+              <input id="in-sliderheadhits" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Tick</div>
+              <input id="in-slidertickhits" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">Repeat</div>
+              <input id="in-sliderrepeathits" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+            <div>
+              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">End</div>
+              <input id="in-sliderendhits" type="number" min="0" placeholder="—" class="calc-input">
+            </div>
+          </div>
+        </div>
+
+        <button id="calculate" class="w-full py-3 rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                style="background:#5b8ef0;color:#fff">
+          <i class="fas fa-bolt mr-2"></i>Calculate PP
+        </button>
+      </div>
+    </div>
+
+    <!-- ============ RESULT ============ -->
+    <div class="rounded-2xl overflow-hidden shadow-2xl h-fit" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+      <div class="h-1 w-full" style="background:linear-gradient(to right,#818cf8,#5b8ef0)"></div>
+      <div class="p-6">
+
+        <div id="result-empty" class="text-center py-16" style="color:rgba(221,226,236,0.35)">
+          <i class="fas fa-chart-simple text-4xl mb-3 opacity-50"></i>
+          <div class="text-sm">Fill in the form and hit Calculate</div>
+        </div>
+
+        <div id="result-loading" class="hidden text-center py-16" style="color:rgba(221,226,236,0.5)">
+          <i class="fas fa-spinner fa-spin text-3xl mb-3" style="color:#5b8ef0"></i>
+          <div class="text-sm">Calculating...</div>
+        </div>
+
+        <div id="result-error" class="hidden text-center py-16">
+          <i class="fas fa-exclamation-triangle text-3xl mb-3" style="color:#f87171"></i>
+          <div id="result-error-text" class="text-sm" style="color:#f87171"></div>
+        </div>
+
+        <div id="result-ok" class="hidden">
+          <div class="text-center mb-6">
+            <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Performance</div>
+            <div id="pp-total" class="text-6xl font-black" style="color:#5b8ef0">0</div>
+            <div class="text-sm" style="color:rgba(221,226,236,0.5)">pp</div>
+          </div>
+
+          <div class="space-y-2 mb-5" id="pp-breakdown">
+            <div class="pp-bar" data-key="aim"><span class="pp-label">Aim</span><div class="pp-track"><div class="pp-fill"></div></div><span class="pp-val">0</span></div>
+            <div class="pp-bar" data-key="speed"><span class="pp-label">Speed</span><div class="pp-track"><div class="pp-fill"></div></div><span class="pp-val">0</span></div>
+            <div class="pp-bar" data-key="acc"><span class="pp-label">Acc</span><div class="pp-track"><div class="pp-fill"></div></div><span class="pp-val">0</span></div>
+            <div class="pp-bar" data-key="flashlight"><span class="pp-label">FL</span><div class="pp-track"><div class="pp-fill"></div></div><span class="pp-val">0</span></div>
+            <div class="pp-bar" data-key="reading"><span class="pp-label">Reading</span><div class="pp-track"><div class="pp-fill"></div></div><span class="pp-val">0</span></div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <div class="rounded-lg px-3 py-2" style="background:#161c27">
+              <div style="color:rgba(221,226,236,0.4)">Effective miss</div>
+              <div id="pp-effmiss" class="font-bold mt-0.5" style="color:#dde2ec">—</div>
+            </div>
+            <div class="rounded-lg px-3 py-2" style="background:#161c27">
+              <div style="color:rgba(221,226,236,0.4)">PP version</div>
+              <div id="pp-version" class="font-bold mt-0.5 font-mono" style="color:#dde2ec">—</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  .calc-input {
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    outline: none;
+    background: #161c27;
+    border: 1px solid rgba(93,142,240,0.2);
+    color: #dde2ec;
+  }
+  .calc-input:focus { border-color: #5b8ef0; }
+  .calc-input::-webkit-outer-spin-button, .calc-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .calc-input[type=number] { -moz-appearance: textfield; }
+
+  .mod-chip {
+    cursor: pointer;
+    user-select: none;
+  }
+  .mod-chip input { display: none; }
+  .mod-chip span {
+    display: inline-block;
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #161c27;
+    color: rgba(221,226,236,0.55);
+    border: 1px solid rgba(93,142,240,0.15);
+    transition: all 0.12s;
+  }
+  .mod-chip input:checked + span {
+    background: rgba(93,142,240,0.2);
+    color: #5b8ef0;
+    border-color: #5b8ef0;
+  }
+  .mod-chip:hover span { border-color: rgba(93,142,240,0.5); }
+
+  .pp-bar {
+    display: grid;
+    grid-template-columns: 62px 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.75rem;
+  }
+  .pp-label { color: rgba(221,226,236,0.5); }
+  .pp-track {
+    height: 6px;
+    background: #161c27;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .pp-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right,#5b8ef0,#818cf8);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .pp-val { text-align: right; font-weight: 600; color: #dde2ec; font-family: monospace; }
+</style>
+
+<script>
+(function () {
+  var mapType = 'md5';
+  var mapData = null;
+
+  // ----- tabs -----
+  var tabMd5 = document.getElementById('tab-md5');
+  var tabBid = document.getElementById('tab-bid');
+  var mapInput = document.getElementById('map-input');
+
+  function setTab(type) {
+    mapType = type;
+    mapData = null;
+    document.getElementById('map-info').classList.add('hidden');
+    if (type === 'md5') {
+      tabMd5.style.background = '#5b8ef0'; tabMd5.style.color = '#fff';
+      tabBid.style.background = '#161c27'; tabBid.style.color = 'rgba(221,226,236,0.6)';
+      mapInput.placeholder = '32-char map md5';
+      mapInput.value = '';
+      mapInput.classList.add('font-mono');
+    } else {
+      tabBid.style.background = '#5b8ef0'; tabBid.style.color = '#fff';
+      tabMd5.style.background = '#161c27'; tabMd5.style.color = 'rgba(221,226,236,0.6)';
+      mapInput.placeholder = 'osu! beatmap id (e.g. 1234567)';
+      mapInput.value = '';
+      mapInput.classList.remove('font-mono');
+    }
+  }
+  tabMd5.addEventListener('click', function () { setTab('md5'); });
+  tabBid.addEventListener('click', function () { setTab('bid'); });
+
+  // ----- mods -----
+  document.querySelectorAll('#mods-group input[type=checkbox]').forEach(function (cb) {
+    cb.addEventListener('change', function () {
+      document.getElementById('da-settings').classList.toggle('hidden',
+        !document.querySelector('#mods-group input[value=DA]').checked);
+      document.getElementById('cs-settings').classList.toggle('hidden',
+        !document.querySelector('#mods-group input[value=CS]').checked);
+    });
+  });
+
+  // ----- "use hits" helper: switch to hits-based calc -----
+  document.getElementById('use-hits').addEventListener('click', function () {
+    ['h300', 'h100', 'h50', 'hgeki', 'hkatsu'].forEach(function (k) {
+      var el = document.getElementById('in-' + k);
+      if (el.value === '') el.value = '0';
+    });
+    document.getElementById('in-acc').value = '';
+    document.getElementById('in-acc').placeholder = 'auto';
+  });
+
+  // ----- load map -----
+  document.getElementById('load-map').addEventListener('click', loadMap);
+  mapInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') loadMap(); });
+
+  function loadMap() {
+    var v = mapInput.value.trim();
+    if (!v) return;
+    var url = mapType === 'md5' ? '/api/beatmap?md5=' + encodeURIComponent(v)
+                                : '/api/beatmap?bid=' + encodeURIComponent(v);
+    var info = document.getElementById('map-info');
+    document.getElementById('map-title').textContent = 'Loading...';
+    document.getElementById('map-meta').textContent = '';
+    info.classList.remove('hidden');
+
+    fetch(url).then(function (r) { return r.json(); }).then(function (res) {
+      if (res.status !== 'success' || !res.data) {
+        document.getElementById('map-title').textContent = 'Beatmap not found';
+        document.getElementById('map-meta').textContent = 'Check the ' + (mapType === 'md5' ? 'md5' : 'id') + ' and try again';
+        mapData = null;
+        return;
+      }
+      mapData = res.data;
+      document.getElementById('map-title').textContent = res.data.full || (res.data.artist + ' - ' + res.data.title);
+      document.getElementById('map-meta').textContent =
+        (res.data.star ? res.data.star.toFixed(2) + '★' : '') +
+        (res.data.max_combo ? ' · ' + res.data.max_combo + 'x max combo' : '') +
+        (res.data.bpm ? ' · ' + Math.round(res.data.bpm) + ' BPM' : '');
+      var cover = document.getElementById('map-cover');
+      cover.src = res.data.map_cover || '';
+      cover.style.display = res.data.map_cover ? '' : 'none';
+      var link = document.getElementById('map-link');
+      link.href = res.data.map_link || '#';
+      link.style.display = res.data.map_link ? '' : 'none';
+    }).catch(function () {
+      document.getElementById('map-title').textContent = 'Failed to load map';
+      mapData = null;
+    });
+  }
+
+  // ----- collect payload -----
+  function num(id) {
+    var v = document.getElementById(id).value;
+    if (v === '' || v === null) return null;
+    var n = Number(v);
+    return isNaN(n) ? null : n;
+  }
+
+  function collectMods() {
+    var mods = [];
+    document.querySelectorAll('#mods-group input[type=checkbox]:checked').forEach(function (cb) {
+      var entry = { acronym: cb.value };
+      if (cb.value === 'DA') {
+        var settings = {};
+        var cs = num('da-cs'), od = num('da-od');
+        if (cs !== null) settings.cs = { original: cs, adjusted: cs };
+        if (od !== null) settings.od = { original: od, adjusted: od };
+        if (Object.keys(settings).length) entry.settings = settings;
+      }
+      if (cb.value === 'CS') {
+        var rate = num('cs-rate');
+        if (rate !== null) entry.settings = { rateMultiplier: rate };
+      }
+      mods.push(entry);
+    });
+    return mods;
+  }
+
+  // ----- calculate -----
+  document.getElementById('calculate').addEventListener('click', calculate);
+  mapInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') calculate(); });
+
+  function show(id) {
+    ['result-empty', 'result-loading', 'result-error', 'result-ok'].forEach(function (r) {
+      document.getElementById(r).classList.toggle('hidden', r !== id);
+    });
+  }
+
+  function calculate() {
+    var v = mapInput.value.trim();
+    if (!v) { show('result-error'); document.getElementById('result-error-text').textContent = 'Enter a beatmap md5 or id first'; return; }
+
+    var payload = {};
+    if (mapType === 'md5') payload.md5 = v; else payload.beatmap_id = Number(v);
+
+    var acc = num('in-acc');
+    if (acc !== null) payload.acc = acc;
+    var miss = num('in-miss');
+    if (miss !== null) payload.miss = miss;
+    ['combo', 'h300', 'h100', 'h50', 'hgeki', 'hkatsu',
+     'sliderheadhits', 'slidertickhits', 'sliderrepeathits', 'sliderendhits'].forEach(function (k) {
+      var n = num('in-' + k);
+      if (n !== null) payload[k] = n;
+    });
+    payload.mods = collectMods();
+
+    show('result-loading');
+
+    fetch('/api/calculate/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); }).then(function (res) {
+      if (res.status !== 'success' || !res.data) {
+        show('result-error');
+        document.getElementById('result-error-text').textContent =
+          (res.status === 'not_found') ? 'Beatmap not found — load it first' :
+          (res.status === 'bad_request') ? (res.data || 'Bad request') :
+          'No response from the processor — it may be offline';
+        return;
+      }
+      renderResult(res.data);
+    }).catch(function () {
+      show('result-error');
+      document.getElementById('result-error-text').textContent = 'Request failed — server unreachable';
+    });
+  }
+
+  function renderResult(d) {
+    show('result-ok');
+    document.getElementById('pp-total').textContent = (d.total || 0).toFixed(2);
+    document.getElementById('pp-effmiss').textContent = d.effective_miss_count != null ? d.effective_miss_count : '—';
+    document.getElementById('pp-version').textContent = d.pp_version || '—';
+
+    var max = Math.max(d.aim || 0, d.speed || 0, d.acc || 0, d.flashlight || 0, d.reading || 0, 1);
+    document.querySelectorAll('.pp-bar').forEach(function (bar) {
+      var key = bar.getAttribute('data-key');
+      var val = d[key] || 0;
+      bar.querySelector('.pp-val').textContent = val.toFixed(2);
+      bar.querySelector('.pp-fill').style.width = Math.round((val / max) * 100) + '%';
+    });
+  }
+})();
+</script>
+{% endblock %}

@@ -58,9 +58,8 @@ class ScoreService:
         if not player:
             return None  # Player not found
 
-        # Проверяем, что username из данных совпадает с авторизованным игроком
         if score_data[17] != player.username:
-            return None  # Username mismatch - possible spoofing attempt
+            return None
 
         score.player_id = player.id
         score.player = player
@@ -127,18 +126,30 @@ class ScoreService:
         model.beatmap = beatmap
         model.md5 = beatmap.md5
         model.mods = ModList.from_dict(mods) if isinstance(mods, list) else mods
-        model.accuracy = acc
-        model.hmiss = miss
-        model.max_combo = combo
-        model.h300 = h300
-        model.h100 = h100
-        model.h50 = h50
-        model.hgeki = hgeki
-        model.hkatsu = hkatsu
-        model.slidertickhits = slidertickhits
-        model.sliderendhits = sliderendhits
-        model.sliderheadhits = sliderheadhits
-        model.sliderrepeathits = sliderrepeathits
+        if acc is not None:
+            model.accuracy = acc
+        if miss is not None:
+            model.hmiss = miss
+        if combo is not None:
+            model.max_combo = combo
+        if h300 is not None:
+            model.h300 = h300
+        if h100 is not None:
+            model.h100 = h100
+        if h50 is not None:
+            model.h50 = h50
+        if hgeki is not None:
+            model.hgeki = hgeki
+        if hkatsu is not None:
+            model.hkatsu = hkatsu
+        if slidertickhits is not None:
+            model.slidertickhits = slidertickhits
+        if sliderendhits is not None:
+            model.sliderendhits = sliderendhits
+        if sliderheadhits is not None:
+            model.sliderheadhits = sliderheadhits
+        if sliderrepeathits is not None:
+            model.sliderrepeathits = sliderrepeathits
 
         response: ProcessorPerformanceAttributesModel | None = await self.processor_client.calculate_score(model)
         return response

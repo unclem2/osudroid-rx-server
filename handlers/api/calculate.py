@@ -7,7 +7,7 @@ from objects.dependencies.services import get_beatmap_service, get_score_service
 from objects.services.beatmap import BeatmapService
 from objects.services.score import ScoreService
 
-router = APIRouter(prefix="/score")
+router = APIRouter(prefix="")
 
 
 class CalculateRequestModel(BaseModel):
