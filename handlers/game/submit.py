@@ -56,6 +56,7 @@ async def submit_play(request: Request, config: Config = Depends(get_config), pl
         )
 
         await player_service.update_stats(player)
+        await player_service.set_playing(player.id, "")
 
         file = form.get("replayFile")
         if not file:
