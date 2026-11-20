@@ -7,7 +7,10 @@ from objects.services.player import PlayerService
 
 router = APIRouter()
 
-ALLOWED_LEADERBOARD_TYPES = {"pp", "score"}
+ALLOWED_LEADERBOARD_TYPES = {
+    "pp", "score", "playcount", "accuracy", "h300", "h100", "h50", "hmiss",
+    "rank_xh", "rank_x", "rank_sh", "rank_s", "rank_a", "rank_b", "rank_c", "rank_d",
+}
 
 
 @router.get("")

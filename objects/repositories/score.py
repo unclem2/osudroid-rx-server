@@ -1,5 +1,7 @@
 from redis import asyncio
-from sqlalchemy import and_, select, func
+from osudroid_api_wrapper import ModList
+from sqlalchemy import and_, cast, select, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import aliased
 from sqlalchemy.orm import noload
@@ -206,7 +208,7 @@ class ScoreRepository:
         score = result.scalar_one_or_none()
         return self._serizalize(score) if score else None
 
-    async def global_top_scores(self, limit: int = 10) -> list[ScoreModel]:
+    async def global_top_scores(self, limit: int = 10, mods: ModList | None = None) -> list[ScoreModel]:
         stmt = (
             select(ScoreSchema)
             .where(
@@ -216,8 +218,17 @@ class ScoreRepository:
                 ),
             )
             .order_by(ScoreSchema.pp.desc())
-            .limit(limit)
         )
+
+        if mods is not None:
+            mods_jsonb = cast(ScoreSchema.mods, JSONB)
+            stmt = stmt.where(
+                func.jsonb_array_length(mods_jsonb) == len(mods.mods),
+            )
+            if mods.mods:
+                stmt = stmt.where(mods_jsonb.contains(cast(mods.as_calculable_mods, JSONB)))
+
+        stmt = stmt.limit(limit)
         result = await self.session.execute(stmt)
         scores = result.scalars().all()
         return [self._serizalize(score) for score in scores]

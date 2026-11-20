@@ -70,7 +70,7 @@
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 pb-6 mt-5">
       <div class="rounded-xl p-3 text-center" style="background:#161c27">
         <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Performance</div>
-        <div class="text-xl font-bold" style="color:#5b8ef0">{{ player_stats.pp | int }}pp</div>
+        <div class="text-xl font-bold" style="color:#5b8ef0">{{ "%.2f"|format(player_stats.pp) }}pp</div>
       </div>
       <div class="rounded-xl p-3 text-center" style="background:#161c27">
         <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Accuracy</div>
@@ -83,6 +83,40 @@
       <div class="rounded-xl p-3 text-center" style="background:#161c27">
         <div class="text-xs uppercase tracking-wide mb-1" style="color:rgba(221,226,236,0.45)">Ranked Score</div>
         <div class="text-lg font-bold" style="color:#34d399">{{ "{:,}".format(player_stats.ranked_score) }}</div>
+      </div>
+    </div>
+
+    <!-- Detailed stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 px-6 pb-6">
+      <div class="rounded-xl p-4" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-3" style="color:rgba(221,226,236,0.45)">Hit counts</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+          <div>
+            <div class="text-xs" style="color:#60a5fa">300</div>
+            <div class="font-bold">{{ player_stats.h300 }}</div>
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">Geki {{ player_stats.hgeki }}</div>
+          </div>
+          <div>
+            <div class="text-xs" style="color:#4ade80">100</div>
+            <div class="font-bold">{{ player_stats.h100 }}</div>
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">Katsu {{ player_stats.hkatsu }}</div>
+          </div>
+          <div><div class="text-xs" style="color:#fbbf24">50</div><div class="font-bold">{{ player_stats.h50 }}</div></div>
+          <div><div class="text-xs" style="color:#f87171">Miss</div><div class="font-bold">{{ player_stats.hmiss }}</div></div>
+        </div>
+      </div>
+      <div class="rounded-xl p-4" style="background:#161c27">
+        <div class="text-xs uppercase tracking-wide mb-3" style="color:rgba(221,226,236,0.45)">Map ranks</div>
+        <div class="grid grid-cols-4 gap-2 text-center">
+          <div><div class="text-xs" style="color:#cbd5e1">XH</div><div class="font-bold">{{ player_stats.rank_xh }}</div></div>
+          <div><div class="text-xs" style="color:#fbbf24">X</div><div class="font-bold">{{ player_stats.rank_x }}</div></div>
+          <div><div class="text-xs" style="color:#cbd5e1">SH</div><div class="font-bold">{{ player_stats.rank_sh }}</div></div>
+          <div><div class="text-xs" style="color:#fbbf24">S</div><div class="font-bold">{{ player_stats.rank_s }}</div></div>
+          <div><div class="text-xs" style="color:#4ade80">A</div><div class="font-bold">{{ player_stats.rank_a }}</div></div>
+          <div><div class="text-xs" style="color:#60a5fa">B</div><div class="font-bold">{{ player_stats.rank_b }}</div></div>
+          <div><div class="text-xs" style="color:#fb923c">C</div><div class="font-bold">{{ player_stats.rank_c }}</div></div>
+          <div><div class="text-xs" style="color:#f87171">D</div><div class="font-bold">{{ player_stats.rank_d }}</div></div>
+        </div>
       </div>
     </div>
   </div>

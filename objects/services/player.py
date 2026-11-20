@@ -23,6 +23,7 @@ class PlayerService:  # noqa: PLR0904
         if model:
             model.pp_rank, model.score_rank, model.pp_country_rank, model.score_country_rank = await self.leaderboard_repository.get_leaderboard_placement(model)
             model.stats.level = await self.player_storage.get_level(model.id)
+            await self._set_extra_stat_ranks(model)
 
             model.online_state.playing = await self.player_storage.get_playing(model.id)
             model.online_state.player_state = await self.player_storage.get_player_state(model.id)
@@ -35,12 +36,18 @@ class PlayerService:  # noqa: PLR0904
         if model:
             model.pp_rank, model.score_rank, model.pp_country_rank, model.score_country_rank = await self.leaderboard_repository.get_leaderboard_placement(model)
             model.stats.level = await self.player_storage.get_level(model.id)
+            await self._set_extra_stat_ranks(model)
 
             model.online_state.playing = await self.player_storage.get_playing(model.id)
             model.online_state.player_state = await self.player_storage.get_player_state(model.id)
             model.online_state.last_online = await self.player_storage.get_last_online(model.id)
 
         return model
+
+    async def _set_extra_stat_ranks(self, player: PlayerModel) -> None:
+        ranks = await self.leaderboard_repository.get_extra_stat_ranks(player)
+        for name, rank in ranks.items():
+            setattr(player.stats, f"{name}_rank", rank)
 
     async def update_stats(self, player: PlayerModel) -> None:
         all_scores = await self.score_repository.player_scores(player.id, "all", "date", -1)
@@ -51,6 +58,26 @@ class PlayerService:  # noqa: PLR0904
         stats.ranked_score = sum(score.score for score in top_scores)
         stats.accuracy = sum(score.accuracy for score in all_scores) / len(all_scores) if all_scores else 0.0
         stats.playcount = len(all_scores)
+        stats.h300 = sum(score.h300 for score in all_scores)
+        stats.hgeki = sum(score.hgeki for score in all_scores)
+        stats.h100 = sum(score.h100 for score in all_scores)
+        stats.hkatsu = sum(score.hkatsu for score in all_scores)
+        stats.h50 = sum(score.h50 for score in all_scores)
+        stats.hmiss = sum(score.hmiss for score in all_scores)
+
+        grade_counts = {"XH": 0, "X": 0, "SH": 0, "S": 0, "A": 0, "B": 0, "C": 0, "D": 0}
+        for score in all_scores:
+            grade = score.grade.upper()
+            if grade in grade_counts:
+                grade_counts[grade] += 1
+        stats.rank_xh = grade_counts["XH"]
+        stats.rank_x = grade_counts["X"]
+        stats.rank_sh = grade_counts["SH"]
+        stats.rank_s = grade_counts["S"]
+        stats.rank_a = grade_counts["A"]
+        stats.rank_b = grade_counts["B"]
+        stats.rank_c = grade_counts["C"]
+        stats.rank_d = grade_counts["D"]
 
         total_pp = 0
         for i, score in enumerate(top_scores):
@@ -175,7 +202,24 @@ class PlayerService:  # noqa: PLR0904
             logging.debug(f"[Init] {player.id} - {player.username}")
 
     async def list_from_query(self, order_by: str = "pp", country: str | None = None, limit: int = 100, offset: int = 0, query: str = "") -> list[PlayerModel]:
-        player_ids = await self.player_repository.id_list_from_query(query, order_by, country, limit, offset)
+        player_ids = await self.player_repository.id_list_from_query(query, order_by, country, -1, 0)
         if not player_ids:
             return []
-        return [await self.from_uid(player_id) for player_id in player_ids]  # ty: ignore[invalid-return-type] can be ignored because if we have id from repo method then we have a player in db
+        players = [await self.from_uid(player_id) for player_id in player_ids]
+        players = [player for player in players if player is not None]
+
+        if order_by in {"pp", "score", "playcount", "accuracy"}:
+            attribute = "pp" if order_by == "pp" else "ranked_score"
+            if order_by == "playcount":
+                attribute = "playcount"
+            elif order_by == "accuracy":
+                attribute = "accuracy"
+            players.sort(key=lambda player: getattr(player.stats, attribute), reverse=True)
+        elif order_by == "h300":
+            players.sort(key=lambda player: player.stats.h300 + player.stats.hgeki, reverse=True)
+        elif order_by == "h100":
+            players.sort(key=lambda player: player.stats.h100 + player.stats.hkatsu, reverse=True)
+        else:
+            players.sort(key=lambda player: getattr(player.stats, order_by), reverse=True)
+
+        return players

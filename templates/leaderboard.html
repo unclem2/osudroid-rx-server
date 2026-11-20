@@ -70,6 +70,25 @@
       <i class="fas fa-gamepad mr-1.5"></i>By Score
     </a>
 
+    <!-- Sort: Extra stat -->
+    <div class="relative">
+      <select id="stat-select"
+              class="px-4 py-2.5 pr-8 rounded-xl text-sm outline-none appearance-none cursor-pointer"
+              style="background:{{ '#5b8ef0' if sortby not in ['pp', 'score'] else '#1e2535' }};
+                     border:1px solid rgba(93,142,240,0.2);
+                     color:#dde2ec"
+              onchange="applySort(this.value)">
+        <option value="" style="background:#1e2535" {% if sortby in ['pp', 'score'] %}selected{% endif %}>Extra stat</option>
+        {% for key, label in stat_labels.items() %}
+        {% if key not in ['pp', 'score'] %}
+        <option value="{{ key }}" style="background:#1e2535" {% if sortby == key %}selected{% endif %}>{{ label }}</option>
+        {% endif %}
+        {% endfor %}
+      </select>
+      <i class="fas fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-xs pointer-events-none"
+         style="color:rgba(221,226,236,0.35)"></i>
+    </div>
+
   </div>
 
   <!-- Table -->
@@ -85,16 +104,24 @@
                 style="color:rgba(221,226,236,0.5)">Player</th>
             <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
                 style="color:rgba(221,226,236,0.5)">
-              {{ 'PP' if sortby == 'pp' else 'Ranked Score' }}
+              PP
+            </th>
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">
+              Ranked Score
             </th>
             <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
                 style="color:rgba(221,226,236,0.5)">Plays</th>
+            {% if sortby not in ['pp', 'score'] %}
+            <th class="px-4 py-3 text-right text-xs uppercase font-semibold"
+                style="color:rgba(221,226,236,0.5)">{{ stat_labels.get(sortby) }}</th>
+            {% endif %}
           </tr>
         </thead>
 
         <tbody id="leaderboard-body">
           {% for player in leaderboard %}
-          {% set r = player.pp_rank if sortby == 'pp' else player.score_rank %}
+          {% set r = stat_ranks.get(player.id, 0) %}
 
           <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer"
               style="border-color:rgba(93,142,240,0.08)"
@@ -124,15 +151,15 @@
             </td>
 
             <td class="px-4 py-3 text-right">
-              {% if sortby == 'pp' %}
-                <span class="text-sm font-bold" style="color:#5b8ef0">
-                  {{ player.stats.pp|int }}pp
-                </span>
-              {% else %}
-                <span class="text-sm font-bold" style="color:#34d399">
-                  {{ "{:,}".format(player.stats.ranked_score) }}
-                </span>
-              {% endif %}
+              <span class="text-sm font-bold" style="color:#5b8ef0">
+                {{ "%.2f"|format(player.stats.pp) }}pp
+              </span>
+            </td>
+
+            <td class="px-4 py-3 text-right">
+              <span class="text-sm font-bold" style="color:#34d399">
+                {{ "{:,}".format(player.stats.ranked_score) }}
+              </span>
             </td>
 
             <td class="px-4 py-3 text-right">
@@ -140,6 +167,24 @@
                 {{ player.stats.playcount }}
               </span>
             </td>
+
+            {% if sortby not in ['pp', 'score'] %}
+            <td class="px-4 py-3 text-right">
+              <span class="text-sm font-bold" style="color:#a78bfa">
+                {% if sortby == 'accuracy' %}
+                  {{ "%.2f"|format(stat_values.get(player.id, 0)) }}%
+                {% elif sortby == 'h300' %}
+                  {{ "{:,}".format(stat_values.get(player.id, 0)) }}
+                  <span class="text-xs" style="color:rgba(221,226,236,0.4)">(+ Geki {{ player.stats.hgeki }})</span>
+                {% elif sortby == 'h100' %}
+                  {{ "{:,}".format(stat_values.get(player.id, 0)) }}
+                  <span class="text-xs" style="color:rgba(221,226,236,0.4)">(+ Katsu {{ player.stats.hkatsu }})</span>
+                {% else %}
+                  {{ "{:,}".format(stat_values.get(player.id, 0)) }}
+                {% endif %}
+              </span>
+            </td>
+            {% endif %}
 
           </tr>
           {% endfor %}
@@ -186,6 +231,14 @@
 </div>
 
 <script>
+function applySort(sortby) {
+  if (!sortby) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set('sortby', sortby);
+  url.searchParams.delete('offset');
+  window.location.href = url.toString();
+}
+
 function applyCountry(code) {
   const url = new URL(window.location.href);
   if (code) {

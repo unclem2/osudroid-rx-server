@@ -25,4 +25,13 @@ async def init(engine) -> None:
         # await conn.run_sync(Base.metadata.drop_all)
         logger.debug("Registered models: %s", list(Base.registry._class_registry.keys()))
         await conn.run_sync(Base.metadata.create_all)
+        stat_columns = (
+            "h300", "hgeki", "h100", "hkatsu", "h50", "hmiss",
+            "rank_xh", "rank_x", "rank_sh", "rank_s", "rank_a",
+            "rank_b", "rank_c", "rank_d",
+        )
+        for column in stat_columns:
+            await conn.execute(text(
+                f'ALTER TABLE stats ADD COLUMN IF NOT EXISTS "{column}" integer NOT NULL DEFAULT 0'
+            ))
         await conn.commit()

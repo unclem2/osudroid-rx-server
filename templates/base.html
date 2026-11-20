@@ -95,9 +95,22 @@
       <a href="/" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
         <i class="fas fa-home mr-1.5 opacity-70"></i>Home
       </a>
-      <a href="/user/leaderboard" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
-        <i class="fas fa-trophy mr-1.5 opacity-70"></i>Leaderboard
-      </a>
+      <div class="dd-wrap">
+        <button class="nav-link px-3 py-2 flex items-center gap-1" style="font-size:0.875rem;color:#dde2ec;background:none;border:none;cursor:default">
+          <i class="fas fa-trophy mr-1.5 opacity-70"></i>Leaderboard
+          <i class="fas fa-chevron-down ml-1 opacity-40" style="font-size:9px"></i>
+        </button>
+        <div class="dd-panel">
+          <div class="dd-inner">
+            <a href="/user/leaderboard" class="dd-item">
+              <i class="fas fa-users opacity-50" style="width:14px;text-align:center"></i>Player Leaderboard
+            </a>
+            <a href="/user/score_leaderboard" class="dd-item">
+              <i class="fas fa-chart-bar opacity-50" style="width:14px;text-align:center"></i>Score Leaderboard
+            </a>
+          </div>
+        </div>
+      </div>
       <a href="/user/calculator" class="nav-link px-3 py-2" style="font-size:0.875rem;color:#dde2ec">
         <i class="fas fa-calculator mr-1.5 opacity-70"></i>Calculator
       </a>
@@ -144,8 +157,12 @@
     <a href="/" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
       <i class="fas fa-home opacity-60" style="width:16px;text-align:center"></i>Home
     </a>
+    <div class="px-3 py-2 text-xs uppercase tracking-wide" style="color:rgba(221,226,236,0.35)">Leaderboard</div>
     <a href="/user/leaderboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
-      <i class="fas fa-trophy opacity-60" style="width:16px;text-align:center"></i>Leaderboard
+      <i class="fas fa-users opacity-60" style="width:16px;text-align:center"></i>Player Leaderboard
+    </a>
+    <a href="/user/score_leaderboard" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
+      <i class="fas fa-chart-bar opacity-60" style="width:16px;text-align:center"></i>Score Leaderboard
     </a>
     <a href="/user/calculator" class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-white/5 transition-colors" style="font-size:0.875rem;color:#dde2ec">
       <i class="fas fa-calculator opacity-60" style="width:16px;text-align:center"></i>Calculator

@@ -34,8 +34,8 @@ class ScoreService:
     async def player_top_scores(self, player_id: int, limit: int = 100) -> list[ScoreModel]:
         return await self.score_repository.player_top_scores(player_id, limit)
 
-    async def global_top_scores(self, limit: int = 10) -> list[ScoreModel]:
-        return await self.score_repository.global_top_scores(limit)
+    async def global_top_scores(self, limit: int = 10, mods: ModList | None = None) -> list[ScoreModel]:
+        return await self.score_repository.global_top_scores(limit, mods)
 
     async def player_first_places(self, player_id: int, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
         return await self.score_repository.player_first_places(player_id, order_by, limit)

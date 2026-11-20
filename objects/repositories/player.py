@@ -110,7 +110,28 @@ class PlayerRepository:
         return player.email_hash if player else None
 
     async def create_stats(self, player_id: int) -> None:
-        stats = StatsSchema(id=player_id, pp=0, accuracy=100, playcount=0, total_score=0, ranked_score=0)
+        stats = StatsSchema(
+            id=player_id,
+            pp=0,
+            accuracy=100,
+            playcount=0,
+            total_score=0,
+            ranked_score=0,
+            h300=0,
+            hgeki=0,
+            h100=0,
+            hkatsu=0,
+            h50=0,
+            hmiss=0,
+            rank_xh=0,
+            rank_x=0,
+            rank_sh=0,
+            rank_s=0,
+            rank_a=0,
+            rank_b=0,
+            rank_c=0,
+            rank_d=0,
+        )
         self.session.add(stats)
         await self.session.commit()
 
@@ -134,6 +155,9 @@ class PlayerRepository:
         stmt = select(PlayerSchema.id).where(PlayerSchema.username.ilike(f"%{query}%"))
         if country:
             stmt = stmt.where(PlayerSchema.country == country)
-        stmt = stmt.offset(offset).limit(limit)
+        if offset:
+            stmt = stmt.offset(offset)
+        if limit != -1:
+            stmt = stmt.limit(limit)
         response = await self.session.execute(stmt)
         return response.scalars().all()
