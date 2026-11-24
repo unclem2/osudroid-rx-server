@@ -8,6 +8,7 @@ from objects.clients.processor import ProcessorClient
 from objects.models.beatmap import BeatmapModel
 from objects.repositories.beatmap import BeatmapRepository
 from objects.schemas.beatmap import RankedStatus
+from objects.models.processor.output.beatmap import ProcessorBeatmapModel
 
 
 class BeatmapService:

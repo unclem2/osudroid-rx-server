@@ -8,6 +8,7 @@ from objects.models.beatmap import BeatmapModel
 from objects.models.processor.output.performance_attrs import (
     ProcessorPerformanceAttributesModel,
 )
+from objects.models.processor.output.score import ProcessorScoreModel
 from objects.models.score import ScoreModel
 from objects.repositories.score import ScoreRepository
 from objects.schemas.score import ScoreStatus
@@ -25,8 +26,13 @@ class ScoreService:
     async def from_id(self, score_id: int) -> ScoreModel | None:
         return await self.score_repository.from_id(score_id)
 
-    async def beatmap_scores(self, beatmap_md5: str, order_by: str = "score") -> list[ScoreModel]:
-        return await self.score_repository.beatmap_scores(beatmap_md5, order_by)
+    async def beatmap_scores(
+        self,
+        beatmap_md5: str,
+        order_by: str = "score",
+        mods: ModList | None = None,
+    ) -> list[ScoreModel]:
+        return await self.score_repository.beatmap_scores(beatmap_md5, order_by, mods=mods)
 
     async def player_scores(self, player_id: int, status: str, order_by: str = "date", limit: int = 100) -> list[ScoreModel]:
         return await self.score_repository.player_scores(player_id, status, order_by, limit)
@@ -153,6 +159,54 @@ class ScoreService:
 
         response: ProcessorPerformanceAttributesModel | None = await self.processor_client.calculate_score(model)
         return response
+
+    async def calculate_full(
+        self,
+        beatmap: BeatmapModel,
+        mods: list,
+        acc: float | None,
+        miss: int | None,
+        combo: int | None,
+        h300: int | None,
+        h100: int | None,
+        h50: int | None,
+        hgeki: int | None,
+        hkatsu: int | None,
+        slidertickhits: int | None,
+        sliderendhits: int | None,
+        sliderheadhits: int | None,
+        sliderrepeathits: int | None,
+    ) -> ProcessorScoreModel | None:
+        model = ScoreModel()
+        model.beatmap = beatmap
+        model.md5 = beatmap.md5
+        model.mods = ModList.from_dict(mods) if isinstance(mods, list) else mods
+        if acc is not None:
+            model.accuracy = acc
+        if miss is not None:
+            model.hmiss = miss
+        if combo is not None:
+            model.max_combo = combo
+        if h300 is not None:
+            model.h300 = h300
+        if h100 is not None:
+            model.h100 = h100
+        if h50 is not None:
+            model.h50 = h50
+        if hgeki is not None:
+            model.hgeki = hgeki
+        if hkatsu is not None:
+            model.hkatsu = hkatsu
+        if slidertickhits is not None:
+            model.slidertickhits = slidertickhits
+        if sliderendhits is not None:
+            model.sliderendhits = sliderendhits
+        if sliderheadhits is not None:
+            model.sliderheadhits = sliderheadhits
+        if sliderrepeathits is not None:
+            model.sliderrepeathits = sliderrepeathits
+
+        return await self.processor_client.calculate_score_full(model)
 
     def is_ranked(self, score: ScoreModel) -> bool:
         if score.mods.get_mod("RX") is None:

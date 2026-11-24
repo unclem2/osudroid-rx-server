@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 from objects.enums.ranked_status import RankedStatus
 
@@ -25,3 +25,7 @@ class ProcessorBeatmapModel(BaseModel):
     status: RankedStatus | None = RankedStatus.Pending
 
     model_config = ConfigDict(from_attributes=True)
+
+    @field_serializer("last_update")
+    def serialize_last_update(self, last_update: datetime) -> str:
+        return last_update.isoformat()

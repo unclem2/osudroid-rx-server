@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}{{ beatmap.full }} — Beatmap{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+  <div class="rounded-2xl overflow-hidden mb-6" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+    <div class="h-48 bg-cover bg-center" style="background-image:linear-gradient(rgba(13,17,23,0.15),rgba(30,37,53,0.95)),url('{{ beatmap.map_cover }}')"></div>
+    <div class="px-6 pb-5">
+      <h1 class="text-2xl font-bold">{{ beatmap.full }}</h1>
+      <div class="text-sm mt-1" style="color:rgba(221,226,236,0.55)">by {{ beatmap.creator }}</div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <div class="lg:col-span-2 space-y-5">
+      <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="flex items-center justify-between mb-4">
+          <div class="text-xs uppercase tracking-wide" style="color:rgba(221,226,236,0.45)">Mods</div>
+          <div class="flex gap-2">
+            <button id="update-leaderboard" class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:#161c27;color:#dde2ec;border:1px solid rgba(93,142,240,0.25)">
+              Update leaderboard
+            </button>
+            <button id="calculate-beatmap" class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:#5b8ef0;color:#fff;border:none">
+              Calculate
+            </button>
+          </div>
+        </div>
+        <div id="beatmap-mods" class="mod-selector" data-selected=""></div>
+      </div>
+
+      <div class="rounded-2xl overflow-hidden" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="px-5 py-4 border-b" style="border-color:rgba(93,142,240,0.12)">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="w-1 h-6 rounded-full" style="background:#fbbf24"></div>
+            <h2 class="text-lg font-bold">Leaderboard</h2>
+            <span id="leaderboard-count" class="text-sm" style="color:rgba(221,226,236,0.4)">0</span>
+          </div>
+        </div>
+        <div id="leaderboard-list" class="divide-y" style="border-color:rgba(93,142,240,0.08)">
+          <div class="py-10 text-center text-sm" style="color:rgba(221,226,236,0.4)">Loading leaderboard...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="space-y-5">
+      <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="text-xs uppercase tracking-wide mb-4" style="color:rgba(221,226,236,0.45)">Difficulty</div>
+        <div id="difficulty-data" class="grid grid-cols-2 gap-3 text-sm" style="color:rgba(221,226,236,0.45)">Loading...</div>
+        <div class="mt-4 pt-4 border-t flex items-center justify-between" style="border-color:rgba(93,142,240,0.12)">
+          <span class="text-xs uppercase" style="color:rgba(221,226,236,0.45)">PP for SS</span>
+          <span id="ss-pp" class="text-xl font-bold" style="color:#fbbf24">-</span>
+        </div>
+        <div id="pp-details" class="mt-3 space-y-2 text-sm" style="color:rgba(221,226,236,0.45)">Loading PP details...</div>
+      </div>
+
+      <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="text-xs uppercase tracking-wide mb-3" style="color:rgba(221,226,236,0.45)">Beatmap info</div>
+        <div class="space-y-2 text-sm">
+          <div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">BPM</span><span id="base-bpm" class="font-bold">{{ "%.1f"|format(beatmap.bpm) }}</span></div>
+          <div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Length</span><span class="font-bold">{{ beatmap.total_length // 60 }}:{{ "%02d"|format(beatmap.total_length % 60) }}</span></div>
+          <div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Max combo</span><span class="font-bold">{{ beatmap.max_combo }}x</span></div>
+          <div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Beatmap ID</span><span class="font-bold">{{ beatmap.id }}</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BEATMAP_ID = {{ beatmap.id }};
+const BEATMAP_MD5 = {{ beatmap.md5|tojson }};
+
+function number(value, digits) {
+  return Number(value || 0).toFixed(digits);
+}
+
+function renderBeatmap(result) {
+  var beatmap = result.bmap || {};
+  var star = beatmap.star || {};
+  var attributes = beatmap.attributes || {};
+  var pp = result.pp_attributes || {};
+  document.getElementById('ss-pp').textContent = number(pp.total, 2) + 'pp';
+  document.getElementById('pp-details').innerHTML =
+    '<div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Aim</span><span class="font-bold" style="color:#fff">' + number(pp.aim, 2) + 'pp</span></div>' +
+    '<div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Speed</span><span class="font-bold" style="color:#fff">' + number(pp.speed, 2) + 'pp</span></div>' +
+    '<div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Accuracy</span><span class="font-bold" style="color:#fff">' + number(pp.acc, 2) + 'pp</span></div>' +
+    '<div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Flashlight</span><span class="font-bold" style="color:#fff">' + number(pp.flashlight, 2) + 'pp</span></div>' +
+    '<div class="flex justify-between"><span style="color:rgba(221,226,236,0.45)">Reading</span><span class="font-bold" style="color:#fff">' + number(pp.reading, 2) + 'pp</span></div>';
+  document.getElementById('difficulty-data').innerHTML =
+    '<div><span>Stars</span><div class="font-bold" style="color:#fbbf24">' + number(star.total, 2) + '</div></div>' +
+    '<div><span>Aim</span><div class="font-bold" style="color:#fff">' + number(star.aim, 2) + '</div></div>' +
+    '<div><span>Speed</span><div class="font-bold" style="color:#fff">' + number(star.speed, 2) + '</div></div>' +
+    '<div><span>Flashlight</span><div class="font-bold" style="color:#fff">' + number(star.flashlight, 2) + '</div></div>' +
+    '<div><span>Reading</span><div class="font-bold" style="color:#fff">' + number(star.reading, 2) + '</div></div>' +
+    '<div><span>CS</span><div class="font-bold" style="color:#fff">' + number(attributes.cs, 1) + '</div></div>' +
+    '<div><span>AR</span><div class="font-bold" style="color:#fff">' + number(attributes.ar, 1) + '</div></div>' +
+    '<div><span>OD</span><div class="font-bold" style="color:#fff">' + number(attributes.od, 1) + '</div></div>' +
+    '<div><span>HP</span><div class="font-bold" style="color:#fff">' + number(attributes.hp, 1) + '</div></div>' +
+    '<div><span>Clock rate</span><div class="font-bold" style="color:#fff">' + number(attributes.clock_rate, 3) + 'x</div></div>';
+}
+
+function collectMods() {
+  var selected = window.ModSelector.collect(document.getElementById('beatmap-mods'));
+  if (selected.length === 1 && selected[0].acronym === 'NM') return [];
+  if (selected.length > 1) selected = selected.filter(function(mod) { return mod.acronym !== 'NM'; });
+  return selected;
+}
+
+function collectModAcronyms() {
+  var selected = window.ModSelector.acronyms(document.getElementById('beatmap-mods'));
+  if (selected.includes('NM') && selected.length > 1) {
+    selected = selected.filter(function(mod) { return mod !== 'NM'; });
+  }
+  return selected;
+}
+
+function gradeColor(grade) {
+  if (grade === 'XH' || grade === 'SH') return '#cbd5e1';
+  if (grade === 'SS' || grade === 'S' || grade === 'X') return '#fbbf24';
+  if (grade === 'A') return '#4ade80';
+  if (grade === 'B') return '#60a5fa';
+  if (grade === 'C') return '#fb923c';
+  return '#f87171';
+}
+
+function displayGrade(grade) {
+  if (grade === 'XH') return 'SS';
+  if (grade === 'SH') return 'S';
+  return grade;
+}
+
+async function updateLeaderboard() {
+  var list = document.getElementById('leaderboard-list');
+  var count = document.getElementById('leaderboard-count');
+  list.innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(221,226,236,0.4)">Loading leaderboard...</div>';
+  var mods = collectModAcronyms();
+  var modEntries = collectMods();
+  var url = '/api/beatmap_leaderboard?bid=' + BEATMAP_ID;
+  if (mods.length) {
+    url += '&mods=' + encodeURIComponent(JSON.stringify(modEntries));
+  }
+  try {
+    var response = await fetch(url);
+    var result = await response.json();
+    if (result.status !== 'success' || !Array.isArray(result.data)) {
+      count.textContent = '0';
+      list.innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(221,226,226,0.4)">Leaderboard unavailable</div>';
+      return;
+    }
+    var scores = result.data;
+    count.textContent = scores.length;
+    if (!scores.length) {
+      list.innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(221,226,236,0.4)">No scores found</div>';
+      return;
+    }
+    list.innerHTML = scores.map(function(score, index) {
+      var modsText = score.standard_mods || '';
+      var playerName = score.player && score.player.username ? score.player.username : 'Unknown player';
+      var playerId = score.player_id || (score.player && score.player.id) || 0;
+      return '<div class="flex items-center gap-3 px-4 py-3 hover:bg-white/5 cursor-pointer" onclick="window.location=\'/user/score?id=' + score.id + '\'">' +
+        '<div class="w-8 text-center text-sm font-bold" style="color:rgba(221,226,236,0.45)">#' + (index + 1) + '</div>' +
+        '<div class="w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold" style="background:rgba(93,142,240,0.1);color:' + gradeColor(score.grade) + '">' + displayGrade(score.grade) + '</div>' +
+        '<div class="flex-1 min-w-0">' +
+          '<a href="/user/profile?id=' + playerId + '" class="text-sm font-medium hover:underline" onclick="event.stopPropagation()">' + playerName + '</a>' +
+          '<div class="text-xs mt-0.5" style="color:rgba(221,226,236,0.4)">' + (modsText ? modsText + ' &bull; ' : '') + score.max_combo + 'x</div>' +
+        '</div>' +
+        '<div class="text-right">' +
+          '<div class="text-sm font-bold" style="color:#5b8ef0">' + Number(score.pp || 0).toFixed(2) + 'pp</div>' +
+          '<div class="text-xs" style="color:#34d399">' + Number(score.accuracy || 0).toFixed(2) + '%</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  } catch (error) {
+    count.textContent = '0';
+    list.innerHTML = '<div class="py-10 text-center text-sm" style="color:rgba(221,226,236,0.4)">Leaderboard unavailable</div>';
+  }
+}
+
+async function calculateBeatmap() {
+  var element = document.getElementById('difficulty-data');
+  element.textContent = 'Calculating...';
+  try {
+    var response = await fetch('/api/calculate/full', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        md5: BEATMAP_MD5,
+        acc: 100,
+        miss: 0,
+        combo: null,
+        h300: null,
+        h100: null,
+        h50: null,
+        hgeki: null,
+        hkatsu: null,
+        mods: collectMods()
+      })
+    });
+    var result = await response.json();
+    if (result.status === 'success' && result.data) renderBeatmap(result.data);
+    else element.textContent = 'Calculation unavailable';
+  } catch (error) {
+    element.textContent = 'Calculation failed';
+  }
+}
+
+document.getElementById('calculate-beatmap').addEventListener('click', calculateBeatmap);
+document.getElementById('update-leaderboard').addEventListener('click', updateLeaderboard);
+calculateBeatmap();
+updateLeaderboard();
+</script>
+{% endblock %}

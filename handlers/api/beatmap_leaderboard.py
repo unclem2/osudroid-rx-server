@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Depends, Query
 
 from handlers.response import ApiResponse
+from objects.dependencies.mods import get_modlist
 from objects.dependencies.services import get_beatmap_service, get_score_service
 from objects.services.beatmap import BeatmapService
 from objects.services.score import ScoreService
@@ -13,6 +14,7 @@ router = APIRouter()
 async def beatmap_leaderboard(
     md5: str | None = Query(None),
     bid: int | None = Query(None),
+    modlist=Depends(get_modlist),
     beatmap_service: BeatmapService = Depends(get_beatmap_service),
     score_service: ScoreService = Depends(get_score_service),
 ):
@@ -29,5 +31,9 @@ async def beatmap_leaderboard(
     if beatmap is None:
         return ApiResponse.not_found("Beatmap not found")
 
-    leaderboard = await score_service.beatmap_scores(beatmap.md5)
+    leaderboard = await score_service.beatmap_scores(
+        beatmap.md5,
+        mods=modlist,
+        order_by="pp",
+    )
     return ApiResponse.ok(leaderboard)

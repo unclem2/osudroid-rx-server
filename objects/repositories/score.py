@@ -31,15 +31,26 @@ class ScoreRepository:
         score = await self.session.get(ScoreSchema, score_id)
         return self._serizalize(score) if score else None
 
-    async def beatmap_scores(self, beatmap_md5: str, order_by: str = "score", limit: int = 100) -> list[ScoreModel]:
+    async def beatmap_scores(
+        self,
+        beatmap_md5: str,
+        order_by: str = "score",
+        limit: int = 100,
+        mods: ModList | None = None,
+    ) -> list[ScoreModel]:
         if order_by not in ALLOWED_ORDER_BY:
             order_by = "score"
         stmt = (
             select(ScoreSchema)
             .where(ScoreSchema.md5 == beatmap_md5, ScoreSchema.status == ScoreStatus.BEST)
             .order_by(getattr(ScoreSchema, order_by).desc())
-            .limit(limit)
         )
+        if mods is not None:
+            mods_jsonb = cast(ScoreSchema.mods, JSONB)
+            stmt = stmt.where(func.jsonb_array_length(mods_jsonb) == len(mods.mods))
+            if mods.mods:
+                stmt = stmt.where(mods_jsonb.contains(cast(mods.as_calculable_mods, JSONB)))
+        stmt = stmt.limit(limit)
 
         result = await self.session.execute(stmt)
         scores = result.scalars().all()

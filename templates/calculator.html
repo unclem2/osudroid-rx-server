@@ -50,58 +50,7 @@
         <!-- Mods -->
         <div>
           <div class="text-xs uppercase tracking-wide mb-2" style="color:rgba(221,226,236,0.45)">Mods</div>
-          <div class="space-y-2" id="mods-group">
-            <div class="flex flex-wrap gap-1.5">
-              <label class="mod-chip"><input type="checkbox" value="HD"><span>HD</span></label>
-              <label class="mod-chip"><input type="checkbox" value="HR"><span>HR</span></label>
-              <label class="mod-chip"><input type="checkbox" value="DT"><span>DT</span></label>
-              <label class="mod-chip"><input type="checkbox" value="NC"><span>NC</span></label>
-              <label class="mod-chip"><input type="checkbox" value="HT"><span>HT</span></label>
-              <label class="mod-chip"><input type="checkbox" value="FL"><span>FL</span></label>
-              <label class="mod-chip"><input type="checkbox" value="EZ"><span>EZ</span></label>
-              <label class="mod-chip"><input type="checkbox" value="NF"><span>NF</span></label>
-              <label class="mod-chip"><input type="checkbox" value="SD"><span>SD</span></label>
-              <label class="mod-chip"><input type="checkbox" value="PF"><span>PF</span></label>
-              <label class="mod-chip"><input type="checkbox" value="RX"><span>RX</span></label>
-              <label class="mod-chip"><input type="checkbox" value="AP"><span>AP</span></label>
-              <label class="mod-chip"><input type="checkbox" value="V2"><span>V2</span></label>
-              <label class="mod-chip"><input type="checkbox" value="DA"><span>DA</span></label>
-              <label class="mod-chip"><input type="checkbox" value="CS"><span>CS</span></label>
-              <label class="mod-chip"><input type="checkbox" value="WU"><span>WU</span></label>
-              <label class="mod-chip"><input type="checkbox" value="WD"><span>WD</span></label>
-              <label class="mod-chip"><input type="checkbox" value="AT"><span>AT</span></label>
-              <label class="mod-chip"><input type="checkbox" value="RE"><span>RE</span></label>
-              <label class="mod-chip"><input type="checkbox" value="PR"><span>PR</span></label>
-              <label class="mod-chip"><input type="checkbox" value="TC"><span>TC</span></label>
-              <label class="mod-chip"><input type="checkbox" value="MR"><span>MR</span></label>
-              <label class="mod-chip"><input type="checkbox" value="RD"><span>RD</span></label>
-              <label class="mod-chip"><input type="checkbox" value="AD"><span>AD</span></label>
-              <label class="mod-chip"><input type="checkbox" value="FR"><span>FR</span></label>
-              <label class="mod-chip"><input type="checkbox" value="MU"><span>MU</span></label>
-              <label class="mod-chip"><input type="checkbox" value="SY"><span>SY</span></label>
-            </div>
-
-            <!-- DA settings -->
-            <div id="da-settings" class="hidden grid grid-cols-2 gap-2 pt-1">
-              <div>
-                <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">DA CS</div>
-                <input id="da-cs" type="number" step="0.1" min="0" max="10" placeholder="e.g. 4"
-                       class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
-              </div>
-              <div>
-                <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">DA OD</div>
-                <input id="da-od" type="number" step="0.1" min="0" max="10" placeholder="e.g. 9"
-                       class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
-              </div>
-            </div>
-
-            <!-- Custom speed rate -->
-            <div id="cs-settings" class="hidden pt-1">
-              <div class="text-[10px] mb-1" style="color:rgba(221,226,236,0.4)">CS RATE MULTIPLIER (e.g. 1.5)</div>
-              <input id="cs-rate" type="number" step="0.05" min="0.5" max="3" placeholder="1.5"
-                     class="w-full px-2 py-1.5 rounded text-sm outline-none" style="background:#161c27;border:1px solid rgba(93,142,240,0.2);color:#dde2ec">
-            </div>
-          </div>
+          <div id="mods-group" class="mod-selector" data-selected=""></div>
         </div>
 
         <!-- Score inputs -->
@@ -244,29 +193,6 @@
   .calc-input::-webkit-outer-spin-button, .calc-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .calc-input[type=number] { -moz-appearance: textfield; }
 
-  .mod-chip {
-    cursor: pointer;
-    user-select: none;
-  }
-  .mod-chip input { display: none; }
-  .mod-chip span {
-    display: inline-block;
-    padding: 5px 11px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: #161c27;
-    color: rgba(221,226,236,0.55);
-    border: 1px solid rgba(93,142,240,0.15);
-    transition: all 0.12s;
-  }
-  .mod-chip input:checked + span {
-    background: rgba(93,142,240,0.2);
-    color: #5b8ef0;
-    border-color: #5b8ef0;
-  }
-  .mod-chip:hover span { border-color: rgba(93,142,240,0.5); }
-
   .pp-bar {
     display: grid;
     grid-template-columns: 62px 1fr 48px;
@@ -321,16 +247,6 @@
   }
   tabMd5.addEventListener('click', function () { setTab('md5'); });
   tabBid.addEventListener('click', function () { setTab('bid'); });
-
-  // ----- mods -----
-  document.querySelectorAll('#mods-group input[type=checkbox]').forEach(function (cb) {
-    cb.addEventListener('change', function () {
-      document.getElementById('da-settings').classList.toggle('hidden',
-        !document.querySelector('#mods-group input[value=DA]').checked);
-      document.getElementById('cs-settings').classList.toggle('hidden',
-        !document.querySelector('#mods-group input[value=CS]').checked);
-    });
-  });
 
   // ----- "use hits" helper: switch to hits-based calc -----
   document.getElementById('use-hits').addEventListener('click', function () {
@@ -390,23 +306,7 @@
   }
 
   function collectMods() {
-    var mods = [];
-    document.querySelectorAll('#mods-group input[type=checkbox]:checked').forEach(function (cb) {
-      var entry = { acronym: cb.value };
-      if (cb.value === 'DA') {
-        var settings = {};
-        var cs = num('da-cs'), od = num('da-od');
-        if (cs !== null) settings.cs = { original: cs, adjusted: cs };
-        if (od !== null) settings.od = { original: od, adjusted: od };
-        if (Object.keys(settings).length) entry.settings = settings;
-      }
-      if (cb.value === 'CS') {
-        var rate = num('cs-rate');
-        if (rate !== null) entry.settings = { rateMultiplier: rate };
-      }
-      mods.push(entry);
-    });
-    return mods;
+    return window.ModSelector.collect(document.getElementById('mods-group'));
   }
 
   // ----- calculate -----

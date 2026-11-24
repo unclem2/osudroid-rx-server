@@ -1,6 +1,8 @@
 import asyncio
 import logging
+from itertools import starmap
 
+from config import Config
 from objects.clients.processor import ProcessorClient
 from objects.db import sessionmaker
 from objects.enums.score_status import ScoreStatus
@@ -13,12 +15,11 @@ from objects.repositories.score import ScoreRepository
 from objects.services.beatmap import BeatmapService
 from objects.services.player import PlayerService
 from objects.services.score import ScoreService
-from config import Config
 
 logger = logging.getLogger(__name__)
 
-_PROCESSOR_CONCURRENCY = 8
-_MAP_CONCURRENCY = 4
+_PROCESSOR_CONCURRENCY = 16
+_MAP_CONCURRENCY = 16
 
 
 def is_ranked(score: ScoreModel) -> bool:
@@ -72,7 +73,6 @@ class RecalcService:
                 "total_scores": total_scores_count,
             }
 
-
     async def _calculate_pp(self, score: ScoreModel):
         async with self._semaphore:
             if is_ranked(score):
@@ -120,16 +120,16 @@ class RecalcService:
             if not all_scores:
                 return set()
 
-            beatmap = await beatmap_service.from_md5_api(md5)
-            if not beatmap:
-                score_updates = {}
-                affected = set()
-                for score in all_scores:
-                    score_updates.setdefault(score.id, {})
-                    affected.add(score.player_id)
-                    score_updates[score.id]["status"] = ScoreStatus.DELISTED
-                await score_repo.batch_update(score_updates)
-                return affected
+            # beatmap = await beatmap_service.from_md5_api(md5)
+            # if not beatmap:
+            #     score_updates = {}
+            #     affected = set()
+            #     for score in all_scores:
+            #         score_updates.setdefault(score.id, {})
+            #         affected.add(score.player_id)
+            #         score_updates[score.id]["status"] = ScoreStatus.DELISTED
+            #     await score_repo.batch_update(score_updates)
+            #     return affected
 
             # Calculate PP
             results = await asyncio.gather(
@@ -212,10 +212,9 @@ class RecalcService:
 
         logger.info("Current pp_version: %s", current_version)
 
-        
         affected_players = await self._recalc_all_scores(current_version)
         await self._update_all_stats(affected_players)
-        await self._recalc_all_beatmaps(current_version)
+        # await self._recalc_all_beatmaps(current_version)
 
         elapsed = asyncio.get_event_loop().time() - start
         logger.info("=== Recalculation finished in %.2fs ===", elapsed)
@@ -277,7 +276,7 @@ class RecalcService:
                     logger.info("Scores: %d/%d", completed, total_maps)
 
         await asyncio.gather(
-            *(_process_map(md5, scores) for md5, scores in by_md5.items())
+            *starmap(_process_map, by_md5.items()),
         )
 
         logger.info("Affected %d players across %d maps.", len(affected_players), total_maps)

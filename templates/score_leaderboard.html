@@ -10,15 +10,9 @@
   </div>
 
   <div class="rounded-2xl p-4 mb-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
-    <form id="score-mods-filter" method="get" action="/user/score_leaderboard" class="flex flex-wrap items-center gap-1.5">
-      {% set mod_choices = ['NM','HD','HR','DT','NC','HT','FL','EZ','NF','SD','PF','RX','AP','V2','DA','CS','WU','WD','AT','RE','PR','TC','MR','RD','AD','FR','MU','SY'] %}
+    <form id="score-mods-filter" method="get" action="/user/score_leaderboard" class="flex flex-wrap items-center gap-3">
       <span class="text-xs mr-1" style="color:rgba(221,226,236,0.45)">Mods</span>
-      {% for mod in mod_choices %}
-      <label class="score-mod-chip">
-        <input type="checkbox" value="{{ mod }}" {% if mod in selected_mods %}checked{% endif %}>
-        <span>{{ mod }}</span>
-      </label>
-      {% endfor %}
+      <div id="score-mod-selector" class="mod-selector" data-selected="{{ selected_mods|join(',') }}"></div>
       <button type="submit" class="px-3 py-1.5 rounded-lg text-xs font-semibold" style="background:#5b8ef0;color:#fff;border:none">Apply</button>
       {% if selected_mods %}
       <a href="/user/score_leaderboard" class="px-3 py-1.5 rounded-lg text-xs" style="background:#161c27;color:rgba(221,226,236,0.6);border:1px solid rgba(93,142,240,0.15)">Clear</a>
@@ -40,7 +34,7 @@
         <tbody>
           {% for score in top_scores %}
           <tr class="border-b transition-colors hover:bg-white/5 cursor-pointer" style="border-color:rgba(93,142,240,0.08)"
-              onclick="window.location='/user/profile?id={{ score.player_id }}'">
+              onclick="window.location='/user/score?id={{ score.id }}'">
             <td class="px-4 py-3">
               {% if loop.index == 1 %}<span style="color:#fbbf24">🥇</span>
               {% elif loop.index == 2 %}<span style="color:#94a3b8">🥈</span>
@@ -66,30 +60,17 @@
   </div>
 </div>
 
-<style>
-  .score-mod-chip { cursor:pointer; user-select:none; }
-  .score-mod-chip input { display:none; }
-  .score-mod-chip span {
-    display:inline-block; padding:5px 11px; border-radius:8px; font-size:12px; font-weight:600;
-    background:#161c27; color:rgba(221,226,236,0.55); border:1px solid rgba(93,142,240,0.15);
-  }
-  .score-mod-chip input:checked + span {
-    background:rgba(93,142,240,0.2); color:#5b8ef0; border-color:#5b8ef0;
-  }
-</style>
-
 <script>
   document.getElementById('score-mods-filter').addEventListener('submit', function(event) {
     event.preventDefault();
-    var selected = Array.from(this.querySelectorAll('input:checked')).map(function(input) {
-      return input.value;
-    });
-    if (selected.includes('NM') && selected.length > 1) {
-      selected = selected.filter(function(mod) { return mod !== 'NM'; });
-    }
+    var selector = document.getElementById('score-mod-selector');
+    var modEntries = window.ModSelector.collect(selector);
     var url = new URL(window.location.href);
-    if (selected.length) url.searchParams.set('mods', selected.join(','));
-    else url.searchParams.delete('mods');
+    if (modEntries.length) {
+      url.searchParams.set('mods', JSON.stringify(modEntries));
+    } else {
+      url.searchParams.delete('mods');
+    }
     window.location.href = url.pathname + url.search;
   });
 </script>

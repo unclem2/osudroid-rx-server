@@ -25,7 +25,7 @@ _RETRYABLE_ERRORS = (
     asyncio.TimeoutError,
 )
 
-_MAX_RETRIES = 3
+_MAX_RETRIES = 20
 
 
 class ProcessorClient:
@@ -153,6 +153,7 @@ class ProcessorClient:
     async def calculate_score(self, model: ScoreModel) -> ProcessorPerformanceAttributesModel | None:
         calc_req_model = ProcessorCalculateRequestModel(
             md5=model.md5,
+            acc=model.accuracy,
             miss=model.hmiss,
             combo=model.max_combo,
             h300=model.h300,
@@ -177,6 +178,36 @@ class ProcessorClient:
 
         response_model = ProcessorScoreModel.model_validate(data)
         return response_model.pp_attributes
+    
+    async def calculate_score_full(self, model: ScoreModel) -> ProcessorScoreModel | None:
+        calc_req_model = ProcessorCalculateRequestModel(
+            md5=model.md5,
+            acc=model.accuracy,
+            miss=model.hmiss,
+            combo=model.max_combo,
+            h300=model.h300,
+            h100=model.h100,
+            h50=model.h50,
+            hgeki=model.hgeki,
+            hkatsu=model.hkatsu,
+            slidertickhits=None if model.slidertickhits < 0 else model.slidertickhits,
+            sliderendhits=None if model.sliderendhits < 0 else model.sliderendhits,
+            sliderheadhits=None if model.sliderheadhits < 0 else model.sliderheadhits,
+            sliderrepeathits=None if model.sliderrepeathits < 0 else model.sliderrepeathits,
+            mods=model.mods.as_calculable_mods,
+        )
+
+        data = await self._request_with_retry(
+            "POST",
+            "/api/calculate/score/",
+            json=calc_req_model.model_dump(mode="json"),
+        )
+        if not data:
+            return None
+
+        response_model = ProcessorScoreModel.model_validate(data)
+        return response_model
+    
 
     async def get_pp_version(self) -> Any | None:
         return await self._request_with_retry("GET", "/metadata/pp_version")

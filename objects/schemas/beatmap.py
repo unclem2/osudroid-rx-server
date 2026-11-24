@@ -13,7 +13,7 @@ class BeatmapSchema(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
     set_id: Mapped[int] = mapped_column(nullable=False)
-    md5: Mapped[str] = mapped_column(nullable=False, index=True)
+    md5: Mapped[str] = mapped_column(primary_key=True, nullable=False, index=True)
     artist: Mapped[str] = mapped_column(nullable=False)
     title: Mapped[str] = mapped_column(nullable=False)
     version: Mapped[str] = mapped_column(nullable=False)

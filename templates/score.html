@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Score #{{ score.id }} — od!rx{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="w-1 h-7 rounded-full" style="background:#5b8ef0"></div>
+      <h1 class="text-2xl font-bold">Score Details</h1>
+    </div>
+    <a href="/api/upload/{{ score.id }}.odr" download
+       class="px-4 py-2 rounded-lg text-sm font-semibold"
+       style="background:rgba(93,142,240,0.15);color:#5b8ef0">
+      <i class="fas fa-download mr-2"></i>Download replay
+    </a>
+  </div>
+
+  <div class="space-y-5">
+      {% if beatmap %}
+      <div class="rounded-2xl overflow-hidden" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="h-40 bg-cover bg-center" style="background-image:linear-gradient(rgba(13,17,23,0.15),rgba(30,37,53,0.95)),url('{{ beatmap.map_cover }}')"></div>
+        <div class="px-5 pb-5">
+          {% set grade_upper = score.grade|upper %}
+          {% if grade_upper in ["XH", "SH"] %}
+            {% set grade_color = "#cbd5e1" %}
+            {% set grade_text = "SS" if grade_upper == "XH" else "S" %}
+          {% elif grade_upper in ["SS", "S", "X"] %}
+            {% set grade_color = "#fbbf24" %}
+            {% set grade_text = grade_upper %}
+          {% elif grade_upper == "A" %}
+            {% set grade_color = "#4ade80" %}
+            {% set grade_text = grade_upper %}
+          {% elif grade_upper == "B" %}
+            {% set grade_color = "#60a5fa" %}
+            {% set grade_text = grade_upper %}
+          {% elif grade_upper == "C" %}
+            {% set grade_color = "#fb923c" %}
+            {% set grade_text = grade_upper %}
+          {% else %}
+            {% set grade_color = "#f87171" %}
+            {% set grade_text = grade_upper %}
+          {% endif %}
+          <div class="flex flex-wrap items-center justify-between gap-3 py-4 border-b" style="border-color:rgba(93,142,240,0.12)">
+            <div class="flex flex-wrap items-center gap-2">
+              <a href="/user/profile?id={{ score.player_id }}" class="font-bold hover:underline" style="color:#5b8ef0">
+                {{ player.username if player else ("Player #" ~ score.player_id) }}
+              </a>
+              {% if player and player.pp_rank %}
+              <span class="text-sm" style="color:rgba(221,226,236,0.55)">#{{ player.pp_rank }}</span>
+              {% endif %}
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-sm">
+              <span class="rounded-lg px-2 py-1" style="background:rgba(251,191,36,0.12);color:#fbbf24">{{ score.standard_mods or "No mods" }}</span>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-end justify-between gap-3 pt-4">
+            <div>
+              <div class="text-lg font-bold">{{ beatmap.full }}</div>
+              <div class="text-sm mt-1" style="color:rgba(221,226,236,0.45)">by {{ beatmap.creator }}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-sm">
+              <div class="rounded-lg px-3 py-2 text-center" style="background:#161c27">
+                <div class="text-xs" style="color:rgba(221,226,236,0.45)">Grade</div>
+                <div class="font-bold" style="color:{{ grade_color }}">{{ grade_text }}</div>
+              </div>
+              <div class="rounded-lg px-3 py-2 text-center" style="background:#161c27">
+                <div class="text-xs" style="color:rgba(221,226,236,0.45)">Date</div>
+                <div class="font-bold">{{ score.date.strftime("%Y-%m-%d %H:%M") }}</div>
+              </div>
+            </div>
+          </div>
+          <a href="/beatmap?bid={{ beatmap.id }}" class="inline-block mt-3 text-sm hover:underline" style="color:#5b8ef0">
+            Open map <i class="fas fa-arrow-right ml-1 text-xs"></i>
+          </a>
+        </div>
+      </div>
+      {% else %}
+      {% set grade_upper = score.grade|upper %}
+      {% if grade_upper in ["XH", "SH"] %}
+        {% set grade_color = "#cbd5e1" %}
+        {% set grade_text = "SS" if grade_upper == "XH" else "S" %}
+      {% elif grade_upper in ["SS", "S", "X"] %}
+        {% set grade_color = "#fbbf24" %}
+        {% set grade_text = grade_upper %}
+      {% elif grade_upper == "A" %}
+        {% set grade_color = "#4ade80" %}
+        {% set grade_text = grade_upper %}
+      {% elif grade_upper == "B" %}
+        {% set grade_color = "#60a5fa" %}
+        {% set grade_text = grade_upper %}
+      {% elif grade_upper == "C" %}
+        {% set grade_color = "#fb923c" %}
+        {% set grade_text = grade_upper %}
+      {% else %}
+        {% set grade_color = "#f87171" %}
+        {% set grade_text = grade_upper %}
+      {% endif %}
+      <div class="rounded-2xl px-5 py-4 flex flex-wrap items-center justify-between gap-3" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="flex flex-wrap items-center gap-2">
+          <a href="/user/profile?id={{ score.player_id }}" class="font-bold hover:underline" style="color:#5b8ef0">
+            {{ player.username if player else ("Player #" ~ score.player_id) }}
+          </a>
+          {% if player and player.pp_rank %}
+          <span class="text-sm" style="color:rgba(221,226,236,0.55)">#{{ player.pp_rank }}</span>
+          {% endif %}
+        </div>
+        <div class="flex flex-wrap items-center gap-2 text-sm">
+          <span class="rounded-lg px-2 py-1" style="background:rgba(251,191,36,0.12);color:#fbbf24">{{ score.standard_mods or "No mods" }}</span>
+          <span class="rounded-lg px-2 py-1" style="background:#161c27;color:{{ grade_color }}">Grade {{ grade_text }}</span>
+          <span class="rounded-lg px-2 py-1" style="background:#161c27">{{ score.date.strftime("%Y-%m-%d %H:%M") }}</span>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="rounded-2xl p-5" style="background:#1e2535;border:1px solid rgba(93,142,240,0.2)">
+        <div class="text-xs uppercase tracking-wide mb-4" style="color:rgba(221,226,236,0.45)">Score stats</div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">Score</div>
+            <div class="text-lg font-bold">{{ "{:,}".format(score.score) }}</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">Accuracy</div>
+            <div class="text-lg font-bold" style="color:#a78bfa">{{ "%.2f"|format(score.accuracy) }}%</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">PP</div>
+            <div class="text-lg font-bold" style="color:#5b8ef0">{{ "%.2f"|format(score.pp) }}pp</div>
+          </div>
+          <div class="rounded-xl p-3 text-center" style="background:#161c27">
+            <div class="text-xs" style="color:rgba(221,226,236,0.4)">Max combo</div>
+            <div class="text-lg font-bold">{{ score.max_combo }}x</div>
+          </div>
+        </div>
+
+        <div class="border-t mt-5 pt-5" style="border-color:rgba(93,142,240,0.12)">
+          <div class="text-xs uppercase tracking-wide mb-4" style="color:rgba(221,226,236,0.45)">Hit results</div>
+          <div class="grid grid-cols-3 sm:grid-cols-6 gap-3 text-center">
+          <div><div class="text-xs" style="color:#60a5fa">300</div><div class="font-bold">{{ score.h300 }}</div></div>
+          <div><div class="text-xs" style="color:#4ade80">100</div><div class="font-bold">{{ score.h100 }}</div></div>
+          <div><div class="text-xs" style="color:#fbbf24">50</div><div class="font-bold">{{ score.h50 }}</div></div>
+          <div><div class="text-xs" style="color:#f87171">Miss</div><div class="font-bold">{{ score.hmiss }}</div></div>
+          <div><div class="text-xs" style="color:#60a5fa">Geki</div><div class="font-bold">{{ score.hgeki }}</div></div>
+          <div><div class="text-xs" style="color:#4ade80">Katsu</div><div class="font-bold">{{ score.hkatsu }}</div></div>
+          </div>
+          <div class="grid grid-cols-3 gap-3 text-center mt-4 text-sm">
+          <div><span style="color:rgba(221,226,236,0.4)">Slider tick</span><div class="font-bold">{{ "-" if score.slidertickhits < 0 else score.slidertickhits }}</div></div>
+          <div><span style="color:rgba(221,226,236,0.4)">Slider end</span><div class="font-bold">{{ "-" if score.sliderendhits < 0 else score.sliderendhits }}</div></div>
+          <div><span style="color:rgba(221,226,236,0.4)">Slider repeat</span><div class="font-bold">{{ "-" if score.sliderrepeathits < 0 else score.sliderrepeathits }}</div></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 border-t mt-5 pt-5" style="border-color:rgba(93,142,240,0.12)">
+          <div>
+          <div class="text-xs uppercase tracking-wide mb-3" style="color:rgba(221,226,236,0.45)">PP details</div>
+          <div id="pp-data" class="space-y-3 text-sm" style="color:rgba(221,226,236,0.45)">Loading processor data...</div>
+          </div>
+          {% if beatmap %}
+          <div>
+          <div class="text-xs uppercase tracking-wide mb-3" style="color:rgba(221,226,236,0.45)">Difficulty</div>
+          <div id="difficulty-data" class="grid grid-cols-2 gap-3 text-sm" style="color:rgba(221,226,236,0.45)">Loading map data...</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="border-t mt-5 pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm" style="border-color:rgba(93,142,240,0.12)">
+          <div><span style="color:rgba(221,226,236,0.45)">Status</span><div class="font-bold">{{ score.status }}</div></div>
+          <div><span style="color:rgba(221,226,236,0.45)">Score ID</span><div class="font-bold">#{{ score.id }}</div></div>
+        </div>
+      </div>
+  </div>
+</div>
+<script>
+const BEATMAP_MD5 = {{ score.md5|tojson }};
+const SCORE_MODS = JSON.parse({{ score.mods.as_json_string|tojson }});
+const SCORE_REQUEST = {{ {
+  'acc': score.accuracy,
+  'miss': score.hmiss,
+  'combo': score.max_combo,
+  'h300': score.h300,
+  'h100': score.h100,
+  'h50': score.h50,
+  'hgeki': score.hgeki,
+  'hkatsu': score.hkatsu,
+  'slidertickhits': None if score.slidertickhits < 0 else score.slidertickhits,
+  'sliderendhits': None if score.sliderendhits < 0 else score.sliderendhits,
+  'sliderheadhits': None if score.sliderheadhits < 0 else score.sliderheadhits,
+  'sliderrepeathits': None if score.sliderrepeathits < 0 else score.sliderrepeathits
+}|tojson }};
+
+function formatNumber(value, digits) {
+  return Number(value || 0).toFixed(digits);
+}
+
+function ppRow(label, value) {
+  return '<div class="flex items-center justify-between">' +
+    '<span style="color:rgba(221,226,236,0.55)">' + label + '</span>' +
+    '<span class="font-bold" style="color:#fff">' + formatNumber(value, 2) + '</span>' +
+  '</div>';
+}
+
+async function loadProcessorData() {
+  const ppElement = document.getElementById('pp-data');
+  const difficultyElement = document.getElementById('difficulty-data');
+
+  try {
+    const calculationResponse = await fetch('/api/calculate/full', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(Object.assign({
+        md5: BEATMAP_MD5,
+        mods: SCORE_MODS
+      }, SCORE_REQUEST))
+    });
+
+    const calculationResult = await calculationResponse.json();
+
+    if (calculationResult.status === 'success' && calculationResult.data) {
+      const result = calculationResult.data;
+      const pp = result.pp_attributes || {};
+      const beatmap = result.bmap || {};
+      const attributes = beatmap.attributes || {};
+      const star = beatmap.star || {};
+      ppElement.className = 'space-y-3 text-sm';
+      ppElement.innerHTML =
+        ppRow('Aim', pp.aim) +
+        ppRow('Speed', pp.speed) +
+        ppRow('Accuracy', pp.acc) +
+        ppRow('Flashlight', pp.flashlight) +
+        ppRow('Reading', pp.reading) +
+        ppRow('Total', pp.total) +
+        '<div class="border-t pt-3 flex items-center justify-between" style="border-color:rgba(93,142,240,0.12)">' +
+          '<span style="color:rgba(221,226,236,0.55)">Effective misscount</span>' +
+          '<span class="font-bold" style="color:#fff">' + formatNumber(pp.effective_miss_count, 2) + '</span>' +
+        '</div>';
+      let html =
+        '<div><span style="color:rgba(221,226,236,0.45)">Stars</span><div class="font-bold" style="color:#fbbf24">' + formatNumber(star.total, 2) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">Aim</span><div class="font-bold" style="color:#fff">' + formatNumber(star.aim, 2) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">Speed</span><div class="font-bold" style="color:#fff">' + formatNumber(star.speed, 2) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">Flashlight</span><div class="font-bold" style="color:#fff">' + formatNumber(star.flashlight, 2) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">Reading</span><div class="font-bold" style="color:#fff">' + formatNumber(star.reading, 2) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">CS</span><div class="font-bold" style="color:#fff">' + formatNumber(attributes.cs, 1) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">AR</span><div class="font-bold" style="color:#fff">' + formatNumber(attributes.ar, 1) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">OD</span><div class="font-bold" style="color:#fff">' + formatNumber(attributes.od, 1) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">HP</span><div class="font-bold" style="color:#fff">' + formatNumber(attributes.hp, 1) + '</div></div>' +
+        '<div><span style="color:rgba(221,226,236,0.45)">Clock rate</span><div class="font-bold" style="color:#fff">' + formatNumber(attributes.clock_rate, 3) + 'x</div></div>';
+      difficultyElement.innerHTML = html;
+    } else {
+      ppElement.textContent = 'Processor data unavailable';
+      difficultyElement.textContent = 'Processor map data unavailable';
+    }
+  } catch (error) {
+    ppElement.textContent = 'Processor request failed';
+    difficultyElement.textContent = 'Processor request failed';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', loadProcessorData);
+</script>
+{% endblock %}

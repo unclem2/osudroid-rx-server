@@ -153,7 +153,7 @@
 
 </div>
 
-<div id="score-modal" class="fixed inset-0 z-50 hidden" style="background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeScoreModal()">
+<div id="score-modal" class="fixed inset-0 z-50 hidden" style="display:none;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)" onclick="if(event.target===this)closeScoreModal()">
   <div class="absolute inset-0 flex items-center justify-center p-4" onclick="event.stopPropagation()">
     <div class="rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" style="background:#1e2535;border:1px solid rgba(93,142,240,0.25);box-shadow:0 25px 60px rgba(0,0,0,0.6)">
       <!-- Header -->
@@ -244,7 +244,11 @@
   </div>
 </div>
 
-<style>.score-hidden { display: none; }</style>
+<style>
+.score-hidden { display: none; }
+.score-menu { display: none; }
+.score-menu.open { display: block; }
+</style>
 
 <script>
 var PLAYER_ID = {{ player.id }};
@@ -354,11 +358,12 @@ function renderScore(score, index, isTop, hidden) {
   var rankHtml = isTop ? '<div class="w-7 flex-shrink-0 text-center text-xs font-bold" style="color:rgba(221,226,236,0.3)">#' + (index + 1) + '</div>' : '';
   var coverUrl = score.beatmap && score.beatmap.map_cover ? score.beatmap.map_cover : '';
   var mapFull = score.beatmap && score.beatmap.full ? score.beatmap.full : 'Unknown map';
+  var mapLink = score.beatmap && score.beatmap.id ? '/beatmap?bid=' + score.beatmap.id : '#';
   var hiddenClass = hidden ? ' score-hidden' : '';
 
   return '<div class="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors hover:bg-white/5 group cursor-pointer score-item' + hiddenClass + '"' +
     ' style="background:linear-gradient(rgba(30,37,53,0.85),rgba(30,37,53,0.85)),url(\'' + coverUrl + '\');background-size:cover;background-position:center;border:1px solid rgba(93,142,240,0.1)"' +
-    ' onclick="openScoreModal(JSON.parse(this.dataset.score))" data-score=\'' + JSON.stringify(score).replace(/'/g, "&#39;") + '\'>' +
+    ' onclick="window.location.href=\'' + mapLink + '\'" >' +
     rankHtml +
     '<div class="w-9 h-9 flex-shrink-0 flex items-center justify-center rounded-lg text-sm font-bold"' +
       ' style="background:rgba(93,142,240,0.1);color:' + gradeColor(score.grade) + '">' +
@@ -377,7 +382,28 @@ function renderScore(score, index, isTop, hidden) {
     '<div class="hidden sm:block flex-shrink-0 text-xs w-24 text-right" style="color:rgba(221,226,236,0.35)">' +
       timeAgo(score.date) +
     '</div>' +
+    '<div class="relative flex-shrink-0" onclick="event.stopPropagation()">' +
+      '<button type="button" onclick="toggleScoreMenu(this)" class="w-8 h-8 flex items-center justify-center rounded-lg transition-colors" style="background:rgba(221,226,236,0.06);border:none;color:rgba(221,226,236,0.65);cursor:pointer" aria-label="Score actions">' +
+        '<i class="fas fa-ellipsis-v"></i>' +
+      '</button>' +
+      '<div class="score-menu absolute right-0 top-full mt-1 w-44 rounded-xl overflow-hidden shadow-xl" style="background:#1e2535;border:1px solid rgba(93,142,240,0.22);z-index:40">' +
+        '<a href="/api/upload/' + score.id + '.odr" download class="block px-4 py-2.5 text-sm hover:bg-white/5" style="color:#dde2ec">' +
+          '<i class="fas fa-download mr-2 opacity-60"></i>Download replay' +
+        '</a>' +
+        '<a href="/user/score?id=' + score.id + '" class="block px-4 py-2.5 text-sm hover:bg-white/5" style="color:#dde2ec">' +
+          '<i class="fas fa-circle-info mr-2 opacity-60"></i>Score details' +
+        '</a>' +
+      '</div>' +
+    '</div>' +
   '</div>';
+}
+
+function toggleScoreMenu(button) {
+  var menu = button.nextElementSibling;
+  document.querySelectorAll('.score-menu.open').forEach(function(openMenu) {
+    if (openMenu !== menu) openMenu.classList.remove('open');
+  });
+  menu.classList.toggle('open');
 }
 
 function renderEmpty(type) {
@@ -460,6 +486,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeScoreModal();
+});
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.relative.flex-shrink-0')) {
+    document.querySelectorAll('.score-menu.open').forEach(function(menu) {
+      menu.classList.remove('open');
+    });
+  }
 });
 </script>
 {% endblock %}
